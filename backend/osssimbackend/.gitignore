@@ -1,1 +1,25 @@
-"osssim/" 
+osssim/
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+venv/
+env/
+
+# Local settings (if applicable)
+settings_local.py
+
+db.sqlite3
+*.sqlite3
+
+# Static and media files
+staticfiles/
+media/
+
+
+# API schema files (if generated manually)
+schema.yml
+schema.json
+
+# VS Code
+.vscode/
