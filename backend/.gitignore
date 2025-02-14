@@ -23,3 +23,6 @@ schema.json
 
 # VS Code
 .vscode/
+
+# Ignore environment variables
+.env

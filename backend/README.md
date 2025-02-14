@@ -59,5 +59,23 @@ After running the server, you can view the automatically generated **Swagger UI*
   python manage.py spectacular --color --file openapi-schema.yaml
   ```
 
-Happy Coding
 
+## Get a Quick Setup With Docker 
+1.  **Clone the github repo**  
+2.  **Change directory into the osssimbackend directory**  
+3.  **Build the docker image - make sure the Dockerfile is in the directory** :
+```sh
+      docker build -t osssim-django-api . 
+```
+
+4. **Run the container**: 
+```sh
+      docker run -p 8000:8000 osssim-django-api
+```
+
+5. **Go to the url below on your localhost to see the swagger-ui page**: 
+
+        http://127.0.0.1:8000/api/schema/swagger-ui/
+
+
+Happy Coding
