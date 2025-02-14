@@ -1,0 +1,22 @@
+from django.urls import path,include
+from .views import *
+
+
+from rest_framework import routers
+from . import views
+
+router = routers.DefaultRouter()
+
+router.register('users', views.UserViewSet)
+router.register('groups', views.GroupViewSet)
+
+
+urlpatterns = [
+    # path('list_items/', ItemListCreateView.as_view(), name='item-list'),
+    # path('update_items/<int:pk>/', ItemDetailView.as_view(), name='item-detail'),
+    # path('', include(router.urls)),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')), # authentication views added here (login,logout)
+
+    path('simulate/', ProcessOSSDataView.as_view(), name='simulate' )
+
+]

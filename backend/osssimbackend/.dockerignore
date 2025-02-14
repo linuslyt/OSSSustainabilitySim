@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyo
+*.log
+env/
+venv/
+osssim/
+node_modules/
+staticfiles/
+media/
