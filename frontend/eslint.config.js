@@ -1,13 +1,17 @@
-import js from '@eslint/js'
-import react from 'eslint-plugin-react'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import globals from 'globals'
+import globals from 'globals';
 
+import { default as js, default as pluginJs } from '@eslint/js';
+import { default as pluginReact, default as react } from 'eslint-plugin-react';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+
+import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
+
+/** @type {import('eslint').Linter.Config[]} */
 export default [
   { ignores: ['dist'] },
   {
-    files: ['**/*.{js,jsx}'],
+    files: ['**/*.{js,mjs,cjs,jsx}'],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
@@ -35,4 +39,7 @@ export default [
       ],
     },
   },
-]
+  pluginJs.configs.recommended,
+  pluginReact.configs.flat.recommended,
+  eslintPluginPrettierRecommended,
+];
