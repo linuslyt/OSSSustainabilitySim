@@ -8,3 +8,4 @@ osssim/
 node_modules/
 staticfiles/
 media/
+lstm_model/
