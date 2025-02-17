@@ -24,8 +24,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('simRestApi.urls')),  # Include API URLs
     # OpenAPI schema generation
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/schema/', SpectacularAPIView.as_view(),{'exclude_from_schema': True}, name='schema'),
     # Swagger UI
-    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'),{'exclude_from_schema': True}, name='swagger-ui'),
 
 ]

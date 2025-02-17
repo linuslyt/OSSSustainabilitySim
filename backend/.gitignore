@@ -14,7 +14,7 @@ db.sqlite3
 
 # Static and media files
 staticfiles/
-media/
+lstm_models/
 
 
 # API schema files (if generated manually)

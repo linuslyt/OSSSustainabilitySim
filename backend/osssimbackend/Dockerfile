@@ -1,5 +1,5 @@
 # Specification of the Docker image for the OSSSIM backend
-FROM python:3.10-slim
+FROM python:3.10
 
 # Set the working directory
 WORKDIR /app
