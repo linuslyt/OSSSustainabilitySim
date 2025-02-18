@@ -17,6 +17,10 @@ urlpatterns = [
     # path('', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')), # authentication views added here (login,logout)
 
-    path('simulate/', ProcessOSSDataView.as_view(), name='simulate' )
+    path('simulate/', PredictOSSSustainabilityView.as_view(), name='simulate' ),
+    path("listprojects/", ListProjectsView.as_view(), name="list-projects"),
+    path("gethistoricaldata/", HistoricalDataView.as_view(), name="gethistoricaldata"),
+    path('getprojectdetails/', ProjectPredictionHistoryView.as_view(), name='getprojectdetails'),
+
 
 ]

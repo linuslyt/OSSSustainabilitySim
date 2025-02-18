@@ -1,0 +1,26 @@
+{
+    "project_id": "218",
+    "status": "1",
+    "history": [
+        {
+            "active_devs": 33.0,
+            "num_commits": 538.0,
+            "num_files": 342.0,
+            "num_emails": 339.0,
+            "c_percentage": 0.7862453531598513,
+            "e_percentage": 0.5221238938053098,
+            "inactive_c": 0.2608695652173913,
+            "inactive_e": 0.2222222222222222,
+            "c_nodes": 8.0,
+            "c_edges": 9.0,
+            "c_c_coef": 0.35,
+            "c_mean_degree": 2.25,
+            "c_long_tail": 2.0,
+            "e_nodes": 28.0,
+            "e_edges": 82.0,
+            "e_c_coef": 0.5588108320251177,
+            "e_mean_degree": 5.857142857142857,
+            "e_long_tail": 10.0
+        }
+    ]
+}
