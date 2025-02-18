@@ -1,0 +1,26 @@
+{
+    "project_id": "308",
+    "status": "0",
+    "history": [
+        {
+            "active_devs": 3.0,
+            "num_commits": 26.0,
+            "num_files": 26.0,
+            "num_emails": 4.0,
+            "c_percentage": 1.0,
+            "e_percentage": 0.5,
+            "inactive_c": 0.0,
+            "inactive_e": 0.8,
+            "c_nodes": 0.0,
+            "c_edges": 0.0,
+            "c_c_coef": 0.0,
+            "c_mean_degree": 0.0,
+            "c_long_tail": 0.0,
+            "e_nodes": 5.0,
+            "e_edges": 3.0,
+            "e_c_coef": 0.0,
+            "e_mean_degree": 1.2,
+            "e_long_tail": 1.0
+        }
+    ]
+}

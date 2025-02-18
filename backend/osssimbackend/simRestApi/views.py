@@ -10,14 +10,26 @@ from rest_framework.response import Response
 from .models import Item
 from django.contrib.auth.models import Group, User
 from .serializers import *
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample, OpenApiParameter
+
+
 from .utils import predict
 import os
 
 from pathlib import Path
 ################################
+import json
+
+
+# Path to the JSON file
+ASFI_JSON_FILE_PATH = Path(__file__).parent / 'asfi_project_info/projects_list.json'
+
+PROJECT_PREDICTIONS_FILE = Path(__file__).parent / 'asfi_project_info/project_predictions.json'
 
 MODEL_DIR =  Path(__file__).parent / 'lstm_models/' # Directory where models are stored
+
+
+TEMPORAL_DATA_DIR = Path(__file__).parent /"asfi_project_info/project_temporal_json_data/"
 
 
 # List all items or create a new one
@@ -73,23 +85,78 @@ class GroupViewSet(viewsets.ModelViewSet):
     
 
 
-class ProcessOSSDataView(APIView):
+class PredictOSSSustainabilityView(APIView):
     @extend_schema(
         summary="Predict OSS Project Status using LSTM",
         description="""
             Accepts historical OSS project data (ranging from 1 to 29 months) and 
             processes it using a pre-trained LSTM model. The appropriate model is selected 
             based on the length of the input data. Returns the predicted project status 
-            ('Graduated' or 'Retired') along with the number of months used for the prediction.
+            ('sustainable' or 'Retired') along with the number of months used for the prediction.
         """,
         request=StatusPredictionInputSerializer,
+        examples=[
+            OpenApiExample(
+                "Valid Request Example",
+                description="A valid request with project_id and history of monthly data.",
+                value={
+                    "project_id": "project_123",
+                    "history": [
+                        {
+                            "active_devs": 10,
+                            "num_commits": 50,
+                            "num_files": 20,
+                            "num_emails": 15,
+                            "c_percentage": 0.7,
+                            "e_percentage": 0.3,
+                            "inactive_c": 5,
+                            "inactive_e": 2,
+                            "c_nodes": 30,
+                            "c_edges": 50,
+                            "c_c_coef": 0.6,
+                            "c_mean_degree": 2.5,
+                            "c_long_tail": 0.1,
+                            "e_nodes": 25,
+                            "e_edges": 40,
+                            "e_c_coef": 0.55,
+                            "e_mean_degree": 2.0,
+                            "e_long_tail": 0.05
+                        }
+                    ]
+                },
+                request_only=True
+            ),
+            OpenApiExample(
+                "Successful Response",
+                description="A successful response returning the predicted project status.",
+                value={
+                    "project_id": "project_123",
+                    "num_months": 1,
+                    "status": "Graduated"
+                },
+                response_only=True
+            ),
+            OpenApiExample(
+                "No Model Found",
+                description="Returned when no model is available for the given number of months.",
+                value={"error": "No model available for 30 months"},
+                response_only=True,
+                status_codes=["400"]
+            ),
+            OpenApiExample(
+                "Invalid Input",
+                description="Returned when the input format is incorrect.",
+                value={"error": "Invalid input format"},
+                response_only=True,
+                status_codes=["422"]
+            ),
+        ],
         responses={
             200: OpenApiResponse(
                 response={
                     "project_id": "string",
                     "num_months": "integer",
                     "status": "Graduated or Retired",
-                    "confidence": "list of probabilities"
                 },
                 description="Successful prediction response."
             ),
@@ -114,22 +181,18 @@ class ProcessOSSDataView(APIView):
 
         num_months = len(history)  # Get the number of months
         model_path = os.path.join(MODEL_DIR, f"model_{num_months}.h5")
-        print("Model Path: ", model_path)
 
         if not os.path.exists(model_path):
             return Response({"error": f"No model available for {num_months} months"}, status=400)
         
-        predicted_class = predict(history, model_path, num_months)
-        
-        print("Predicted Class: ", predicted_class) #{139 gives a retired correctly)}
-        
-        status = "Graduated" if predicted_class == 1 else "Retired"
+        predicted_class, confidence = predict(history, model_path, num_months)
+        status = "Sustainable (Likely to Graduate)" if predicted_class == 1 else "Not Sustainable (Likely to Retire)"
 
         return Response({
             "project_id": project_id,
             "num_months": num_months,
-            "status": status,
-            # "confidence": y_pred.tolist()
+            "status_prediction": status,
+            "confidence_score": round(confidence, 2)
         }, status=200)
 
         # serializer = OSSDataSerializer(data=request.data)
@@ -147,3 +210,569 @@ class ProcessOSSDataView(APIView):
 
 
 
+
+
+class ListProjectsView(APIView):
+    @extend_schema(
+        summary="Get All Projects",
+        description="Fetches all projects with project_id, project_name, and status (Graduated or Retired).",
+        responses={
+            200: OpenApiResponse(
+                response={
+                    "projects": [
+                        {
+                            "project_id": "1",
+                            "project_name": "Amaterasu",
+                            "status": "Retired"
+                        },
+                        {
+                            "project_id": "2",
+                            "project_name": "Annotator",
+                            "status": "Retired"
+                        }
+                    ]
+                },
+                description="List of all projects."
+            ),
+            500: OpenApiResponse(
+                response={"error": "Failed to read the JSON file"},
+                description="Returned if there is an error reading the JSON file."
+            ),
+        },
+        examples=[
+            OpenApiExample(
+                "Success Response",
+                description="List of projects with their names and statuses.",
+                value={
+                    "projects": [
+                        {
+                            "project_id": "1",
+                            "project_name": "Amaterasu",
+                            "status": "Retired"
+                        },
+                        {
+                            "project_id": "2",
+                            "project_name": "Annotator",
+                            "status": "Retired"
+                        }
+                    ]
+                },
+                response_only=True
+            )
+        ]
+    )
+    def get(self, request):
+        try:
+            # Read JSON file
+            with open(ASFI_JSON_FILE_PATH, "r", encoding="utf-8") as file:
+                data = json.load(file)
+
+            # Extract required information
+            projects = [
+                {
+                    "project_id": project_id,
+                    "project_name": details["listname"],
+                    "status": "Graduated" if details["status"] == 1 else "Retired"
+                }
+                for project_id, details in data.items()
+            ]
+
+            return Response({"projects": projects}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": "Failed to read the JSON file", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        
+        
+class HistoricalDataView(APIView):
+    @extend_schema(
+        summary="Retrieve Historical Project Data",
+        description="""
+            Fetches historical data for a given project ID over a specified number of months.
+            Data is retrieved from the appropriate folder based on the months requested.
+        """,
+        parameters=[
+            OpenApiParameter(name="project_id", description="Unique project identifier", required=True, type=str),
+            OpenApiParameter(name="num_months", description="Number of months of historical data", required=True, type=int),
+        ],
+        responses={
+            200: OpenApiResponse(
+                response={
+                    "project_id": "100",
+                    "project_name": "Amaterasu",
+                    "start_date": "9/7/2017",
+                    "end_date": "N/A",
+                    "history": [
+                        {
+                            "active_devs": 5.0,
+                            "num_commits": 332.0,
+                            "num_files": 239.0,
+                            "num_emails": 4.0,
+                            "c_percentage": 0.7620481927710844,
+                            "e_percentage": 0.5,
+                            "inactive_c": 0.2,
+                            "inactive_e": 0.0,
+                            "c_nodes": 2.0,
+                            "c_edges": 1.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 1.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 3.0,
+                            "e_edges": 2.0,
+                            "e_c_coef": 0.0,
+                            "e_mean_degree": 1.3333333333333333,
+                            "e_long_tail": 1.0
+                        },
+                        {
+                            "active_devs": 11.0,
+                            "num_commits": 365.0,
+                            "num_files": 200.0,
+                            "num_emails": 58.0,
+                            "c_percentage": 0.8246575342465754,
+                            "e_percentage": 0.3448275862068966,
+                            "inactive_c": 0.3928571428571428,
+                            "inactive_e": 0.1785714285714285,
+                            "c_nodes": 2.0,
+                            "c_edges": 1.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 1.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 10.0,
+                            "e_edges": 14.0,
+                            "e_c_coef": 0.2866666666666666,
+                            "e_mean_degree": 2.8,
+                            "e_long_tail": 5.0
+                        }
+                    ]
+                },
+                description="Successfully retrieved the historical data for the project."
+            ),
+            404: OpenApiResponse(
+                response={"error": "Project data not found for the given months"},
+                description="Returned when no historical data is found for the project with the specified number of months."
+            ),
+            400: OpenApiResponse(
+                response={"error": "Both project_id and num_months are required"},
+                description="Returned when either project_id or num_months is missing."
+            ),
+            500: OpenApiResponse(
+                response={"error": "Failed to load project metadata", "details": "error details"},
+                description="Returned when there is an issue with reading the project metadata or files."
+            )
+        },
+        
+        examples=[
+            OpenApiExample(
+                'Valid Response Example',
+                value={
+                    "project_id": "100",
+                    "project_name": "EasyAnt",
+                    "start_date": "1/31/2011",
+                    "end_date": "3/12/2013",
+                    "history": [
+                        {
+                        "active_devs": 5,
+                        "num_commits": 332,
+                        "num_files": 239,
+                        "num_emails": 4,
+                        "c_percentage": 0.7620481927710844,
+                        "e_percentage": 0.5,
+                        "inactive_c": 0.2,
+                        "inactive_e": 0,
+                        "c_nodes": 2,
+                        "c_edges": 1,
+                        "c_c_coef": 0,
+                        "c_mean_degree": 1,
+                        "c_long_tail": 0,
+                        "e_nodes": 3,
+                        "e_edges": 2,
+                        "e_c_coef": 0,
+                        "e_mean_degree": 1.3333333333333333,
+                        "e_long_tail": 1
+                        },
+                        {
+                        "active_devs": 11,
+                        "num_commits": 365,
+                        "num_files": 200,
+                        "num_emails": 58,
+                        "c_percentage": 0.8246575342465754,
+                        "e_percentage": 0.3448275862068966,
+                        "inactive_c": 0.3928571428571428,
+                        "inactive_e": 0.1785714285714285,
+                        "c_nodes": 2,
+                        "c_edges": 1,
+                        "c_c_coef": 0,
+                        "c_mean_degree": 1,
+                        "c_long_tail": 0,
+                        "e_nodes": 10,
+                        "e_edges": 14,
+                        "e_c_coef": 0.2866666666666666,
+                        "e_mean_degree": 2.8,
+                        "e_long_tail": 5
+                        }
+                    ]
+                    }
+            ),
+            OpenApiExample(
+                'Error Response Example (Project data not found)',
+                value={
+                    "error": "Project data not found for the given months"
+                }
+            ),
+            OpenApiExample(
+                'Error Response Example (Missing parameters)',
+                value={
+                    "error": "Both project_id and num_months are required"
+                }
+            )
+        ]
+    )
+    def get(self, request):
+        # Extract query parameters
+        project_id = request.query_params.get("project_id")
+        num_months = request.query_params.get("num_months")
+
+        # Validate input
+        if not project_id or not num_months:
+            return Response({"error": "Both project_id and num_months are required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            num_months = int(num_months)
+        except ValueError:
+            return Response({"error": "num_months must be an integer"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Construct path to the historical data folder
+        months_folder = f"N_{num_months}"
+        project_data_path = os.path.join(TEMPORAL_DATA_DIR, months_folder, f"{project_id}.json")
+
+        print("Project Data Path: ", project_data_path) # Debugging
+
+        # Check if project data file exists
+        if not os.path.exists(project_data_path):
+            return Response({"error": "Project data not found for the given months"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Load project metadata from projects.json
+        try:
+            with open(ASFI_JSON_FILE_PATH, "r", encoding="utf-8") as file:
+                projects_metadata = json.load(file)
+        except Exception as e:
+            return Response({"error": "Failed to load project metadata", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Get metadata for the requested project
+        project_info = projects_metadata.get(project_id)
+        if not project_info:
+            return Response({"error": "Project not found in metadata"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Load historical project data
+        try:
+            with open(project_data_path, "r", encoding="utf-8") as file:
+                project_history = json.load(file)
+        except Exception as e:
+            return Response({"error": "Failed to load project history", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Prepare response data
+        response_data = {
+            "project_id": project_id,
+            "project_name": project_info["listname"],
+            "start_date": project_info.get("start_date", "N/A"),
+            "end_date": project_info.get("end_date", "N/A"),
+            "history": project_history["history"]  # List of monthly data
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+    
+    
+   
+class ProjectPredictionHistoryView(APIView):
+    @extend_schema(
+        summary="Retrieve project details and prediction history",
+        description="Returns project details (name, start date, end date, status, GitHub URL, about information) and its LSTM prediction history.",
+        parameters=[
+            OpenApiParameter('project_id', str, description='The ID of the project to retrieve data for', required=True),
+        ],
+        responses={
+            200: OpenApiResponse(
+                response={
+                    "project_id": "100",
+                    "project_name": "Amaterasu",
+                    "start_date": "9/7/2017",
+                    "end_date": "N/A",
+                    "status": 1,
+                    "pj_github_url": "https://github.com/apache/incubator-Amaterasu",
+                    "intro": "Apache Amaterasu is a framework providing continuous deployment for Big Data pipelines.",
+                    "prediction_history": [
+                        {
+                            "month_1": {
+                                "prediction": 1,
+                                "confidence": 0.9411842823028564
+                            }
+                        },
+                        {
+                            "month_2": {
+                                "prediction": 1,
+                                "confidence": 0.9950122237205505
+                            }
+                        },
+                        {
+                            "month_3": {
+                                "prediction": 0,
+                                "confidence": 0.5624575614929199
+                            }
+                        }
+                    ]
+                },
+                description="Successfully retrieved the project details and prediction history."
+            ),
+            404: OpenApiResponse(
+                response={"error": "Project data not found"},
+                description="Returned when no project data is found for the given project ID."
+            ),
+            400: OpenApiResponse(
+                response={"error": "project_id is required"},
+                description="Returned when the project_id is missing from the request."
+            ),
+            500: OpenApiResponse(
+                response={"error": "Failed to load project data or prediction history", "details": "error details"},
+                description="Returned when there is an issue with reading the project data or prediction history."
+            )
+        },
+        examples=[
+            OpenApiExample(
+                'Valid Response Example',
+                value={
+                        "project_id": "100",
+                        "project_name": "EasyAnt",
+                        "start_date": "1/31/2011",
+                        "end_date": "3/12/2013",
+                        "status": 1,
+                        "pj_github_url": "https://github.com/apache/EasyAnt",
+                        "intro": "Easyant is a build system based on Apache Ant and Apache Ivy.\n\t\t \n\t   ",
+                        "sponsor": "Ant\n\t\t\n\t\t(Antoine LÃ©vy-Lambert)\n\t\t \n\t   ",
+                        "prediction_history": [
+                            {
+                            "month_1": {
+                                "prediction": 1,
+                                "confidence": 0.9411842823028564
+                            }
+                            },
+                            {
+                            "month_2": {
+                                "prediction": 1,
+                                "confidence": 0.9950122237205505
+                            }
+                            },
+                            {
+                            "month_3": {
+                                "prediction": 0,
+                                "confidence": 0.5624575614929199
+                            }
+                            },
+                            {
+                            "month_4": {
+                                "prediction": 1,
+                                "confidence": 0.9995812773704529
+                            }
+                            },
+                            {
+                            "month_5": {
+                                "prediction": 1,
+                                "confidence": 0.9994428753852844
+                            }
+                            },
+                            {
+                            "month_6": {
+                                "prediction": 1,
+                                "confidence": 0.9999662637710571
+                            }
+                            },
+                            {
+                            "month_7": {
+                                "prediction": 0,
+                                "confidence": 0.6313105225563049
+                            }
+                            },
+                            {
+                            "month_8": {
+                                "prediction": 0,
+                                "confidence": 0.999987006187439
+                            }
+                            },
+                            {
+                            "month_9": {
+                                "prediction": 0,
+                                "confidence": 0.8933027982711792
+                            }
+                            },
+                            {
+                            "month_10": {
+                                "prediction": 0,
+                                "confidence": 0.9999877214431763
+                            }
+                            },
+                            {
+                            "month_11": {
+                                "prediction": 1,
+                                "confidence": 0.9999721050262451
+                            }
+                            },
+                            {
+                            "month_12": {
+                                "prediction": 1,
+                                "confidence": 1
+                            }
+                            },
+                            {
+                            "month_13": {
+                                "prediction": 1,
+                                "confidence": 1
+                            }
+                            },
+                            {
+                            "month_14": {
+                                "prediction": 1,
+                                "confidence": 1
+                            }
+                            },
+                            {
+                            "month_15": {
+                                "prediction": 1,
+                                "confidence": 1
+                            }
+                            },
+                            {
+                            "month_16": {
+                                "prediction": 1,
+                                "confidence": 0.9999998807907104
+                            }
+                            },
+                            {
+                            "month_17": {
+                                "prediction": 1,
+                                "confidence": 0.9999997615814209
+                            }
+                            },
+                            {
+                            "month_18": {
+                                "prediction": 1,
+                                "confidence": 0.9997956156730652
+                            }
+                            },
+                            {
+                            "month_19": {
+                                "prediction": 1,
+                                "confidence": 1
+                            }
+                            },
+                            {
+                            "month_20": {
+                                "prediction": 1,
+                                "confidence": 0.9999998807907104
+                            }
+                            },
+                            {
+                            "month_21": {
+                                "prediction": 1,
+                                "confidence": 0.9999997615814209
+                            }
+                            },
+                            {
+                            "month_22": {
+                                "prediction": 1,
+                                "confidence": 0.9999529123306274
+                            }
+                            },
+                            {
+                            "month_23": {
+                                "prediction": 1,
+                                "confidence": 0.9999995231628418
+                            }
+                            },
+                            {
+                            "month_24": {
+                                "prediction": 1,
+                                "confidence": 0.9999923706054688
+                            }
+                            },
+                            {
+                            "month_25": {
+                                "prediction": 1,
+                                "confidence": 0.9999949932098389
+                            }
+                            },
+                            {
+                            "month_26": {
+                                "prediction": 1,
+                                "confidence": 0.9999703168869019
+                            }
+                            },
+                            {
+                            "month_27": {
+                                "prediction": 1,
+                                "confidence": 0.9999560117721558
+                            }
+                            }
+                        ]
+                        }
+            ),
+            OpenApiExample(
+                'Error Response Example (Missing project_id)',
+                value={
+                    "error": "project_id is required"
+                }
+            ),
+            OpenApiExample(
+                'Error Response Example (Project data not found)',
+                value={
+                    "error": "Project data not found"
+                }
+            )
+        ]
+    )
+    def get(self, request, *args, **kwargs):
+        
+        project_id = request.query_params.get('project_id')
+
+        if not project_id:
+            return Response({"error": "project_id is required"}, status=400)
+
+        try:
+             # Load project metadata from projects.json
+            with open(ASFI_JSON_FILE_PATH, "r", encoding="utf-8") as file:
+                projects_metadata = json.load(file)
+
+            # Get metadata for the requested project
+            project_info = projects_metadata.get(project_id)
+            if not project_info:
+                return Response({"error": "Project not found in metadata"}, status=status.HTTP_404_NOT_FOUND)
+
+            # Fetch the prediction history from project_predictions.json
+            predictions_file_path = PROJECT_PREDICTIONS_FILE
+            with open(predictions_file_path, 'r') as f:
+                predictions_data = json.load(f)
+
+            # Get prediction history for the project from predictions file
+            prediction_history = predictions_data.get(project_id, [])
+            if not prediction_history:
+                return Response({"error": "Project does not have prediction history"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({
+                "project_id": project_id,
+                "project_name": project_info["listname"],
+                "start_date": project_info["start_date"],
+                "end_date": project_info.get("end_date", "N/A"),
+                "status": project_info["status"],
+                "pj_github_url": project_info["pj_github_url"],
+                "intro": project_info["intro"],
+                "sponsor": project_info["sponsor"],
+                "prediction_history": prediction_history
+            }, status=200)
+
+        except FileNotFoundError:
+            return Response({"error": "Project data not found"}, status=404)
+        except Exception as e:
+            return Response({"error": "Failed to load project data or prediction history", "details": str(e)}, status=500)
+
+    
+    
+    
+    
+    
