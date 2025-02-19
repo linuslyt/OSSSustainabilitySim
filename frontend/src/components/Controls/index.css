@@ -13,3 +13,7 @@
 
 .month-range-select {
 }
+
+.toggle-button:focus {
+  outline: none;
+}

@@ -5,7 +5,8 @@ import Header from './components/Header/Header';
 
 function App() {
   const [projectId, setProjectId] = useState(null);
-  const [dashboardView, setDashboardView] = useState('1');
+  const [dashboardView, setDashboardView] = useState('explore');
+  const [nMonths, setNMonths] = useState('8'); // TODO: set to minimum # months
   return (
     <>
       <div className="root-grid">
@@ -15,7 +16,8 @@ function App() {
         <div className="controls">
           <Controls
             projectState={[projectId, setProjectId]}
-            dashboardState={[dashboardView, setDashboardView]}
+            dashboardViewState={[dashboardView, setDashboardView]}
+            nMonthsState={[nMonths, setNMonths]}
           />
         </div>
         <div className="forecast-graph"></div>
