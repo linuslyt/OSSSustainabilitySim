@@ -16,20 +16,45 @@
   grid-area: hd;
   background-color: lightgrey;
   height: 100%;
+  width: 100%;
 }
 
 .controls {
   grid-area: ctl;
+  height: 100%;
 }
 
 .forecast-graph {
   grid-area: fg;
+  height: 100%;
 }
 
-.card-1 {
+.card-1-container {
   grid-area: c1;
+  height: 100%;
+  padding: 1em;
+  box-sizing: border-box;
 }
 
-.card-2 {
+.card-2-container {
   grid-area: c2;
+  height: 100%;
+  padding: 1em;
+  box-sizing: border-box;
+}
+
+.project-details-card {
+  box-sizing: border-box;
+  height: 100%;
+  padding: 2em;
+  background-color: Linen;
+  border-radius: 8px;
+}
+
+.month-details-card {
+  box-sizing: border-box;
+  height: 100%;
+  padding: 2em;
+  background-color: Linen;
+  border-radius: 8px;
 }

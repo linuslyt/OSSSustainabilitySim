@@ -35,6 +35,9 @@ export default function ForecastGraph() {
   // }, [handleResize]);
 
   useEffect(() => {
+    // TODO: make graph span screen
+    // TODO: make graph scrollable
+    // TODO: make markers selectable
     const width = size.width,
       height = size.height,
       margin = { top: 50, right: 30, bottom: 50, left: 50 };

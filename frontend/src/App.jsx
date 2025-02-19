@@ -24,8 +24,12 @@ function App() {
         <div className="forecast-graph">
           <ForecastGraph />
         </div>
-        <div className="card-1"></div>
-        <div className="card-2"></div>
+        <div className="card-1-container">
+          <div className="project-details-card">Placeholder text</div>
+        </div>
+        <div className="card-2-container">
+          <div className="month-details-card">Placeholder text</div>
+        </div>
       </div>
     </>
   );
