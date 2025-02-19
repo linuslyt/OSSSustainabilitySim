@@ -1,0 +1,15 @@
+.controls-container {
+  margin: 1em;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.project-select {
+}
+
+.dashboard-mode-toggle {
+}
+
+.month-range-select {
+}

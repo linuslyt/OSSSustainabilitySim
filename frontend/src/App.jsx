@@ -1,15 +1,23 @@
 import React, { useState } from 'react';
 import './App.css';
+import Controls from './components/Controls/Controls';
 import Header from './components/Header/Header';
+
 function App() {
-  const [count, setCount] = useState(0);
+  const [projectId, setProjectId] = useState(null);
+  const [dashboardView, setDashboardView] = useState('1');
   return (
     <>
       <div className="root-grid">
         <div className="header">
           <Header />
         </div>
-        <div className="controls"></div>
+        <div className="controls">
+          <Controls
+            projectState={[projectId, setProjectId]}
+            dashboardState={[dashboardView, setDashboardView]}
+          />
+        </div>
         <div className="forecast-graph"></div>
         <div className="card-1"></div>
         <div className="card-2"></div>
