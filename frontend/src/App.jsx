@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './App.css';
 import Controls from './components/Controls/Controls';
+import ForecastGraph from './components/ForecastGraph/ForecastGraph';
 import Header from './components/Header/Header';
 
 function App() {
@@ -20,7 +21,9 @@ function App() {
             nMonthsState={[nMonths, setNMonths]}
           />
         </div>
-        <div className="forecast-graph"></div>
+        <div className="forecast-graph">
+          <ForecastGraph />
+        </div>
         <div className="card-1"></div>
         <div className="card-2"></div>
       </div>
