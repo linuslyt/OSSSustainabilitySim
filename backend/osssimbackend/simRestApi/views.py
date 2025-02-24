@@ -294,6 +294,7 @@ class HistoricalDataView(APIView):
         parameters=[
             OpenApiParameter(name="project_id", description="Unique project identifier", required=True, type=str),
             OpenApiParameter(name="num_months", description="Number of months of historical data", required=True, type=int),
+            OpenApiParameter(name="fields", description="Comma-separated list of fields to return (optional)", required=False, type=str),
         ],
         responses={
             200: OpenApiResponse(
@@ -431,7 +432,7 @@ class HistoricalDataView(APIView):
         # Extract query parameters
         project_id = request.query_params.get("project_id")
         num_months = request.query_params.get("num_months")
-
+        fields_param = request.query_params.get("fields")  
         # Validate input
         if not project_id or not num_months:
             return Response({"error": "Both project_id and num_months are required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -440,6 +441,9 @@ class HistoricalDataView(APIView):
             num_months = int(num_months)
         except ValueError:
             return Response({"error": "num_months must be an integer"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Parse fields if provided
+        requested_fields = set(fields_param.split(',')) if fields_param else None
 
         # Construct path to the historical data folder
         months_folder = f"N_{num_months}"
@@ -469,6 +473,17 @@ class HistoricalDataView(APIView):
                 project_history = json.load(file)
         except Exception as e:
             return Response({"error": "Failed to load project history", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # Filter fields if requested
+        filtered_history = []
+        for month in project_history.get("history", []):
+            if requested_fields:
+                # Ensure only existing fields are returned
+                filtered_entry = {field: month.get(field, None) for field in requested_fields}
+            else:
+                # Default: Include all fields
+                filtered_entry = month
+            filtered_history.append(filtered_entry)
 
         # Prepare response data
         response_data = {
@@ -476,7 +491,7 @@ class HistoricalDataView(APIView):
             "project_name": project_info["listname"],
             "start_date": project_info.get("start_date", "N/A"),
             "end_date": project_info.get("end_date", "N/A"),
-            "history": project_history["history"]  # List of monthly data
+            "history": filtered_history  # List of monthly data
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
