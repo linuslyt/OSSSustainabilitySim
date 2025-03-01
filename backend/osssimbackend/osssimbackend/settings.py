@@ -143,7 +143,7 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Open Source Software Sustainability Simulator ',
-    'DESCRIPTION': 'This right here is a legend at work', 
+    'DESCRIPTION': 'This is a REST API for the OSS Sustainability Simulator', 
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,  # This will hide the /schema/ endpoint
     'EXCLUDE_PATH': ['/api/schema/', '/api/schema/swagger-ui/'],  # Excludes these paths from the schema

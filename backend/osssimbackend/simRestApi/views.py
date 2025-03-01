@@ -13,13 +13,14 @@ from .serializers import *
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample, OpenApiParameter
 
 
-from .utils import predict
+from .utils import predict, get_future_data
 import os
 
 from pathlib import Path
 ################################
 import json
 
+PROJECT_LIST = ['49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59', '60', '61', '62', '63', '64', '65', '66', '67', '68', '70', '71', '72', '73', '74', '75', '76', '77', '78', '79', '80', '81', '82', '83', '84', '85', '86', '87', '88', '89', '90', '91', '92', '93', '94', '95', '96', '97', '98', '99', '100', '101', '102', '103', '104', '105', '106', '107', '108', '109', '110', '111', '112', '113', '114', '115', '116', '117', '118', '119', '120', '121', '122', '123', '124', '125', '126', '127', '128', '129', '130', '131', '132', '133', '134', '135', '136', '137', '138', '139', '140', '141', '142', '143', '144', '145', '146', '147', '148', '149', '150', '151', '152', '153', '154', '155', '156', '157', '158', '159', '160', '161', '162', '163', '164', '165', '166', '167', '168', '169', '170', '222', '171', '172', '173', '174', '175', '176', '177', '178', '179', '180', '181', '182', '183', '184', '185', '186', '187', '188', '189', '190', '191', '192', '193', '194', '195', '196', '250', '197', '198', '199', '200', '201', '202', '203', '204', '205', '206', '207', '208', '209', '210', '211', '212', '213', '214', '215', '216', '217', '218', '219', '220', '221', '223', '224', '225', '226', '227', '228', '229', '230', '231', '232', '233', '234', '235', '236', '237', '238', '239', '240', '241', '242', '243', '244', '245', '246', '247', '248', '249', '251', '252', '253', '254', '255', '256', '257', '258', '259', '260', '261', '262', '263', '264', '265', '266', '267', '268', '269', '270', '271', '272', '273', '274', '275', '276', '277', '278', '279', '280', '281', '282', '283', '284', '285', '286', '287', '288', '289', '290', '291', '292', '293', '294', '295', '296', '297', '298', '299', '300', '301', '302', '303', '304', '305', '306', '307', '308', '309', '310', '311', '312']
 
 # Path to the JSON file
 ASFI_JSON_FILE_PATH = Path(__file__).parent / 'asfi_project_info/projects_list.json'
@@ -87,12 +88,13 @@ class GroupViewSet(viewsets.ModelViewSet):
 
 class PredictOSSSustainabilityView(APIView):
     @extend_schema(
-        summary="Predict OSS Project Status using LSTM",
+        summary="Forecasts OSS Project Sustainability using LSTM models",
         description="""
-            Accepts historical OSS project data (ranging from 1 to 29 months) and 
-            processes it using a pre-trained LSTM model. The appropriate model is selected 
-            based on the length of the input data. Returns the predicted project status 
-            ('sustainable' or 'Retired') along with the number of months used for the prediction.
+            Accepts historical OSS project data (ranging from 1 to 29 months), passes it to a pre-trained LSTM model 
+            for sustainability forecasting. The appropriate model is selected based on the length of the input data.
+            Returns the project id and sustainability forecasts for future months using the projects future data available. 
+            Each month's prediction has a status field that can assume the values  0 (Likely to Retire) and 1 
+            (Likely to graduate) along with a confidence score (a value from 0 to 1) for that prediction.
         """,
         request=StatusPredictionInputSerializer,
         examples=[
@@ -100,13 +102,33 @@ class PredictOSSSustainabilityView(APIView):
                 "Valid Request Example",
                 description="A valid request with project_id and history of monthly data.",
                 value={
-                    "project_id": "project_123",
+                    "project_id": 100,
                     "history": [
                         {
                             "active_devs": 10,
                             "num_commits": 50,
                             "num_files": 20,
                             "num_emails": 15,
+                            "c_percentage": 0.7,
+                            "e_percentage": 0.3,
+                            "inactive_c": 5,
+                            "inactive_e": 2,
+                            "c_nodes": 30,
+                            "c_edges": 50,
+                            "c_c_coef": 0.6,
+                            "c_mean_degree": 2.5,
+                            "c_long_tail": 0.1,
+                            "e_nodes": 25,
+                            "e_edges": 40,
+                            "e_c_coef": 0.55,
+                            "e_mean_degree": 2.0,
+                            "e_long_tail": 0.05
+                        },
+                        {
+                            "active_devs": 3,
+                            "num_commits": 20,
+                            "num_files": 10,
+                            "num_emails": 5,
                             "c_percentage": 0.7,
                             "e_percentage": 0.3,
                             "inactive_c": 5,
@@ -130,9 +152,19 @@ class PredictOSSSustainabilityView(APIView):
                 "Successful Response",
                 description="A successful response returning the predicted project status.",
                 value={
-                    "project_id": "project_123",
-                    "num_months": 1,
-                    "status": "Graduated"
+                    "project_id": "100",
+                    "predictions": [
+                        {
+                        "month": 2,
+                        "status": 1,
+                        "confidence_score": 0.94
+                        },
+                        {
+                        "month": 3,
+                        "status": 1,
+                        "confidence_score": 1
+                        }
+                    ]
                 },
                 response_only=True
             ),
@@ -153,16 +185,25 @@ class PredictOSSSustainabilityView(APIView):
         ],
         responses={
             200: OpenApiResponse(
-                response={
-                    "project_id": "string",
-                    "num_months": "integer",
-                    "status": "Graduated or Retired",
-                },
+            response={
+                "project_id": "string",
+                "predictions": [
+                    {
+                        "month": "integer",
+                        "status": "0 or 1",
+                        "confidence_score": "float"
+                    }
+                ]
+            },
                 description="Successful prediction response."
             ),
             400: OpenApiResponse(
                 response={"error": "No model available for X months"},
                 description="Returned when no model exists for the requested number of months."
+            ),
+            404: OpenApiResponse(
+                response={"error": "Invalid project ID"},
+                description="Returned when the project ID is not found."
             ),
             422: OpenApiResponse(
                 response={"error": "Invalid input format"},
@@ -170,6 +211,7 @@ class PredictOSSSustainabilityView(APIView):
             ),
         }
     )
+    
     def post(self, request, *args, **kwargs):
         serializer = StatusPredictionInputSerializer(data=request.data)
         if not serializer.is_valid():
@@ -177,23 +219,65 @@ class PredictOSSSustainabilityView(APIView):
 
         validated_data = serializer.validated_data
         project_id = validated_data["project_id"]
-        history = validated_data["history"]  # List of monthly data
+        history = validated_data["history"]
 
-        num_months = len(history)  # Get the number of months
-        model_path = os.path.join(MODEL_DIR, f"model_{num_months}.h5")
+        num_months = len(history)  # The number of months in the provided data
+        future_data = get_future_data(project_id, num_months)  # Get future months data
 
-        if not os.path.exists(model_path):
-            return Response({"error": f"No model available for {num_months} months"}, status=400)
+        if project_id not in PROJECT_LIST:
+            return Response({"error": "Invalid project ID"}, status=404)
         
-        predicted_class, confidence = predict(history, model_path, num_months)
-        status = "Sustainable (Likely to Graduate)" if predicted_class == 1 else "Not Sustainable (Likely to Retire)"
+        if future_data:
+            history.extend(future_data)  # Append future data to history for predictions
+
+        predictions = []
+        model_input = []  # Initial input for the model
+        month_count = 0
+        for i, current_month in enumerate(history):
+            model_input.append(current_month)
+            month_count += 1
+            model_path = os.path.join(MODEL_DIR, f"model_{month_count}.h5")
+            if not os.path.exists(model_path):
+                return Response({"error": f"No model available for {month_count} months"}, status=400)
+            
+            predicted_class, confidence = predict(model_input, model_path, month_count)
+
+            predictions.append({
+                "month": month_count + 1,  # The next month
+                "status": predicted_class,
+                "confidence_score": round(confidence, 2)
+            })
 
         return Response({
             "project_id": project_id,
-            "num_months": num_months,
-            "status_prediction": status,
-            "confidence_score": round(confidence, 2)
+            "predictions": predictions
         }, status=200)
+
+    
+    # def post(self, request, *args, **kwargs):
+    #     serializer = StatusPredictionInputSerializer(data=request.data)
+    #     if not serializer.is_valid():
+    #         return Response({"error": "Invalid input format", "details": serializer.errors}, status=422)
+
+    #     validated_data = serializer.validated_data
+    #     project_id = validated_data["project_id"]
+    #     history = validated_data["history"]  # List of monthly data
+
+    #     num_months = len(history)  # Get the number of months
+    #     model_path = os.path.join(MODEL_DIR, f"model_{num_months}.h5")
+
+    #     if not os.path.exists(model_path):
+    #         return Response({"error": f"No model available for {num_months} months"}, status=400)
+        
+    #     predicted_class, confidence = predict(history, model_path, num_months)
+    #     status = "Sustainable (Likely to Graduate)" if predicted_class == 1 else "Not Sustainable (Likely to Retire)"
+
+    #     return Response({
+    #         "project_id": project_id,
+    #         "num_months": num_months,
+    #         "status": predicted_class,
+    #         "confidence_score": round(confidence, 2)
+    #     }, status=200)
 
         # serializer = OSSDataSerializer(data=request.data)
         
