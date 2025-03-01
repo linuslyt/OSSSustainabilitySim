@@ -1,0 +1,60 @@
+.root-grid {
+  display: grid;
+  grid-template-columns: 30% auto auto auto;
+  grid-template-rows: 6% 14% 40% auto;
+  grid-template-areas:
+    'hd hd hd hd'
+    'ctl ctl ctl ctl'
+    'fg fg fg fg'
+    'c1 c2 c2 c2';
+  height: 100vh;
+  width: 100vw;
+  background-color: whitesmoke;
+}
+
+.header {
+  grid-area: hd;
+  background-color: lightgrey;
+  height: 100%;
+  width: 100%;
+}
+
+.controls {
+  grid-area: ctl;
+  height: 100%;
+}
+
+.forecast-graph {
+  grid-area: fg;
+  height: 100%;
+}
+
+.card-1-container {
+  grid-area: c1;
+  height: 100%;
+  padding: 1em;
+  box-sizing: border-box;
+}
+
+.card-2-container {
+  grid-area: c2;
+  height: 100%;
+  padding: 1em;
+  box-sizing: border-box;
+}
+
+.project-details-card {
+  box-sizing: border-box;
+  height: 100%;
+  padding: 2em;
+  background-color: Linen;
+  border-radius: 8px;
+}
+
+.month-details-card {
+  box-sizing: border-box;
+  height: 100%;
+  padding: 2em;
+  background-color: Linen;
+  border-radius: 8px;
+}

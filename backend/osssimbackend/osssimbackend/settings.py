@@ -150,3 +150,16 @@ SPECTACULAR_SETTINGS = {
 
     
 }
+
+# Caching Configuration (Redis)
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",  # Port Redis runs on
+        "TIMEOUT": 3600,  # 1 hour
+    }
+}
+
+# Session storage using Redis
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
