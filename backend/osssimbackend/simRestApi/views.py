@@ -11,6 +11,7 @@ from .models import Item
 from django.contrib.auth.models import Group, User
 from .serializers import *
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample, OpenApiParameter
+from django.core.cache import cache
 
 
 from .utils import predict
@@ -294,6 +295,7 @@ class HistoricalDataView(APIView):
         parameters=[
             OpenApiParameter(name="project_id", description="Unique project identifier", required=True, type=str),
             OpenApiParameter(name="num_months", description="Number of months of historical data", required=True, type=int),
+            OpenApiParameter(name="fields", description="Comma-separated list of fields to return (optional)", required=False, type=str),
         ],
         responses={
             200: OpenApiResponse(
@@ -431,6 +433,7 @@ class HistoricalDataView(APIView):
         # Extract query parameters
         project_id = request.query_params.get("project_id")
         num_months = request.query_params.get("num_months")
+        fields_param = request.query_params.get("fields")  
 
         # Validate input
         if not project_id or not num_months:
@@ -440,6 +443,20 @@ class HistoricalDataView(APIView):
             num_months = int(num_months)
         except ValueError:
             return Response({"error": "num_months must be an integer"}, status=status.HTTP_400_BAD_REQUEST)
+
+        cache_key = f"history_{project_id}_{num_months}_{fields_param or 'all'}"
+        cached_data = cache.get(cache_key)
+
+        #  If cache exists, return cached response
+        if cached_data:
+            print(f"Cache hit for {cache_key}") 
+            return Response(cached_data, status=status.HTTP_200_OK)
+        
+        print(f"Cache miss for {cache_key}")
+
+
+        # Parse fields if provided
+        requested_fields = set(fields_param.split(',')) if fields_param else None
 
         # Construct path to the historical data folder
         months_folder = f"N_{num_months}"
@@ -469,6 +486,17 @@ class HistoricalDataView(APIView):
                 project_history = json.load(file)
         except Exception as e:
             return Response({"error": "Failed to load project history", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # Filter fields if requested
+        filtered_history = []
+        for month in project_history.get("history", []):
+            if requested_fields:
+                # Ensure only existing fields are returned
+                filtered_entry = {field: month.get(field, None) for field in requested_fields}
+            else:
+                # Default: Include all fields
+                filtered_entry = month
+            filtered_history.append(filtered_entry)
 
         # Prepare response data
         response_data = {
@@ -476,8 +504,11 @@ class HistoricalDataView(APIView):
             "project_name": project_info["listname"],
             "start_date": project_info.get("start_date", "N/A"),
             "end_date": project_info.get("end_date", "N/A"),
-            "history": project_history["history"]  # List of monthly data
+            "history": filtered_history  # List of monthly data
         }
+
+        # Store response in Redis cache for future use
+        cache.set(cache_key, response_data, timeout=3600)
 
         return Response(response_data, status=status.HTTP_200_OK)
     
@@ -735,6 +766,15 @@ class ProjectPredictionHistoryView(APIView):
         if not project_id:
             return Response({"error": "project_id is required"}, status=400)
 
+        cache_key = f"project_details_{project_id}"
+        cached_data = cache.get(cache_key)
+
+        if cached_data:
+            print(f"Cache hit for {cache_key}")
+            return Response(cached_data, status=200)
+
+        print(f"Cache miss for {cache_key}")
+
         try:
              # Load project metadata from projects.json
             with open(ASFI_JSON_FILE_PATH, "r", encoding="utf-8") as file:
@@ -754,7 +794,8 @@ class ProjectPredictionHistoryView(APIView):
             prediction_history = predictions_data.get(project_id, [])
             if not prediction_history:
                 return Response({"error": "Project does not have prediction history"}, status=status.HTTP_404_NOT_FOUND)
-            return Response({
+
+            response_data = {
                 "project_id": project_id,
                 "project_name": project_info["listname"],
                 "start_date": project_info["start_date"],
@@ -764,7 +805,11 @@ class ProjectPredictionHistoryView(APIView):
                 "intro": project_info["intro"],
                 "sponsor": project_info["sponsor"],
                 "prediction_history": prediction_history
-            }, status=200)
+            }
+
+            # Cache the result for 1 hour
+            cache.set(cache_key, response_data, timeout=3600)
+            return Response(response_data, status=200)
 
         except FileNotFoundError:
             return Response({"error": "Project data not found"}, status=404)
