@@ -1,33 +1,36 @@
 import React, { useState } from 'react';
 import './App.css';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
+import Controls from './components/Controls/Controls';
+import ForecastGraph from './components/ForecastGraph/ForecastGraph';
+import Header from './components/Header/Header';
 
 function App() {
-  const [count, setCount] = useState(0);
-  const testFormat = 'test';
+  const [projectId, setProjectId] = useState(null);
+  const [dashboardView, setDashboardView] = useState('explore');
+  const [nMonths, setNMonths] = useState('8'); // TODO: set to minimum # months
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank" rel="noreferrer">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank" rel="noreferrer">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+      <div className="root-grid">
+        <div className="header">
+          <Header />
+        </div>
+        <div className="controls">
+          <Controls
+            projectState={[projectId, setProjectId]}
+            dashboardViewState={[dashboardView, setDashboardView]}
+            nMonthsState={[nMonths, setNMonths]}
+          />
+        </div>
+        <div className="forecast-graph">
+          <ForecastGraph />
+        </div>
+        <div className="card-1-container">
+          <div className="project-details-card">Placeholder text</div>
+        </div>
+        <div className="card-2-container">
+          <div className="month-details-card">Placeholder text</div>
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   );
 }
