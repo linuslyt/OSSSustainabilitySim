@@ -1,5 +1,5 @@
 # Specification of the Docker image for the OSSSIM backend
-FROM python:3.10
+FROM python:3.10-slim
 
 # Set the working directory
 WORKDIR /app
@@ -9,7 +9,7 @@ WORKDIR /app
 COPY requirements.txt /app/
 
 # Upgrade pip and install dependencies 
-RUN pip install --upgrade pip && pip install -r requirements.txt
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
 
 # Copy the rest of the project 

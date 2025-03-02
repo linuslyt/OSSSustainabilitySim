@@ -1,0 +1,46 @@
+{
+    "project_id": "project_38",
+    "status": "1",
+    "history": [
+        {
+            "active_devs": -0.9330855018587361,
+            "num_commits": -0.9925777021803,
+            "num_files": -0.9861158144260075,
+            "num_emails": -0.9864185110663984,
+            "c_percentage": 1.0,
+            "e_percentage": 0.33333333333333326,
+            "inactive_c": 0.75,
+            "inactive_e": 0.40740740740740744,
+            "c_nodes": -1.0,
+            "c_edges": -1.0,
+            "c_c_coef": -1.0,
+            "c_mean_degree": -1.0,
+            "c_long_tail": -1.0,
+            "e_nodes": -0.9256505576208178,
+            "e_edges": -0.9832572298325724,
+            "e_c_coef": -0.592857142857143,
+            "e_mean_degree": -0.5621890547263682,
+            "e_long_tail": -0.9393939393939394
+        },
+        {
+            "active_devs": -0.3382899628252788,
+            "num_commits": -0.9959795886809958,
+            "num_files": -0.9925499492041991,
+            "num_emails": -0.6896378269617707,
+            "c_percentage": 1.0,
+            "e_percentage": -0.03403565640194495,
+            "inactive_c": -1.0,
+            "inactive_e": -1.0,
+            "c_nodes": -1.0,
+            "c_edges": -1.0,
+            "c_c_coef": -1.0,
+            "c_mean_degree": -1.0,
+            "c_long_tail": -1.0,
+            "e_nodes": -0.33085501858736066,
+            "e_edges": -0.6468797564687976,
+            "e_c_coef": -0.35408594899160917,
+            "e_mean_degree": 0.02598120508568269,
+            "e_long_tail": -0.696969696969697
+        }
+    ]
+}

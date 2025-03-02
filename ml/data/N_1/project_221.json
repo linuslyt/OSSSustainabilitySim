@@ -1,0 +1,26 @@
+{
+    "project_id": "project_221",
+    "status": "1",
+    "history": [
+        {
+            "active_devs": -0.79182156133829,
+            "num_commits": -1.0,
+            "num_files": -1.0,
+            "num_emails": -0.9094567404426559,
+            "c_percentage": -1.0,
+            "e_percentage": -0.08888888888888902,
+            "inactive_c": 1.0,
+            "inactive_e": -0.8095238095238095,
+            "c_nodes": -1.0,
+            "c_edges": -1.0,
+            "c_c_coef": -1.0,
+            "c_mean_degree": -1.0,
+            "c_long_tail": -1.0,
+            "e_nodes": -0.79182156133829,
+            "e_edges": -0.8919330289193304,
+            "e_c_coef": -0.20210404674690385,
+            "e_mean_degree": 0.009239516702203021,
+            "e_long_tail": -0.3939393939393939
+        }
+    ]
+}
