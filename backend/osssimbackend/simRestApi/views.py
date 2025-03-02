@@ -529,7 +529,14 @@ class HistoricalDataView(APIView):
             return Response({"error": "num_months must be an integer"}, status=status.HTTP_400_BAD_REQUEST)
 
         cache_key = f"history_{project_id}_{num_months}_{fields_param or 'all'}"
-        cached_data = cache.get(cache_key)
+        
+        # Try to get cached data, with a fallback if Redis is down
+        try:
+            print("Checking redis cache")
+            cached_data = cache.get(cache_key)
+        except Exception as e:
+            print(f"Error accessing cache: {e}")
+            cached_data = None
 
         #  If cache exists, return cached response
         if cached_data:
@@ -591,8 +598,11 @@ class HistoricalDataView(APIView):
             "history": filtered_history  # List of monthly data
         }
 
-        # Store response in Redis cache for future use
-        cache.set(cache_key, response_data, timeout=3600)
+        # Store response in Redis cache for future use, if Redis is available
+        try:
+            cache.set(cache_key, response_data, timeout=3600)
+        except Exception as e:
+            print(f"Error saving to cache: {e}")
 
         return Response(response_data, status=status.HTTP_200_OK)
     

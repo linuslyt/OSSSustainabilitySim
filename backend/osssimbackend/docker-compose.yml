@@ -2,8 +2,8 @@ version: '3.8'
 
 services:
   web:
-    image: osssim-django-api
-    container_name: osssim_django
+    image: osssim-api
+    container_name: osssim-django
     restart: always
     command: >
       sh -c "python manage.py migrate &&
@@ -18,3 +18,17 @@ services:
       DJANGO_ALLOWED_HOSTS: ${ALLOWED_HOSTS}
     env_file:
       - .env
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    container_name: osssim_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: always
+
+volumes:
+  redis_data:
