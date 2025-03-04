@@ -1,5 +1,6 @@
 import GitHubIcon from '@mui/icons-material/GitHub';
 import HelpIcon from '@mui/icons-material/Help';
+import { Typography } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
 import IconButton from '@mui/material/IconButton';
 import Link from '@mui/material/Link';
@@ -11,10 +12,11 @@ import React, { useMemo } from 'react';
 
 import './index.css';
 
-// TODO: add padding
-// TODO: convert to MUI AppBar
+// TODO: convert to MUI AppBar/Toolbar
+// TODO: convert divs to Box's
+// TODO: convert css to inline sx styling
 function ProjectSelect({ projectState }) {
-  const [projectId, setProjectId] = projectState;
+  const [selectedProject, setSelectedProject] = projectState;
   // TODO: fetch from backend
   const projectOptions = useMemo(
     () => [
@@ -97,9 +99,9 @@ function ProjectSelect({ projectState }) {
           <TextField {...params} label="Select project" />
         )}
         renderOption={renderOptionWithAutocomplete}
-        value={projectId}
+        value={selectedProject}
         onChange={(event, newVal) => {
-          setProjectId(newVal);
+          setSelectedProject(newVal);
         }}
         isOptionEqualToValue={(option, value) =>
           option.project_id === value?.project_id
@@ -119,7 +121,9 @@ export default function Header({ projectState }) {
       <ProjectSelect projectState={projectState} />
 
       <div>
-        <h1>ASFI Project Sustainability Simulator</h1>
+        <Typography variant="h1">
+          ASFI Project Sustainability Simulator
+        </Typography>
       </div>
       <div className="links">
         <Link

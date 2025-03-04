@@ -2,6 +2,8 @@ import * as d3 from 'd3';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './index.css';
 
+// TODO: update font to match
+
 export default function ForecastGraph() {
   // TODO: get data from API
   const data = useMemo(
