@@ -8,15 +8,18 @@ function App() {
   const [projectId, setProjectId] = useState(null);
   const [dashboardView, setDashboardView] = useState('explore');
   const [nMonths, setNMonths] = useState('8'); // TODO: set to minimum # months
+
+  // TODO: Move from CSS sheets to styled() components
+  // TODO: use MUI Typography for text boxes, Box for divs
+
   return (
     <>
       <div className="root-grid">
         <div className="header">
-          <Header />
+          <Header projectState={[projectId, setProjectId]} />
         </div>
         <div className="controls">
           <Controls
-            projectState={[projectId, setProjectId]}
             dashboardViewState={[dashboardView, setDashboardView]}
             nMonthsState={[nMonths, setNMonths]}
           />
