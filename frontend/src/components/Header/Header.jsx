@@ -131,7 +131,7 @@ export default function Header({ projectState }) {
             href="https://arxiv.org/abs/2105.14252"
             target="_blank"
             rel="noopener"
-            sx={{ marginRight: '1rem' }}
+            sx={{ marginRight: '1rem', verticalAlign: 'middle' }}
           >
             Yin et al.
           </Link>
@@ -139,7 +139,7 @@ export default function Header({ projectState }) {
             href="http://zenodo.org/records/4564072"
             target="_blank"
             rel="noopener"
-            sx={{ marginRight: '1rem' }}
+            sx={{ marginRight: '1rem', verticalAlign: 'middle' }}
           >
             Original Models/Data
           </Link>
@@ -164,10 +164,6 @@ export default function Header({ projectState }) {
     </AppBar>
   );
 }
-
-Header.propTypes = {
-  projectState: PropTypes.array.isRequired,
-};
 
 ProjectSelect.propTypes = {
   projectState: PropTypes.array.isRequired,
