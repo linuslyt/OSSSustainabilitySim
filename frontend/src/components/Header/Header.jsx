@@ -1,20 +1,18 @@
 import GitHubIcon from '@mui/icons-material/GitHub';
 import HelpIcon from '@mui/icons-material/Help';
 import { Typography } from '@mui/material';
+import AppBar from '@mui/material/AppBar';
 import Autocomplete from '@mui/material/Autocomplete';
+import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Link from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
+import Toolbar from '@mui/material/Toolbar';
 import match from 'autosuggest-highlight/match';
 import parse from 'autosuggest-highlight/parse';
 import PropTypes from 'prop-types';
 import React, { useMemo } from 'react';
 
-import './index.css';
-
-// TODO: convert to MUI AppBar/Toolbar
-// TODO: convert divs to Box's
-// TODO: convert css to inline sx styling
 function ProjectSelect({ projectState }) {
   const [selectedProject, setSelectedProject] = projectState;
   // TODO: fetch from backend
@@ -117,50 +115,53 @@ function ProjectSelect({ projectState }) {
 
 export default function Header({ projectState }) {
   return (
-    <div className="header-container">
-      <ProjectSelect projectState={projectState} />
-
-      <div>
-        <Typography variant="h1">
+    <AppBar
+      component="nav"
+      sx={{ backgroundColor: 'lightgrey' }}
+      position="sticky"
+      elevation={0}
+    >
+      <Toolbar sx={{ justifyContent: 'space-between' }}>
+        <ProjectSelect projectState={projectState} />
+        <Typography variant="h1" color="black" fontSize="1.5rem">
           ASFI Project Sustainability Simulator
         </Typography>
-      </div>
-      <div className="links">
-        <Link
-          className="link"
-          href="https://arxiv.org/abs/2105.14252"
-          target="_blank"
-          rel="noopener"
-        >
-          Yin et al.
-        </Link>
-        <Link
-          className="link"
-          href="http://zenodo.org/records/4564072"
-          target="_blank"
-          rel="noopener"
-        >
-          Original Models/Data
-        </Link>
-        <IconButton
-          className="link"
-          onClick={() =>
-            window.open('https://github.com/linuslyt/OSSSustainabilitySim')
-          }
-        >
-          <GitHubIcon />
-        </IconButton>
-        <IconButton
-          onClick={() =>
-            window.open(
-              'https://github.com/linuslyt/OSSSustainabilitySim/blob/main/frontend/README.md',
-            )
-          }
-        >
-          <HelpIcon />
-        </IconButton>
-      </div>
-    </div>
+        <Box>
+          <Link
+            href="https://arxiv.org/abs/2105.14252"
+            target="_blank"
+            rel="noopener"
+            sx={{ marginRight: '1rem' }}
+          >
+            Yin et al.
+          </Link>
+          <Link
+            href="http://zenodo.org/records/4564072"
+            target="_blank"
+            rel="noopener"
+            sx={{ marginRight: '1rem' }}
+          >
+            Original Models/Data
+          </Link>
+          <IconButton
+            onClick={() =>
+              window.open('https://github.com/linuslyt/OSSSustainabilitySim')
+            }
+          >
+            <GitHubIcon />
+          </IconButton>
+          <IconButton
+            onClick={() =>
+              window.open(
+                'https://github.com/linuslyt/OSSSustainabilitySim/blob/main/frontend/README.md',
+              )
+            }
+          >
+            <HelpIcon />
+          </IconButton>
+        </Box>
+      </Toolbar>
+    </AppBar>
   );
 }
 
