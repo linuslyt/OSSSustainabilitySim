@@ -5,8 +5,10 @@ import { styled } from '@mui/material/styles';
 
 import React, { useState } from 'react';
 
+import DetailsGraph from './components/DetailsGraph/DetailsGraph';
 import ForecastGraph from './components/ForecastGraph/ForecastGraph';
 import Header from './components/Header/Header';
+import UpdateFeatures from './components/UpdateFeatures/UpdateFeatures';
 
 function App() {
   const [selectedProject, setSelectedProject] = useState(null);
@@ -19,6 +21,7 @@ function App() {
     color: 'black',
     boxSizing: 'border-box', // so added padding doesn't overflow
     padding: theme.spacing(2),
+    overflowY: 'auto',
   }));
 
   return (
@@ -29,7 +32,7 @@ function App() {
         backgroundColor: 'whitesmoke',
         display: 'grid',
         gridTemplateRows: 'minmax(60px, 7%) 43% auto',
-        // overflow: 'hidden',
+        overflow: 'hidden',
       }}
     >
       <Box
@@ -55,15 +58,13 @@ function App() {
           gridRow: 3,
           padding: 0,
           margin: 0,
+          overflowY: 'auto',
         }}
       >
-        <Grid container sx={{ height: '100%', padding: 2 }} spacing={2}>
+        <Grid container sx={{ padding: 2 }} spacing={2}>
           <Grid size={6}>
             <Panel>
               <Typography variant="body1" sx={{ display: 'block' }}>
-                Import and insert your component here. Style with inline styling
-                (sx prop) or styled components (see Panel as example). Use MUI
-                Typography for text boxes, Box for divs.
                 <br />
                 <br />
                 Selected project (select w/ dropdown to view here):
@@ -74,17 +75,14 @@ function App() {
                 <br />
                 status: {selectedProject?.status}
               </Typography>
+              <UpdateFeatures />
             </Panel>
           </Grid>
           <Grid size={6}>
             <Panel>
-              Import and insert your component here. Style with inline styling
-              (sx prop) styled components (see Panel as example). Use MUI
-              Typography for text boxes, Box for divs.
               <br />
               <br />
-              Use a Grid/stack to split into two columns, left for details and
-              right for graph.
+              <DetailsGraph />
             </Panel>
           </Grid>
         </Grid>
