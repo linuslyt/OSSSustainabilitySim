@@ -19,7 +19,7 @@ urlpatterns = [
 
     path('simulate/', PredictOSSSustainabilityView.as_view(), name='simulate' ),
     path("listprojects/", ListProjectsView.as_view(), name="list-projects"),
-    path("gethistoricaldata/", HistoricalDataView.as_view(), name="gethistoricaldata"),
+    path("getprojecthistoricaldata/", HistoricalDataView.as_view(), name="gethistoricaldata"),
     path('getprojectdetails/', ProjectPredictionHistoryView.as_view(), name='getprojectdetails'),
 
 

@@ -8,25 +8,41 @@ import json
 TEMPORAL_DATA_DIR = Path(__file__).parent /"asfi_project_info/project_temporal_json_data/"
 
 
-# Put all Model accessing functions here 
-def predict(history, model_path, num_of_months):
-    model = load_model(model_path)  # Load the model
-    scaler = MinMaxScaler(feature_range=(-1, 1))  # Ensure same scaling as training
+
+def predict(history, model_path, num_of_months=8):
+    model = load_model(model_path)  # Load the trained LSTM model
+    scaler = MinMaxScaler(feature_range=(-1, 1))  # Same scaling as training
     
-    # Convert to DataFrame and scale features
+    # Convert history to DataFrame and scale
     df = pd.DataFrame(history)
-    X_input = scaler.fit_transform(df.values)  # Scale the data
+    scaled_data = scaler.fit_transform(df.values)  # Scale the data
 
-    # Reshape to (1, num_of_months, num_features) for LSTM
-    X_input = X_input.reshape(1, num_of_months, len(df.columns))
+    predictions = []
+    
+    # Slide an 8-month window over the historical data
+    for start_index in range(len(history) - 7):
+        # Extract 8-month window
+        model_input = scaled_data[start_index:start_index + 8]
+        
+        # Reshape for LSTM input (1, time_steps, features)
+        model_input = model_input.reshape(1, num_of_months, model_input.shape[1])
+        
+        # Predict
+        y_pred = model.predict(model_input)
+        
+        # Determine class and confidence
+        predicted_class = int(np.argmax(y_pred, axis=1)[0])  # 0 or 1
+        confidence = float(np.max(y_pred, axis=1)[0])  # Probability score
 
-    # Predict probabilities
-    y_pred = model.predict(X_input)  # Get probabilities for each class
+        predictions.append({
+            "start_month": start_index + 1,  # Start of the 8-month window
+            "predicted_month": start_index + 9,  # Month being predicted
+            "status": predicted_class,
+            "confidence_score": round(confidence, 2)
+        })
+    
+    return predictions
 
-    predicted_class = int(np.argmax(y_pred, axis=1)[0])  # 0 or 1
-    confidence = float(np.max(y_pred, axis=1)[0])  # Probability of predicted class
-
-    return predicted_class, confidence
 
 
 
@@ -36,7 +52,7 @@ def get_future_data(project_id, m):
     """
     for i in range(29, 0, -1):  # Start from N_29 to N_1
         folder_path = os.path.join(TEMPORAL_DATA_DIR, f"N_{i}")
-        project_file = os.path.join(folder_path, f"{project_id}.json")
+        project_file = os.path.join(folder_path, f"{project_id}.json")  
 
         if os.path.exists(project_file):
             with open(project_file, "r") as file:
