@@ -10,6 +10,7 @@ import ForecastGraph from './components/ForecastGraph/ForecastGraph';
 import Header from './components/Header/Header';
 import UpdateFeatures from './components/UpdateFeatures/UpdateFeatures';
 
+// TODO: cssbaseline and theme provider if needed
 function App() {
   const [selectedProject, setSelectedProject] = useState(null);
   // const [dashboardView, setDashboardView] = useState('explore');
@@ -31,19 +32,18 @@ function App() {
         height: '100vh',
         backgroundColor: 'whitesmoke',
         display: 'grid',
-        gridTemplateRows: 'minmax(60px, 7%) 43% auto',
+        gridTemplateRows: '64px 45% auto',
         overflow: 'hidden',
       }}
     >
-      <Box
+      <Header
+        projectState={[selectedProject, setSelectedProject]}
         sx={{
           backgroundColor: 'lightgrey',
           color: 'black',
           gridRow: 1,
         }}
-      >
-        <Header projectState={[selectedProject, setSelectedProject]} />
-      </Box>
+      />
       <Box
         sx={{
           color: 'black',
@@ -64,9 +64,12 @@ function App() {
         <Grid container sx={{ padding: 2 }} spacing={2}>
           <Grid size={6}>
             <Panel>
+              <UpdateFeatures />
+            </Panel>
+          </Grid>
+          <Grid size={6}>
+            <Panel>
               <Typography variant="body1" sx={{ display: 'block' }}>
-                <br />
-                <br />
                 Selected project (select w/ dropdown to view here):
                 <br />
                 id: {selectedProject?.project_id}
@@ -75,12 +78,6 @@ function App() {
                 <br />
                 status: {selectedProject?.status}
               </Typography>
-              <UpdateFeatures />
-            </Panel>
-          </Grid>
-          <Grid size={6}>
-            <Panel>
-              <br />
               <br />
               <DetailsGraph />
             </Panel>
