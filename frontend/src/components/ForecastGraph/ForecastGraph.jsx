@@ -1,3 +1,4 @@
+import { Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import useResizeObserver from '@react-hook/resize-observer';
 import * as d3 from 'd3';
@@ -7,8 +8,11 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 // TODO: update font style and size
 // TODO: make graph span screen
 // TODO: make graph scrollable
-// TODO: make markers selectable
+// TODO: brush selected months
+// TODO: add horizontal crosshair
 // TODO: get data from API
+
+let graphInitialized = false;
 
 export default function ForecastGraph() {
   const data = useMemo(
@@ -24,6 +28,12 @@ export default function ForecastGraph() {
     ],
     [],
   );
+  const [tooltip, setTooltip] = useState({
+    x: 0,
+    y: 0,
+    visible: false,
+    text: '',
+  });
 
   // Set up observer for parent container size
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -57,7 +67,7 @@ export default function ForecastGraph() {
         .scaleLinear()
         .domain([0, 1])
         .range([size.height - margin.bottom, margin.top]);
-      const xAxis = d3.axisBottom(xScale).ticks(8);
+      const xAxis = d3.axisBottom(xScale).ticks(8); // TODO: one tick per month
       const yAxis = d3.axisLeft(yScale).ticks(5);
       const lineGerator = d3
         .line()
@@ -108,10 +118,28 @@ export default function ForecastGraph() {
         .selectAll('circle')
         .data(data)
         .join('circle')
-        .attr('r', '5px')
+        .attr('r', '7px')
         .attr('cx', (d) => xScale(d.month))
         .attr('cy', (d) => yScale(d.pGraduate))
-        .attr('fill', '#E97451');
+        .attr('fill', '#E97451')
+        .on('click', (e, d) => console.log(d))
+        .on('mouseover', function (event, d) {
+          const bbox = this.getBBox(); // Get bounding box of marker
+
+          // Compute center coordinate of marker
+          const x = bbox.x + bbox.width / 2;
+          const y = bbox.y + bbox.height / 2;
+
+          setTooltip({
+            x,
+            y,
+            visible: true,
+            text: `Month: ${d.month} \nP(Graduate): ${d.pGraduate}`,
+          });
+        })
+        .on('mouseout', () => {
+          setTooltip((prev) => ({ ...prev, visible: false }));
+        });
 
       svg
         .select('#title')
@@ -124,6 +152,10 @@ export default function ForecastGraph() {
   }, [size, data]);
 
   useEffect(() => {
+    // Run once on initialize. See https://react.dev/learn/you-might-not-need-an-effect#initializing-the-application
+    if (graphInitialized) return;
+    graphInitialized = true;
+
     // Define SVG elements for graph. These only need to be defined once, and can then be selected
     // by ID and reused across rerenders. This allows the graph to update without duplicating elements,
     // by redrawing the same element instead of appending a new one.
@@ -141,10 +173,13 @@ export default function ForecastGraph() {
       .attr('id', 'y-axis')
       .append('text')
       .attr('id', 'y-axis-label');
+
+    console.log('appending');
   }, []);
 
   return (
     <Box
+      id="box"
       ref={graphRef}
       sx={{
         height: '100%',
@@ -153,6 +188,31 @@ export default function ForecastGraph() {
         justifyContent: 'center',
       }}
     >
+      {tooltip.visible && (
+        <Box
+          id="marker-tooltip"
+          sx={{
+            backgroundColor: '#E5E4E2',
+            position: 'absolute',
+            left: `${tooltip.x}px`,
+            top: `${tooltip.y}px`,
+            height: 'auto',
+            width: 'auto',
+            border: '0px',
+            borderRadius: '8px',
+            boxSizing: 'border-box',
+            px: 2,
+            py: 1,
+            transform: 'translateX(10%) translateY(110%)', // Center horizontally and offset vertically
+            textAlign: 'center',
+            pointerEvents: 'none',
+          }}
+        >
+          <Typography sx={{ whiteSpace: 'pre-wrap', textAlign: 'left' }}>
+            {tooltip.text}
+          </Typography>
+        </Box>
+      )}
       <svg id="forecast-graph"></svg>
     </Box>
   );
