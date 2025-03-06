@@ -13,6 +13,8 @@ import parse from 'autosuggest-highlight/parse';
 import PropTypes from 'prop-types';
 import React, { useMemo } from 'react';
 
+// TODO: information icon that reveals project info/authors/status etc
+// TODO: change title from select project to 'selected project (status)'
 function ProjectSelect({ projectState }) {
   const [selectedProject, setSelectedProject] = projectState;
   // TODO: fetch from backend
@@ -164,6 +166,10 @@ export default function Header({ projectState }) {
     </AppBar>
   );
 }
+
+Header.propTypes = {
+  projectState: PropTypes.array.isRequired,
+};
 
 ProjectSelect.propTypes = {
   projectState: PropTypes.array.isRequired,

@@ -1,6 +1,8 @@
-import { Box, Button, Typography } from '@mui/material';
+import { Typography } from '@mui/material';
+import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid2';
 import React, { useState } from 'react';
+import DeltaList from './DeltaList';
 
 function UpdateFeatures() {
   const [features] = useState([
@@ -10,6 +12,16 @@ function UpdateFeatures() {
     { name: 'Active Developers', value: 5 },
     { name: 'Emails Sent', value: 50 },
   ]);
+
+  const [deltas, setDeltas] = React.useState({
+    deltas: [
+      { key: '1_1', startMonth: 1, endMonth: 1 },
+      { key: '2_2', startMonth: 2, endMonth: 2 },
+      { key: '3_4', startMonth: 3, endMonth: 4 },
+    ],
+    changedMonths: new Set(),
+    selectedDelta: '1_1',
+  });
 
   const [simulatedValues, setSimulatedValues] = useState(
     features.map((feature) => feature.value),
@@ -41,166 +53,73 @@ function UpdateFeatures() {
   };
 
   return (
-    <>
-      <Grid container spacing={0}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Box sx={{ p: 2 }}>
-            <Typography
-              variant="body1"
-              sx={{ display: 'block', fontWeight: 'bold', fontSize: '1.5rem' }}
-            >
-              Update Features
-            </Typography>
-          </Box>
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Box sx={{ p: 2 }}>
-            <Button>Simulate Changes</Button>
-          </Box>
-        </Grid>
+    <Box
+      sx={{
+        height: '100%',
+        backgroundColor: 'whitesmoke',
+        display: 'grid',
+        gridTemplateRows: 'min-content min-content min-content auto',
+      }}
+    >
+      <Box
+        sx={{
+          gridRow: 1,
+          backgroundColor: 'blue',
+          display: 'flex',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Typography variant="h6">Update features</Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            backgroundColor: 'pink',
+          }}
+        >
+          <Typography sx={{ marginRight: '0.5rem' }}>
+            Add new delta for
+          </Typography>
+          <Typography sx={{ marginRight: '0.5rem' }}>
+            Month select component
+          </Typography>
+          <Typography>+</Typography>
+        </Box>
+      </Box>
+      <Box
+        sx={{
+          gridRow: 2,
+          backgroundColor: 'red',
+        }}
+      >
+        <Typography variant="subtitle" sx={{ fontStyle: 'italic' }}>
+          Instructions for operating
+        </Typography>
+      </Box>
+      <Box
+        sx={{ gridRow: 3, display: 'flex', alignItems: 'center', my: '0.5rem' }}
+      >
+        <Typography
+          sx={{ marginRight: '1rem', alignSelf: 'start', marginTop: '0.2rem' }}
+        >
+          Deltas:
+        </Typography>
+        <DeltaList deltasState={[deltas, setDeltas]} />
+      </Box>
+      <Grid
+        sx={{
+          gridRow: 4,
+          backgroundColor: 'yellow',
+        }}
+      >
+        <Typography>
+          {deltas.selectedDelta
+            ? deltas.selectedDelta
+            : 'No deltas defined. Create a delta using the month picker above.'}
+        </Typography>
+        {/* TODO: datagrid component. input state: selected month range. output state: selected  */}
       </Grid>
-
-      <Grid container spacing={0}>
-        <Grid size={{ xs: 12, md: 3 }}>
-          <Box sx={{ p: 2 }}>
-            <Typography
-              variant="body1"
-              sx={{
-                display: 'block',
-                fontWeight: 'bold',
-                textDecoration: 'underline',
-              }}
-            >
-              Feature
-            </Typography>
-            <ul style={{ listStyleType: 'none', padding: 0, margin: 0 }}>
-              {features.map((feature, index) => (
-                <li
-                  key={index}
-                  style={{
-                    padding: 0,
-                    minHeight: '70px', // Set minimum height for feature name
-                    marginBottom: 0, // Remove margin between items
-                  }}
-                >
-                  {feature.name}:
-                </li>
-              ))}
-            </ul>
-          </Box>
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 3 }}>
-          <Box sx={{ p: 2 }}>
-            <Typography
-              variant="body1"
-              sx={{
-                display: 'block',
-                fontWeight: 'bold',
-                textDecoration: 'underline',
-              }}
-            >
-              Original Value
-            </Typography>
-            {features.map((feature, index) => (
-              <Box
-                key={index}
-                sx={{
-                  display: 'flex',
-                  minHeight: '70px', // Set minimum height for original value
-                }}
-              >
-                <Typography
-                  variant="body1"
-                  sx={{ display: 'inline-block', mr: 2 }}
-                >
-                  {feature.value}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Box sx={{ p: 2 }}>
-            <Typography
-              variant="body1"
-              sx={{
-                display: 'block',
-                fontWeight: 'bold',
-                textDecoration: 'underline',
-              }}
-            >
-              Value to Simulate
-            </Typography>
-            {simulatedValues.map((simValue, index) => (
-              <Box
-                key={index}
-                sx={{
-                  display: 'flex',
-                  minHeight: '70px', // Set minimum height for simulated value row
-                }}
-              >
-                <Box
-                  sx={{
-                    display: 'flex',
-                    mr: 2,
-                    padding: '2px',
-                  }}
-                >
-                  <Button
-                    sx={{
-                      padding: '2px',
-                      minWidth: '24px',
-                      height: '20px',
-                      color: 'black',
-                      border: '1px solid black',
-                    }}
-                    onClick={() => incrementPercentage(index)}
-                  >
-                    +
-                  </Button>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      fontWeight: 'bold',
-                      width: '50px',
-                      textAlign: 'center',
-                      mr: '5px',
-                      ml: '5px',
-                    }}
-                  >
-                    {percentageChanges[index]}%
-                  </Typography>
-                  <Button
-                    sx={{
-                      padding: '2px',
-                      minWidth: '24px',
-                      height: '20px',
-                      color: 'black',
-                      border: '1px solid black',
-                    }}
-                    onClick={() => decrementPercentage(index)}
-                  >
-                    -
-                  </Button>
-                </Box>
-
-                <Typography
-                  variant="body1"
-                  sx={{ display: 'inline-block', mr: 2 }}
-                >
-                  {simValue % 1 === 0
-                    ? simValue.toFixed(0)
-                    : simValue.toFixed(2)}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        </Grid>
-      </Grid>
-    </>
+    </Box>
   );
 }
 

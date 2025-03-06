@@ -23,6 +23,7 @@ function App() {
     boxSizing: 'border-box', // so added padding doesn't overflow
     padding: theme.spacing(2),
     overflowY: 'auto',
+    borderRadius: '9px',
   }));
 
   return (
@@ -32,7 +33,7 @@ function App() {
         height: '100vh',
         backgroundColor: 'whitesmoke',
         display: 'grid',
-        gridTemplateRows: '64px 30% auto',
+        gridTemplateRows: 'min-content max(240px, 30%) auto',
         overflow: 'hidden',
       }}
     >
@@ -56,12 +57,10 @@ function App() {
       <Box
         sx={{
           gridRow: 3,
-          padding: 0,
-          margin: 0,
-          overflowY: 'auto',
+          height: '100%',
         }}
       >
-        <Grid container sx={{ padding: 2 }} spacing={2}>
+        <Grid container sx={{ padding: 2, height: '100%' }} spacing={2}>
           <Grid size={6}>
             <Panel>
               <UpdateFeatures />
