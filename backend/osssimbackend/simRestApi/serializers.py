@@ -52,12 +52,15 @@ class StatusPredictionInputSerializer(serializers.Serializer):
         child=MonthlyDataSerializer(), min_length=1, max_length=29
     )  # Allow data points from 1 to 29 months
 
+class FeatureChangeSerializer(serializers.Serializer):
+    feature_name = serializers.CharField(required=True)
+    change_type = serializers.ChoiceField(choices=['percentage', 'explicit'])
+    change_value = serializers.FloatField(required=False)  # For percentage changes
+    change_values = serializers.ListField(child=serializers.FloatField(), required=False)  # For explicit changes
 
-
-
-
-
-
+class FeatureChangeRequestSerializer(serializers.Serializer):
+    project_id = serializers.CharField(required=True)
+    feature_changes = serializers.ListField(child=FeatureChangeSerializer(), required=True)
 
 class PredictionSerializer(serializers.Serializer):
     """Serializer for individual month predictions"""
