@@ -5,9 +5,7 @@ import * as d3 from 'd3';
 import { debounce } from 'lodash';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-// TODO: add horizontal crosshair
 // TODO: get data from API
-
 let graphInitialized = false;
 
 export default function ForecastGraph() {
@@ -35,6 +33,12 @@ export default function ForecastGraph() {
   const domain = d3.extent(data.map((d) => d.month));
 
   const [tooltip, setTooltip] = useState({
+    x: 0,
+    y: 0,
+    visible: false,
+    text: '',
+  });
+  const [crosshairLabel, setCrosshairLabel] = useState({
     x: 0,
     y: 0,
     visible: false,
@@ -153,11 +157,49 @@ export default function ForecastGraph() {
             x,
             y,
             visible: true,
-            text: `Month: ${d.month} \nP(Graduate): ${d.pGraduate}`,
+            text: `P(Graduate): ${d.pGraduate}\nMonth: ${d.month}`,
           });
         })
         .on('mouseout', () => {
           setTooltip((prev) => ({ ...prev, visible: false }));
+        });
+
+      d3.select('#y-crosshair')
+        .attr('class', 'crosshair')
+        .attr('x1', margin.left)
+        .attr('x2', size.width - margin.right)
+        .attr('y1', 0)
+        .attr('y2', 0)
+        .style('stroke', 'black')
+        .style('stroke-width', 1)
+        .style('stroke-dasharray', '5,5')
+        .style('visibility', 'hidden')
+        .style('pointer-events', 'none');
+
+      d3.select('#forecast-graph')
+        .on('mousemove', (event) => {
+          const [mouseX, mouseY] = d3.pointer(event);
+          const inBounds =
+            mouseX > margin.left &&
+            mouseX < width - margin.right &&
+            mouseY > margin.top &&
+            mouseY < height - margin.bottom;
+
+          d3.select('#y-crosshair')
+            .attr('y1', mouseY)
+            .attr('y2', mouseY)
+            .style('visibility', inBounds ? 'visible' : 'hidden');
+
+          setCrosshairLabel({
+            x: mouseX,
+            y: mouseY,
+            visible: inBounds,
+            text: `P(Graduate): ${yScale.invert(mouseY).toFixed(2)}`,
+          });
+        })
+        .on('mouseleave', () => {
+          d3.select('#y-crosshair').style('visibility', 'hidden');
+          setCrosshairLabel((prev) => ({ ...prev, visible: false }));
         });
 
       svg
@@ -183,6 +225,7 @@ export default function ForecastGraph() {
     const svg = d3.select('#forecast-graph');
     svg.append('text').attr('id', 'title');
     svg.append('g').append('path').attr('id', 'trendline');
+    svg.append('line').attr('id', 'y-crosshair');
     svg.append('g').attr('id', 'markers');
     svg
       .append('g')
@@ -222,15 +265,39 @@ export default function ForecastGraph() {
             border: '0px',
             borderRadius: '8px',
             boxSizing: 'border-box',
-            px: 2,
-            py: 1,
-            transform: 'translateX(10%) translateY(110%)', // Center horizontally and offset vertically
+            px: 1,
+            py: 0.5,
+            transform: 'translateX(10%) translateY(3rem)', // Center horizontally and offset vertically
             textAlign: 'center',
             pointerEvents: 'none',
           }}
         >
           <Typography sx={{ whiteSpace: 'pre-wrap', textAlign: 'left' }}>
             {tooltip.text}
+          </Typography>
+        </Box>
+      )}
+      {crosshairLabel.visible && !tooltip.visible && (
+        <Box
+          id="crosshair-label"
+          sx={{
+            backgroundColor: '#E5E4E2',
+            position: 'absolute',
+            left: `${crosshairLabel.x}px`,
+            top: `${crosshairLabel.y}px`,
+            height: '1.5rem',
+            width: 'auto',
+            border: '0px',
+            borderRadius: '8px',
+            boxSizing: 'border-box',
+            px: 1,
+            transform: 'translateX(10%) translateY(220%)', // Center horizontally and offset vertically
+            textAlign: 'center',
+            pointerEvents: 'none',
+          }}
+        >
+          <Typography sx={{ whiteSpace: 'pre-wrap', textAlign: 'left' }}>
+            {crosshairLabel.text}
           </Typography>
         </Box>
       )}
