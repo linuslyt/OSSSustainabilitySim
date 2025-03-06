@@ -32,7 +32,7 @@ function App() {
         height: '100vh',
         backgroundColor: 'whitesmoke',
         display: 'grid',
-        gridTemplateRows: '64px 45% auto',
+        gridTemplateRows: '64px 30% auto',
         overflow: 'hidden',
       }}
     >

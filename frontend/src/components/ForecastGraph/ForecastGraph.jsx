@@ -5,10 +5,6 @@ import * as d3 from 'd3';
 import { debounce } from 'lodash';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-// TODO: update font style and size
-// TODO: make graph span screen
-// TODO: make graph scrollable
-// TODO: brush selected months
 // TODO: add horizontal crosshair
 // TODO: get data from API
 
@@ -17,17 +13,27 @@ let graphInitialized = false;
 export default function ForecastGraph() {
   const data = useMemo(
     () => [
-      { month: 0, pGraduate: 0.1 },
-      { month: 2, pGraduate: 0.15 },
-      { month: 4, pGraduate: 0.4 },
-      { month: 6, pGraduate: 0.5 },
-      { month: 8, pGraduate: 0.7 },
-      { month: 10, pGraduate: 0.85 },
-      { month: 12, pGraduate: 0.9 },
-      { month: 14, pGraduate: 0.95 },
+      { month: 8, pGraduate: 0.1 },
+      { month: 9, pGraduate: 0.2 },
+      { month: 10, pGraduate: 0.25 },
+      { month: 11, pGraduate: 0.5 },
+      { month: 12, pGraduate: 0.4 },
+      { month: 13, pGraduate: 0.5 },
+      { month: 14, pGraduate: 0.5 },
+      { month: 15, pGraduate: 0.55 },
+      { month: 16, pGraduate: 0.7 },
+      { month: 17, pGraduate: 0.7 },
+      { month: 18, pGraduate: 0.65 },
+      { month: 19, pGraduate: 0.55 },
+      { month: 20, pGraduate: 0.5 },
+      { month: 21, pGraduate: 0.4 },
+      { month: 22, pGraduate: 0.5 },
     ],
     [],
   );
+
+  const domain = d3.extent(data.map((d) => d.month));
+
   const [tooltip, setTooltip] = useState({
     x: 0,
     y: 0,
@@ -54,20 +60,20 @@ export default function ForecastGraph() {
     const renderGraph = () => {
       // Derive constants from parent container size
       const margin = {
-        top: size.height * 0.1,
+        top: size.height * 0.16,
         right: size.width * 0.1,
-        bottom: size.height * 0.1,
-        left: size.width * 0.1,
+        bottom: size.height * 0.16,
+        left: size.width * 0.12,
       };
       const xScale = d3
-        .scaleLinear()
-        .domain([0, 15])
+        .scalePoint()
+        .domain(d3.range(domain[0], domain[1] + 1))
         .range([margin.left, size.width - margin.right]);
       const yScale = d3
         .scaleLinear()
         .domain([0, 1])
         .range([size.height - margin.bottom, margin.top]);
-      const xAxis = d3.axisBottom(xScale).ticks(8); // TODO: one tick per month
+      const xAxis = d3.axisBottom(xScale).ticks(data.length);
       const yAxis = d3.axisLeft(yScale).ticks(5);
       const lineGerator = d3
         .line()
@@ -87,23 +93,36 @@ export default function ForecastGraph() {
         .select('#x-axis')
         .attr('transform', `translate(0,${height - margin.bottom})`)
         .call(xAxis) // The first invocation of .call(axis) creates the axis; subsequent calls update it.
+        .selectAll('text') // Update tick label size
+        .style('font-size', '0.8rem')
+        .style('font-family', "'Roboto', sans-serif");
+
+      svg
         .select('#x-axis-label')
         .attr('x', width / 2)
-        .attr('y', 35)
+        .attr('y', margin.bottom * 0.9)
         .attr('fill', 'black')
-        .text('Month');
+        .text('Month')
+        .style('font-size', '1rem')
+        .style('font-family', "'Roboto', sans-serif");
 
       svg
         .select('#y-axis')
         .attr('transform', `translate(${margin.left},0)`)
         .call(yAxis)
-        .select('#y-axis-label')
+        .selectAll('text') // Update tick label size
+        .style('font-size', '0.8rem')
+        .style('font-family', "'Roboto', sans-serif");
+
+      d3.select('#y-axis-label')
         .attr('transform', 'rotate(-90)')
         .attr('x', -height / 2)
-        .attr('y', -40)
+        .attr('y', -margin.top)
         .attr('fill', 'black')
         .attr('text-anchor', 'middle')
-        .text('P(Graduate)');
+        .text('P(Graduate)')
+        .style('font-size', '1rem')
+        .style('font-family', "'Roboto', sans-serif");
 
       svg
         .select('#trendline')
@@ -144,9 +163,11 @@ export default function ForecastGraph() {
       svg
         .select('#title')
         .attr('x', width / 2)
-        .attr('y', margin.top - 20)
+        .attr('y', margin.top * 0.75)
         .text('Sustainability forecast for month X+1 for Project 1')
-        .attr('text-anchor', 'middle');
+        .attr('text-anchor', 'middle')
+        .style('font-size', '1.25rem')
+        .style('font-family', "'Roboto', sans-serif");
     };
     renderGraph(data);
   }, [size, data]);
