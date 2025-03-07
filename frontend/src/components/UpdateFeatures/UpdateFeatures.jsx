@@ -1,10 +1,9 @@
 import { Typography } from '@mui/material';
 import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid2';
 import React from 'react';
 import DeltaList from './DeltaList';
 import DeltaSelector from './DeltaSelector';
-
+import FeatureEditor from './FeatureEditor';
 function UpdateFeatures() {
   const [deltas, setDeltas] = React.useState({
     deltas: [
@@ -25,6 +24,7 @@ function UpdateFeatures() {
         // backgroundColor: 'whitesmoke',
         display: 'grid',
         gridTemplateRows: 'min-content min-content min-content auto',
+        overflow: 'hidden',
       }}
     >
       <Box
@@ -58,19 +58,20 @@ function UpdateFeatures() {
         </Typography>
         <DeltaList deltasState={[deltas, setDeltas]} />
       </Box>
-      <Grid
+      <Box
         sx={{
           gridRow: 4,
-          // backgroundColor: 'yellow',
         }}
       >
-        <Typography>
-          {deltas.selectedDelta
-            ? deltas.selectedDelta
-            : 'No deltas defined. Create a delta using the month picker above.'}
-        </Typography>
+        {deltas.selectedDelta ? (
+          <FeatureEditor />
+        ) : (
+          <Typography>
+            'No deltas defined. Create a delta using the month picker above.'
+          </Typography>
+        )}
         {/* TODO: datagrid component. input state: selected month range. output state: selected  */}
-      </Grid>
+      </Box>
     </Box>
   );
 }

@@ -263,7 +263,7 @@ export default function ForecastGraph() {
             height: 'auto',
             width: 'auto',
             border: '0px',
-            borderRadius: '8px',
+            borderRadius: '7px',
             boxSizing: 'border-box',
             px: 1,
             py: 0.5,
@@ -288,7 +288,7 @@ export default function ForecastGraph() {
             height: '1.5rem',
             width: 'auto',
             border: '0px',
-            borderRadius: '8px',
+            borderRadius: '7px',
             boxSizing: 'border-box',
             px: 1,
             transform: 'translateX(10%) translateY(220%)', // Center horizontally and offset vertically
