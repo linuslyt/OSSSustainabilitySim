@@ -186,14 +186,15 @@ class PredictOSSSustainabilityView(APIView):
         if not os.path.exists(model_path):
             return Response({"error": f"No model available for {num_months} months"}, status=400)
         
-        predicted_class, confidence = predict(history, model_path, num_months)
+        predicted_class, confidence, p_graduate = predict(history, model_path, num_months)
         status = "Sustainable (Likely to Graduate)" if predicted_class == 1 else "Not Sustainable (Likely to Retire)"
 
         return Response({
             "project_id": project_id,
             "num_months": num_months,
             "status_prediction": status,
-            "confidence_score": round(confidence, 2)
+            "confidence_score": round(confidence, 2),
+            "p_graduate": round(p_graduate, 2)
         }, status=200)
 
         # serializer = OSSDataSerializer(data=request.data)
@@ -986,7 +987,7 @@ class SimulateWithDeltasView(APIView):
         if not os.path.exists(model_path):
             return Response({"error": f"No model available for {max_months} months"}, status=400)
 
-        predicted_class, confidence = predict(modified_history, model_path, max_months)
+        predicted_class, confidence, p_graduate = predict(modified_history, model_path, max_months)
         status = "Sustainable (Likely to Graduate)" if predicted_class == 1 else "Not Sustainable (Likely to Retire)"
 
         # Prepare Response
@@ -994,7 +995,8 @@ class SimulateWithDeltasView(APIView):
             "project_id": project_id,
             "predicted_status": status,
             "confidence_score": round(confidence, 2),
-            "modified_features": feature_changes
+            "modified_features": feature_changes,
+            "p_graduate": round(p_graduate, 2)
         }
 
         return Response(response_data, status=200)
