@@ -6,6 +6,8 @@ import { debounce } from 'lodash';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 // TODO: get data from API
+// TODO: plot predictions
+// TODO: add nearest datapoint logic for hover
 let graphInitialized = false;
 
 export default function ForecastGraph() {

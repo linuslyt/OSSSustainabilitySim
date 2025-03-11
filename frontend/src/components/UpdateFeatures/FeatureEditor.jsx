@@ -1,37 +1,166 @@
+import QueryStatsIcon from '@mui/icons-material/QueryStats';
+import { IconButton } from '@mui/material';
 import Box from '@mui/material/Box';
 import { DataGrid } from '@mui/x-data-grid';
 import * as React from 'react';
+import { FEATURE_ORDER } from './constants';
 
-// TODO: show month column if range is not 1. https://mui.com/x/react-data-grid/column-visibility/
 // TODO: highlight rows if changed
-// TODO: replace dummies with legit features
-// TODO: replace column3 with edit box
-// TODO: hook up selectedDelta state and pull changes from deltas state
+// TODO: header border to separate original/simulated?
+// TODO: wrap 'feature' column with Tooltip component
+
+// Data from server: array of objects. Pivot to array of monthly feature values.
+function pivot(data) {
+  return data
+    .flatMap(({ month, ...rest }) =>
+      Object.entries(rest).map(([feature, value]) => ({
+        month,
+        feature,
+        value,
+      })),
+    )
+    .sort(
+      (a, b) =>
+        FEATURE_ORDER.indexOf(a.feature) - FEATURE_ORDER.indexOf(b.feature) ||
+        a.month - b.month,
+    );
+}
+
 export default function FeatureEditor() {
-  const rows = [
-    { id: 1, col1: 'Hello', col2: 'World' },
-    { id: 2, col1: 'DataGridPro', col2: 'is Awesome' },
-    { id: 3, col1: 'MUI', col2: 'is Amazing' },
-    { id: 4, col1: 'Hello', col2: 'World' },
-    { id: 5, col1: 'DataGridPro', col2: 'is Awesome' },
-    { id: 6, col1: 'MUI', col2: 'is Amazing' },
-    { id: 7, col1: 'Hello', col2: 'World' },
-    { id: 8, col1: 'DataGridPro', col2: 'is Awesome' },
-    { id: 9, col1: 'MUI', col2: 'is Amazing' },
-    { id: 10, col1: 'MUI', col2: 'World' },
-    { id: 11, col1: 'DataGridPro', col2: 'is Awesome' },
-    { id: 12, col1: 'MUI', col2: 'is Amazing' },
+  // TODO: get deltas from state
+  const startMonth = 1;
+  const endMonth = 2;
+  // TODO: get data from server
+  const data = [
+    {
+      month: 1,
+      active_devs: 10,
+      num_commits: 50,
+      num_files: 20,
+      num_emails: 15,
+      c_percentage: 0.7,
+      e_percentage: 0.3,
+      inactive_c: 5,
+      inactive_e: 2,
+      c_nodes: 30,
+      c_edges: 50,
+      c_c_coef: 0.6,
+      c_mean_degree: 2.5,
+      c_long_tail: 0.1,
+      e_nodes: 25,
+      e_edges: 40,
+      e_c_coef: 0.55,
+      e_mean_degree: 2,
+      e_long_tail: 0.05,
+    },
+    {
+      month: 2,
+      active_devs: 10,
+      num_commits: 100,
+      num_files: 26,
+      num_emails: 13,
+      c_percentage: 0.78,
+      e_percentage: 0.34,
+      inactive_c: 6,
+      inactive_e: 3,
+      c_nodes: 32,
+      c_edges: 54,
+      c_c_coef: 0.7,
+      c_mean_degree: 2.8,
+      c_long_tail: 0.4,
+      e_nodes: 26,
+      e_edges: 44,
+      e_c_coef: 0.5,
+      e_mean_degree: 3,
+      e_long_tail: 0.15,
+    },
   ];
 
-  // row = feature
-  // column1 = original; fixed
-  // column2 = new value
-  // column3 = edit by % +/-
+  const deltas = [
+    {
+      month: 1,
+      feature: 'num_commits',
+      newValue: 15,
+    },
+  ];
+
+  // TODO: add state to keep track of changed features
+
+  const rows = pivot(data);
+  // DATA:
+  // array of objects
+  // objects in form in constants.js
+  // one object per month
+  // to initialize, populate from start_range to end_range
+  // DELTAS:
+  // array of objects (sparse)
+  // if null no change
 
   const columns = [
-    { field: 'col1', headerName: 'Column 1', flex: 1 },
-    { field: 'col2', headerName: 'Column 2', flex: 1 },
-    { field: 'col3', headerName: 'Column 3', flex: 1 },
+    {
+      field: 'feature',
+      headerName: 'Feature',
+      flex: 1,
+    },
+    {
+      field: 'month',
+      headerName: 'Month',
+      flex: 1,
+    },
+    {
+      field: 'value',
+      headerName: 'Original value',
+      flex: 1,
+      cellClassName: 'border-cell',
+      rowSpanValueGetter: () => null,
+    },
+    {
+      field: 'simVal',
+      headerName: 'Simulated value',
+      editable: 1,
+      flex: 1,
+      valueGetter: (_, row) => {
+        // TODO: integer vs decimal formats
+        const delta = deltas.find(
+          (d) => d.feature === row.feature && d.month === row.month,
+        );
+        return delta ? delta.newValue : row.value;
+      },
+      rowSpanValueGetter: () => null,
+    },
+    {
+      field: 'pChange',
+      headerName: '% change simulated',
+      editable: 1,
+      flex: 1,
+      valueGetter: (_, row) => {
+        // TODO: validate % changes
+        const delta = deltas.find(
+          (d) => d.feature === row.feature && d.month === row.month,
+        );
+        return delta ? ((delta.newValue - row.value) / row.value) * 100 : 0;
+      },
+      // TODO: fix valueFormatter throwing NPE on editing even with null check. Probably needs
+      // valueParser for editing to be implemented.
+      valueFormatter: (value) => {
+        return value === null ? '' : `${value?.toFixed(0).toLocaleString()}%`;
+      },
+      rowSpanValueGetter: () => null,
+    },
+    {
+      field: 'inspect',
+      headerName: 'Inspect',
+      flex: 1,
+      align: 'center',
+      headerAlign: 'center',
+      // TODO: one inspect per feature
+      // rowSpanValueGetter: (row) => row.feature,
+      renderCell: () => (
+        <IconButton>
+          <QueryStatsIcon />
+        </IconButton>
+      ),
+    },
   ];
   return (
     // Double Box is a weird hack to prevent DataGrid from overflowing height.
@@ -46,17 +175,24 @@ export default function FeatureEditor() {
           hideFooter="true"
           disableRowSelectionOnClick
           unstable_rowSpanning
+          columnVisibilityModel={{
+            month: startMonth !== endMonth, // TODO: if delta range > 1
+          }}
+          getRowId={(r) => r.month + r.feature}
           sx={{
             borderRadius: '9px',
             // To disable cell/column header highlight on click - see https://github.com/mui/mui-x/issues/8104
-            [`& .MuiDataGrid-columnHeaderTitleContainer, & .MuiDataGrid-cell:`]:
-              {
-                outline: 'transparent',
-              },
-            [`& .MuiDataGrid-columnHeader:focus-within, & .MuiDataGrid-cell:focus-within`]:
+            '& .MuiDataGrid-columnHeaderTitleContainer, & .MuiDataGrid-cell': {
+              outline: 'transparent',
+            },
+            '& .MuiDataGrid-columnHeader:focus-within, & .MuiDataGrid-cell:focus-within':
               {
                 outline: 'none',
               },
+            '& .border-cell': {
+              borderRight: '2px solid black',
+              // backgroundColor: 'red',
+            },
           }}
         />
       </Box>

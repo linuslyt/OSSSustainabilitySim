@@ -40,21 +40,28 @@ function DeltaList({ deltasState }) {
     });
   };
 
-  const monthChips = deltas.deltas.map((d) => {
-    const mLabel =
-      d.startMonth !== d.endMonth
-        ? `Months ${d.startMonth}-${d.endMonth}`
-        : `Month ${d.startMonth}`;
+  const monthChips = deltas.deltas
+    .sort((a, b) => {
+      if (a.startMonth < b.startMonth) return -1;
+      if (a.startMonth > b.startMonth) return 1;
+      return 0;
+    })
+    .map((d) => {
+      const mLabel =
+        d.startMonth !== d.endMonth
+          ? `Months ${d.startMonth}-${d.endMonth}`
+          : `Month ${d.startMonth}`;
 
-    return (
-      <Chip
-        key={d.key}
-        label={mLabel}
-        onClick={() => handleSelect(d)}
-        onDelete={() => handleDelete(d)}
-      />
-    );
-  });
+      return (
+        <Chip
+          key={d.key}
+          label={mLabel}
+          color={d.key === deltas.selectedDelta ? 'primary' : ''}
+          onClick={() => handleSelect(d)}
+          onDelete={() => handleDelete(d)}
+        />
+      );
+    });
 
   return (
     <Stack spacing={0.5} direction="row" useFlexGap sx={{ flexWrap: 'wrap' }}>

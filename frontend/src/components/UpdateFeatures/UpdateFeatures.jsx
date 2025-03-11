@@ -4,17 +4,33 @@ import React from 'react';
 import DeltaList from './DeltaList';
 import DeltaSelector from './DeltaSelector';
 import FeatureEditor from './FeatureEditor';
+
+// https://mui.com/x/react-data-grid/editing/?srsltid=AfmBOoqwLp0UUX_K4K0L5lh_AQBgc2qH_UDg9_hFe9ezEckR05cQJP21#value-parser-and-value-setter
+// valueParser and valueSetter
+// editable column for simulated
+// editable column for % change
+
+// https://mui.com/x/react-data-grid/editing/?srsltid=AfmBOoqwLp0UUX_K4K0L5lh_AQBgc2qH_UDg9_hFe9ezEckR05cQJP21#validation
+// validate cell
+// depending on feature type
+// create validation methods
+// map feature -> [validationMethods]
+// call getValidationsForFeature(feature).all()
+// valueParser performs preprocessing (probably not needed)
+// validate checks whether the change is in range/possible
+
+// TODO: put monthly average into column as well?
 function UpdateFeatures() {
   const [deltas, setDeltas] = React.useState({
     deltas: [
       // Uncomment for default demo
-      // { key: '1_1', startMonth: 1, endMonth: 1 },
-      // { key: '2_2', startMonth: 2, endMonth: 2 },
-      // { key: '3_4', startMonth: 3, endMonth: 4 },
+      { key: '1_1', startMonth: 1, endMonth: 1 },
+      { key: '2_2', startMonth: 2, endMonth: 2 },
+      { key: '3_4', startMonth: 3, endMonth: 4 },
     ],
-    changedMonths: new Set(),
-    // changedMonths: new Set([1, 2, 3, 4]),
-    selectedDelta: '',
+    // changedMonths: new Set(),
+    changedMonths: new Set([1, 2, 3, 4]),
+    selectedDelta: '1_1',
   });
 
   return (
