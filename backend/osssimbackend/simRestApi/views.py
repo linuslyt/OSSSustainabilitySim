@@ -573,52 +573,122 @@ class PredictOSSSustainabilityView(APIView):
                 "Successful Response",
                 description="A successful response returning the predicted project status.",
                 value={
-                    "project_id": "270",
-                    "predictions": [
-                        {
-                        "start_month": 1,
-                        "predicted_month": 9,
-                        "status": 1,
-                        "confidence_score": 1
-                        },
-                        {
-                        "start_month": 2,
-                        "predicted_month": 10,
-                        "status": 1,
-                        "confidence_score": 1
-                        },
-                        {
-                        "start_month": 3,
-                        "predicted_month": 11,
-                        "status": 1,
-                        "confidence_score": 0.65
-                        },
-                        {
-                        "start_month": 4,
-                        "predicted_month": 12,
-                        "status": 1,
-                        "confidence_score": 1
-                        },
-                        {
-                        "start_month": 5,
-                        "predicted_month": 13,
-                        "status": 1,
-                        "confidence_score": 1
-                        },
-                        {
-                        "start_month": 6,
-                        "predicted_month": 14,
-                        "status": 0,
-                        "confidence_score": 1
-                        },
-                        {
-                        "start_month": 7,
-                        "predicted_month": 15,
-                        "status": 0,
-                        "confidence_score": 1
-                        }
-                    ]
-                    },
+                        "project_id": "270",
+                        "predictions": [
+                            {
+                            "start_month": 1,
+                            "predicted_month": 9,
+                            "status": 0,
+                            "confidence_score": 0.9266119599342346,
+                            "p_grad": 0.07338804006576538
+                            },
+                            {
+                            "start_month": 2,
+                            "predicted_month": 10,
+                            "status": 0,
+                            "confidence_score": 0.874457597732544,
+                            "p_grad": 0.12554240226745605
+                            },
+                            {
+                            "start_month": 3,
+                            "predicted_month": 11,
+                            "status": 1,
+                            "confidence_score": 1,
+                            "p_grad": 1
+                            },
+                            {
+                            "start_month": 4,
+                            "predicted_month": 12,
+                            "status": 1,
+                            "confidence_score": 0.9999995231628418,
+                            "p_grad": 0.9999995231628418
+                            },
+                            {
+                            "start_month": 5,
+                            "predicted_month": 13,
+                            "status": 1,
+                            "confidence_score": 0.9999994039535522,
+                            "p_grad": 0.9999994039535522
+                            },
+                            {
+                            "start_month": 6,
+                            "predicted_month": 14,
+                            "status": 1,
+                            "confidence_score": 1,
+                            "p_grad": 1
+                            },
+                            {
+                            "start_month": 7,
+                            "predicted_month": 15,
+                            "status": 1,
+                            "confidence_score": 1,
+                            "p_grad": 1
+                            },
+                            {
+                            "start_month": 8,
+                            "predicted_month": 16,
+                            "status": 1,
+                            "confidence_score": 1,
+                            "p_grad": 1
+                            },
+                            {
+                            "start_month": 9,
+                            "predicted_month": 17,
+                            "status": 1,
+                            "confidence_score": 1,
+                            "p_grad": 1
+                            },
+                            {
+                            "start_month": 10,
+                            "predicted_month": 18,
+                            "status": 1,
+                            "confidence_score": 1,
+                            "p_grad": 1
+                            },
+                            {
+                            "start_month": 11,
+                            "predicted_month": 19,
+                            "status": 1,
+                            "confidence_score": 0.9999690055847168,
+                            "p_grad": 0.9999690055847168
+                            },
+                            {
+                            "start_month": 12,
+                            "predicted_month": 20,
+                            "status": 1,
+                            "confidence_score": 0.9988135099411011,
+                            "p_grad": 0.9988135099411011
+                            },
+                            {
+                            "start_month": 13,
+                            "predicted_month": 21,
+                            "status": 0,
+                            "confidence_score": 0.8949622511863708,
+                            "p_grad": 0.10503774881362915
+                            },
+                            {
+                            "start_month": 14,
+                            "predicted_month": 22,
+                            "status": 0,
+                            "confidence_score": 0.9999953508377075,
+                            "p_grad": 0.000004649162292480469
+                            },
+                            {
+                            "start_month": 15,
+                            "predicted_month": 23,
+                            "status": 0,
+                            "confidence_score": 0.996653139591217,
+                            "p_grad": 0.003346860408782959
+                            },
+                            {
+                            "start_month": 16,
+                            "predicted_month": 24,
+                            "status": 0,
+                            "confidence_score": 0.9999309778213501,
+                            "p_grad": 0.00006902217864990234
+                            }
+                        ]
+},
                 response_only=True
             ),
             OpenApiExample(
@@ -720,8 +790,7 @@ class PredictOSSSustainabilityView(APIView):
             return Response({"error": "LSTM model not found"}, status=500)
         
         # Pass the historical data to the LSTM model for prediction
-        predictions = []
-        predictions= predict(history, model_path, 8)
+        predictions= predict(history, model_path)
                 
         return Response({
             "project_id": project_id,
@@ -1502,39 +1571,55 @@ class SimulateWithDeltasView(APIView):
         if not serializer.is_valid():
             return Response({"error": "Invalid feature change format", "details": serializer.errors}, status=400)
 
-        # Fetch all available history for project_id
-        available_months = []
-        for folder in os.listdir(TEMPORAL_DATA_DIR):
-            if folder.startswith("N_"):
-                num_months = int(folder.split("_")[1])  # Extract number from "N_X"
-                project_data_path = os.path.join(TEMPORAL_DATA_DIR, folder, f"{project_id}.json")
-                if os.path.exists(project_data_path):
-                    available_months.append(num_months)
+        # # Fetch all available history for project_id
+        # available_months = []
+        # for folder in os.listdir(TEMPORAL_DATA_DIR):
+        #     if folder.startswith("N_"):
+        #         num_months = int(folder.split("_")[1])  # Extract number from "N_X"
+        #         project_data_path = os.path.join(TEMPORAL_DATA_DIR, folder, f"{project_id}.json")
+        #         if os.path.exists(project_data_path):
+        #             available_months.append(num_months)
 
-        if not available_months:
-            return Response({"error": f"No historical data found for project {project_id}"}, status=404)
+        # if not available_months:
+        #     return Response({"error": f"No historical data found for project {project_id}"}, status=404)
 
-        max_months = max(available_months)
-        best_data_path = os.path.join(TEMPORAL_DATA_DIR, f"N_{max_months}", f"{project_id}.json")
+        project_data_path = os.path.join(TEMPORAL_DATA_DIR, f"{project_id}.json")
 
-        print(f"Using data from: {best_data_path}")
+        # Load historical project data
+        try:
+            with open(project_data_path, "r", encoding="utf-8") as file:
+                project_history = json.load(file)
+        except Exception as e:
+            return Response({"error": "Failed to load project history", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        max_months = project_history.get("num_months", 0)
+        # best_data_path = os.path.join(TEMPORAL_DATA_DIR, f"N_{max_months}", f"{project_id}.json")
+        
+        # Limit viable projects to those with 8 or more months of data
+        # if max_months < 8:
+        #     return Response({
+        #         "error": "Insufficient historical data", 
+        #         "details": f"At least 8 months of data required. Project {project_id} has : {max_months} months of data"
+        #     }, status=400)
+            
+        print(f"Using data from: {project_data_path}")
 
         cache_key = f"history_{project_id}_{max_months}"
         cache.delete(cache_key)
         cache.clear()
 
-        try:
-            with open(best_data_path, "r", encoding="utf-8") as file:
-                historical_data = json.load(file)
-        except Exception as e:
-            return Response({"error": "Failed to load project history", "details": str(e)}, status=500)
+        # try:
+        #     with open(best_data_path, "r", encoding="utf-8") as file:
+        #         historical_data = json.load(file)
+        # except Exception as e:
+        #     return Response({"error": "Failed to load project history", "details": str(e)}, status=500)
 
-        print(f"\n🔍 RAW Historical Data BEFORE Modification for project {project_id}:\n{json.dumps(historical_data['history'], indent=4)}\n")
+        # print(f"\n🔍 RAW Historical Data BEFORE Modification for project {project_id}:\n{json.dumps(project_history['history'], indent=4)}\n")
 
-        print(f"Feature Changes Request: {json.dumps(feature_changes, indent=4)}")
+        # print(f"Feature Changes Request: {json.dumps(feature_changes, indent=4)}")
 
         modified_history = []
-        for i, month_data in enumerate(historical_data["history"]):
+        for i, month_data in enumerate(project_history["history"]):
             modified_data = month_data.copy()
 
             # Apply Feature Changes
@@ -1542,8 +1627,8 @@ class SimulateWithDeltasView(APIView):
                 feature = change['feature_name']
                 change_type = change['change_type']
 
-                if feature in modified_data:
-                    print(f"📌 Modifying {feature} from {modified_data[feature]} with {change['change_type']} {change.get('change_value', change.get('change_values'))}")
+                # if feature in modified_data:
+                #     print(f"📌 Modifying {feature} from {modified_data[feature]} with {change['change_type']} {change.get('change_value', change.get('change_values'))}")
 
 
                 if change_type == "percentage":
@@ -1556,22 +1641,21 @@ class SimulateWithDeltasView(APIView):
             modified_history.append(modified_data)
 
         # Prints Exact Data Passed to Model
-        print(f"\nFinal Model Input Data for project {project_id}:\n{json.dumps(modified_history, indent=4)}\n")
+        # print(f"\nFinal Model Input Data for project {project_id}:\n{json.dumps(modified_history, indent=4)}\n")
 
-        # Pass Modified Data to Model
-        model_path = os.path.join(MODEL_DIR, f"model_{max_months}.h5")
+         
+        # Single model path for 8-month prediction
+        model_path = os.path.join(MODEL_DIR, "lstm_wo_padding_model.h5")
         if not os.path.exists(model_path):
             return Response({"error": f"No model available for {max_months} months"}, status=400)
 
-        predicted_class, confidence = predict(modified_history, model_path, max_months)
-        status = "Sustainable (Likely to Graduate)" if predicted_class == 1 else "Not Sustainable (Likely to Retire)"
+        predictions= predict(modified_history, model_path)
+        # status = "Sustainable (Likely to Graduate)" if predicted_class == 1 else "Not Sustainable (Likely to Retire)"
 
         # Prepare Response
         response_data = {
             "project_id": project_id,
-            "predicted_status": status,
-            "confidence_score": round(confidence, 2),
-            "modified_features": feature_changes
+            "predictions": predictions
         }
 
         return Response(response_data, status=200)

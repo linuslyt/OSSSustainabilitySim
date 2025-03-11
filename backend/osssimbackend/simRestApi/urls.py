@@ -23,3 +23,4 @@ urlpatterns = [
     path('getprojectdetails/', ProjectPredictionHistoryView.as_view(), name='getprojectdetails'),
     path('simulate-with-deltas/', SimulateWithDeltasView.as_view(), name='simulate-with-deltas'),
 ]
+    
