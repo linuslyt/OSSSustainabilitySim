@@ -61,12 +61,12 @@ function App() {
         }}
       >
         <Grid container sx={{ padding: 2, height: '100%' }} spacing={2}>
-          <Grid size={6}>
+          <Grid size={8}>
             <Panel>
               <UpdateFeatures />
             </Panel>
           </Grid>
-          <Grid size={6}>
+          <Grid size={4}>
             <Panel>
               <Typography variant="body1" sx={{ display: 'block' }}>
                 Selected project (select w/ dropdown to view here):

@@ -1,17 +1,19 @@
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
-import { IconButton } from '@mui/material';
+import ReplayIcon from '@mui/icons-material/Replay';
+import SouthWestIcon from '@mui/icons-material/SouthWest';
 import Box from '@mui/material/Box';
-import { DataGrid } from '@mui/x-data-grid';
+import Tooltip from '@mui/material/Tooltip';
+import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
 import * as React from 'react';
 import { FEATURE_ORDER } from './constants';
 
 // TODO: highlight rows if changed
-// TODO: header border to separate original/simulated?
-// TODO: wrap 'feature' column with Tooltip component
+// TODO: color
+// TODO: header border to separate original/simulated columns
 // TODO: convert to react context
-// TODO: add button to copy changes to all months in range.
-// TODO: add reset button
-// TODO: add copy button
+// TODO: alternating colors for features/months
+// TODO: renderCell tooltip for feature name
+
 // Data from server: array of objects. Pivot to array of monthly feature values.
 function pivot(data) {
   return data
@@ -169,21 +171,6 @@ export default function FeatureEditor({ deltasState }) {
 
   const columns = [
     {
-      field: 'inspect',
-      headerName: '',
-      align: 'center',
-      headerAlign: 'center',
-      rowSpanValueGetter: (_, row) => {
-        return row.feature;
-      },
-      renderCell: () => (
-        <IconButton>
-          <QueryStatsIcon />
-        </IconButton>
-      ),
-      flex: 0.5,
-    },
-    {
       field: 'feature',
       headerName: 'Feature',
       flex: 1,
@@ -233,6 +220,45 @@ export default function FeatureEditor({ deltasState }) {
       },
       rowSpanValueGetter: () => null,
     },
+    {
+      type: 'actions',
+      field: 'actions',
+      headerName: 'Actions',
+      width: 150,
+      cellClassName: 'actions',
+      getActions: (params) => {
+        return [
+          <Tooltip title="Reset" key={params.id + '_reset'}>
+            <GridActionsCellItem
+              icon={<ReplayIcon />}
+              label="Reset"
+              className="textPrimary"
+              onClick={() => console.log('reset', params)}
+              color="inherit"
+            />
+          </Tooltip>,
+          <Tooltip
+            title="Copy % change to all months for feature"
+            key={params.id + '_copyToAll'}
+          >
+            <GridActionsCellItem
+              icon={<SouthWestIcon />}
+              label="CopyToAllMonthsForFeature"
+              onClick={() => console.log('duplicate', params)}
+              color="inherit"
+            />
+          </Tooltip>,
+          <Tooltip title="Inspect feature" key={params.id + '_inspectFeature'}>
+            <GridActionsCellItem
+              icon={<QueryStatsIcon />}
+              label="InspectFeature"
+              onClick={() => console.log('inspect', params)}
+              color="inherit"
+            />
+          </Tooltip>,
+        ];
+      },
+    },
   ];
   return (
     // Double Box is a weird hack to prevent DataGrid from overflowing height.
@@ -250,7 +276,7 @@ export default function FeatureEditor({ deltasState }) {
           columnVisibilityModel={{
             month: startMonth !== endMonth, // TODO: if delta range > 1
           }}
-          getRowId={(r) => r.month + r.feature}
+          getRowId={(r) => r.month + '_' + r.feature}
           sx={{
             borderRadius: '9px',
             // To disable cell/column header highlight on click - see https://github.com/mui/mui-x/issues/8104
