@@ -8,7 +8,10 @@ import { FEATURE_ORDER } from './constants';
 // TODO: highlight rows if changed
 // TODO: header border to separate original/simulated?
 // TODO: wrap 'feature' column with Tooltip component
-
+// TODO: convert to react context
+// TODO: add button to copy changes to all months in range.
+// TODO: add reset button
+// TODO: add copy button
 // Data from server: array of objects. Pivot to array of monthly feature values.
 function pivot(data) {
   return data
@@ -26,10 +29,12 @@ function pivot(data) {
     );
 }
 
-export default function FeatureEditor() {
-  // TODO: get deltas from state
-  const startMonth = 1;
-  const endMonth = 2;
+export default function FeatureEditor({ deltasState }) {
+  const [deltas, setDeltas] = deltasState;
+  const selectedDelta = deltas.deltas.find(
+    (d) => d.key === deltas.selectedDelta,
+  );
+  const { _, startMonth, endMonth } = selectedDelta;
   // TODO: get data from server
   const data = [
     {
@@ -74,9 +79,76 @@ export default function FeatureEditor() {
       e_mean_degree: 3,
       e_long_tail: 0.15,
     },
+    {
+      month: 3,
+      active_devs: 10,
+      num_commits: 50,
+      num_files: 20,
+      num_emails: 15,
+      c_percentage: 0.7,
+      e_percentage: 0.3,
+      inactive_c: 5,
+      inactive_e: 2,
+      c_nodes: 30,
+      c_edges: 50,
+      c_c_coef: 0.6,
+      c_mean_degree: 2.5,
+      c_long_tail: 0.1,
+      e_nodes: 25,
+      e_edges: 40,
+      e_c_coef: 0.55,
+      e_mean_degree: 2,
+      e_long_tail: 0.05,
+    },
+    {
+      month: 4,
+      active_devs: 10,
+      num_commits: 100,
+      num_files: 26,
+      num_emails: 13,
+      c_percentage: 0.78,
+      e_percentage: 0.34,
+      inactive_c: 6,
+      inactive_e: 3,
+      c_nodes: 32,
+      c_edges: 54,
+      c_c_coef: 0.7,
+      c_mean_degree: 2.8,
+      c_long_tail: 0.4,
+      e_nodes: 26,
+      e_edges: 44,
+      e_c_coef: 0.5,
+      e_mean_degree: 3,
+      e_long_tail: 0.15,
+    },
+    {
+      month: 5,
+      active_devs: 10,
+      num_commits: 100,
+      num_files: 26,
+      num_emails: 13,
+      c_percentage: 0.78,
+      e_percentage: 0.34,
+      inactive_c: 6,
+      inactive_e: 3,
+      c_nodes: 32,
+      c_edges: 54,
+      c_c_coef: 0.7,
+      c_mean_degree: 2.8,
+      c_long_tail: 0.4,
+      e_nodes: 26,
+      e_edges: 44,
+      e_c_coef: 0.5,
+      e_mean_degree: 3,
+      e_long_tail: 0.15,
+    },
   ];
 
-  const deltas = [
+  const selectedData = data.filter(
+    (d) => d.month >= startMonth && d.month <= endMonth,
+  );
+
+  const changes = [
     {
       month: 1,
       feature: 'num_commits',
@@ -84,9 +156,8 @@ export default function FeatureEditor() {
     },
   ];
 
-  // TODO: add state to keep track of changed features
-
-  const rows = pivot(data);
+  // TODO: add state to keep track of changed features. store new simulated value not %.
+  const rows = pivot(selectedData);
   // DATA:
   // array of objects
   // objects in form in constants.js
@@ -97,6 +168,21 @@ export default function FeatureEditor() {
   // if null no change
 
   const columns = [
+    {
+      field: 'inspect',
+      headerName: '',
+      align: 'center',
+      headerAlign: 'center',
+      rowSpanValueGetter: (_, row) => {
+        return row.feature;
+      },
+      renderCell: () => (
+        <IconButton>
+          <QueryStatsIcon />
+        </IconButton>
+      ),
+      flex: 0.5,
+    },
     {
       field: 'feature',
       headerName: 'Feature',
@@ -120,11 +206,11 @@ export default function FeatureEditor() {
       editable: 1,
       flex: 1,
       valueGetter: (_, row) => {
-        // TODO: integer vs decimal formats
-        const delta = deltas.find(
+        // TODO: validate changes. -100% is max negative change. no max positive change. integers vs decimals.
+        const change = changes.find(
           (d) => d.feature === row.feature && d.month === row.month,
         );
-        return delta ? delta.newValue : row.value;
+        return change ? change.newValue : row.value;
       },
       rowSpanValueGetter: () => null,
     },
@@ -134,11 +220,11 @@ export default function FeatureEditor() {
       editable: 1,
       flex: 1,
       valueGetter: (_, row) => {
-        // TODO: validate % changes
-        const delta = deltas.find(
+        // TODO: validate changes. -100% is max negative change. no max positive change.
+        const change = changes.find(
           (d) => d.feature === row.feature && d.month === row.month,
         );
-        return delta ? ((delta.newValue - row.value) / row.value) * 100 : 0;
+        return change ? ((change.newValue - row.value) / row.value) * 100 : 0;
       },
       // TODO: fix valueFormatter throwing NPE on editing even with null check. Probably needs
       // valueParser for editing to be implemented.
@@ -146,20 +232,6 @@ export default function FeatureEditor() {
         return value === null ? '' : `${value?.toFixed(0).toLocaleString()}%`;
       },
       rowSpanValueGetter: () => null,
-    },
-    {
-      field: 'inspect',
-      headerName: 'Inspect',
-      flex: 1,
-      align: 'center',
-      headerAlign: 'center',
-      // TODO: one inspect per feature
-      // rowSpanValueGetter: (row) => row.feature,
-      renderCell: () => (
-        <IconButton>
-          <QueryStatsIcon />
-        </IconButton>
-      ),
     },
   ];
   return (

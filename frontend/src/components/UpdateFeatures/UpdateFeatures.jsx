@@ -29,7 +29,7 @@ function UpdateFeatures() {
       { key: '3_4', startMonth: 3, endMonth: 4 },
     ],
     // changedMonths: new Set(),
-    changedMonths: new Set([1, 2, 3, 4]),
+    changedMonths: new Set([1, 2, 3, 4]), // TODO: remove this. only used in selector. but make sure selector rerenders when deltas updates.
     selectedDelta: '1_1',
   });
 
@@ -80,7 +80,7 @@ function UpdateFeatures() {
         }}
       >
         {deltas.selectedDelta ? (
-          <FeatureEditor />
+          <FeatureEditor deltasState={[deltas, setDeltas]} />
         ) : (
           <Typography>
             'No deltas defined. Create a delta using the month picker above.'
