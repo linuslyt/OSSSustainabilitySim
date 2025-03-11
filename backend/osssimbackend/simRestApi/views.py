@@ -26,7 +26,7 @@ PROJECT_LIST = ['49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59'
 # Path to the JSON file
 ASFI_JSON_FILE_PATH = Path(__file__).parent / 'asfi_project_info/projects_list.json'
 
-PROJECT_PREDICTIONS_FILE = Path(__file__).parent / 'asfi_project_info/project_predictions.json'
+PROJECT_PREDICTIONS_FILE = Path(__file__).parent / 'asfi_project_info/project_predictions_sequential.json'
 
 MODEL_DIR =  Path(__file__).parent / 'lstm_models/' # Directory where models are stored
 
@@ -1463,25 +1463,224 @@ class ProjectPredictionHistoryView(APIView):
             return Response({"error": "Failed to load project data or prediction history", "details": str(e)}, status=500)
 
 
+# class SimulateWithDeltasView(APIView):
+#     @extend_schema(
+#         summary="Simulate Sustainability with Feature Changes",
+#         description="""
+#             This endpoint modifies only the specified features by user while backfilling 
+#             the rest of the historical data from the project's existing history.
+#             It includes percentage changes and explicit value changes for specific features.
+#         """,
+#         request=FeatureChangeRequestSerializer,
+#         responses={
+#             200: OpenApiResponse(
+#                 response={
+#                     "project_id": "200",
+#                     "predicted_status": "Sustainable",
+#                     "confidence_score": 0.92,
+#                     "modified_features": [
+#                         {"feature_name": "num_commits", "change_type": "percentage", "change_value": 20},
+#                         {"feature_name": "num_files", "change_type": "explicit", "change_values": [100, 120, 150]}
+#                     ]
+#                 },
+#                 description="Successfully simulated project sustainability with specified feature changes."
+#             ),
+#             400: OpenApiResponse(
+#                 response={"error": "Invalid input"},
+#                 description="Returned when the input parameters are missing, malformed, or invalid."
+#             ),
+#             404: OpenApiResponse(
+#                 response={"error": "Project not found"},
+#                 description="Returned when no historical data exists for the given project ID."
+#             ),
+#             500: OpenApiResponse(
+#                 response={"error": "Failed to process the simulation"},
+#                 description="Returned when an internal server error occurs during processing."
+#             )
+#         },
+#         examples=[
+#             OpenApiExample(
+#                 name="Valid Request Example (Percentage Change)",
+#                 description="An example where num_commits increases by 20% and num_files is explicitly set for 3 months.",
+#                 value={
+#                     "project_id": "200",
+#                     "feature_changes": [
+#                         {
+#                             "feature_name": "num_commits",
+#                             "change_type": "percentage",
+#                             "change_value": 20
+#                         },
+#                         {
+#                             "feature_name": "num_files",
+#                             "change_type": "explicit",
+#                             "change_values": [100, 120, 150]
+#                         }
+#                     ]
+#                 },
+#                 request_only=True
+#             ),
+#             OpenApiExample(
+#                 name="Successful Response Example",
+#                 description="Example of a successful response.",
+#                 value={
+#                     "project_id": "200",
+#                     "predicted_status": "Sustainable",
+#                     "confidence_score": 0.92,
+#                     "modified_features": [
+#                         {"feature_name": "num_commits", "change_type": "percentage", "change_value": 20},
+#                         {"feature_name": "num_files", "change_type": "explicit", "change_values": [100, 120, 150]}
+#                     ]
+#                 },
+#                 response_only=True
+#             ),
+#             OpenApiExample(
+#                 name="Error Example - Missing Project ID",
+#                 description="Returned when the project ID is not provided in the request.",
+#                 value={"error": "project_id is required"},
+#                 response_only=True
+#             ),
+#             OpenApiExample(
+#                 name="Error Example - Invalid Feature Change",
+#                 description="Returned when the feature change format is invalid or incomplete.",
+#                 value={
+#                     "error": "Invalid feature change format",
+#                     "details": {
+#                         "feature_changes": [
+#                             "Each feature change must include feature_name, change_type, and either change_value or change_values."
+#                         ]
+#                     }
+#                 },
+#                 response_only=True
+#             )
+#         ]
+#     )  
+#     def post(self, request):
+#         print("🚨 RAW request body BEFORE anything:")
+#         print(request.body.decode("utf-8"))
+#         project_id = request.data.get("project_id")
+#         feature_changes = request.data.get("feature_changes")
+
+#         print("🚨 Parsed request.data from Django:")
+#         print(json.dumps(request.data, indent=4))
+
+#         if not project_id or not feature_changes:
+#             return Response({"error": "project_id and feature_changes are required"}, status=400)
+
+#         # Validate Feature Changes
+#         serializer = MonthlyFeatureChangesSerializer(data=feature_changes, many=True)
+#         if not serializer.is_valid():
+#             return Response({"error": "Invalid feature change format", "details": serializer.errors}, status=400)
+
+#         # # Fetch all available history for project_id
+#         # available_months = []
+#         # for folder in os.listdir(TEMPORAL_DATA_DIR):
+#         #     if folder.startswith("N_"):
+#         #         num_months = int(folder.split("_")[1])  # Extract number from "N_X"
+#         #         project_data_path = os.path.join(TEMPORAL_DATA_DIR, folder, f"{project_id}.json")
+#         #         if os.path.exists(project_data_path):
+#         #             available_months.append(num_months)
+
+#         # if not available_months:
+#         #     return Response({"error": f"No historical data found for project {project_id}"}, status=404)
+
+#         project_data_path = os.path.join(TEMPORAL_DATA_DIR, f"{project_id}.json")
+
+#         # Load historical project data
+#         try:
+#             with open(project_data_path, "r", encoding="utf-8") as file:
+#                 project_history = json.load(file)
+#         except Exception as e:
+#             return Response({"error": "Failed to load project history", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+#         max_months = project_history.get("num_months", 0)
+#         # best_data_path = os.path.join(TEMPORAL_DATA_DIR, f"N_{max_months}", f"{project_id}.json")
+        
+#         # Limit viable projects to those with 8 or more months of data
+#         # if max_months < 8:
+#         #     return Response({
+#         #         "error": "Insufficient historical data", 
+#         #         "details": f"At least 8 months of data required. Project {project_id} has : {max_months} months of data"
+#         #     }, status=400)
+            
+#         print(f"Using data from: {project_data_path}")
+
+#         cache_key = f"history_{project_id}_{max_months}"
+#         cache.delete(cache_key)
+#         cache.clear()
+
+#         # try:
+#         #     with open(best_data_path, "r", encoding="utf-8") as file:
+#         #         historical_data = json.load(file)
+#         # except Exception as e:
+#         #     return Response({"error": "Failed to load project history", "details": str(e)}, status=500)
+
+#         # print(f"\n🔍 RAW Historical Data BEFORE Modification for project {project_id}:\n{json.dumps(project_history['history'], indent=4)}\n")
+
+#         # print(f"Feature Changes Request: {json.dumps(feature_changes, indent=4)}")
+
+#         modified_history = []
+#         for i, month_data in enumerate(project_history["history"]):
+#             modified_data = month_data.copy()
+
+#             # Apply Feature Changes
+#             for change in feature_changes:
+#                 feature = change['feature_name']
+#                 change_type = change['change_type']
+
+#                 # if feature in modified_data:
+#                 #     print(f"📌 Modifying {feature} from {modified_data[feature]} with {change['change_type']} {change.get('change_value', change.get('change_values'))}")
+
+
+#                 if change_type == "percentage":
+#                     if feature in modified_data:
+#                         modified_data[feature] *= (1 + change['change_value'] / 100.0)
+#                 elif change_type == "explicit":
+#                     if 'change_values' in change and i < len(change['change_values']):
+#                         modified_data[feature] = change['change_values'][i]
+
+#             modified_history.append(modified_data)
+
+#         # Prints Exact Data Passed to Model
+#         # print(f"\nFinal Model Input Data for project {project_id}:\n{json.dumps(modified_history, indent=4)}\n")
+
+         
+#         # Single model path for 8-month prediction
+#         model_path = os.path.join(MODEL_DIR, "lstm_wo_padding_model.h5")
+#         if not os.path.exists(model_path):
+#             return Response({"error": f"No model available for {max_months} months"}, status=400)
+
+#         predictions= predict(modified_history, model_path)
+#         # status = "Sustainable (Likely to Graduate)" if predicted_class == 1 else "Not Sustainable (Likely to Retire)"
+
+#         # Prepare Response
+#         response_data = {
+#             "project_id": project_id,
+#             "predictions": predictions
+#         }
+
+#         return Response(response_data, status=200)
+
+    
+    
+    
+    
 class SimulateWithDeltasView(APIView):
     @extend_schema(
         summary="Simulate Sustainability with Feature Changes",
         description="""
             This endpoint modifies only the specified features by user while backfilling 
             the rest of the historical data from the project's existing history.
-            It includes percentage changes and explicit value changes for specific features.
+            It includes monthly feature changes for specific months.
         """,
         request=FeatureChangeRequestSerializer,
         responses={
             200: OpenApiResponse(
                 response={
                     "project_id": "200",
-                    "predicted_status": "Sustainable",
-                    "confidence_score": 0.92,
-                    "modified_features": [
-                        {"feature_name": "num_commits", "change_type": "percentage", "change_value": 20},
-                        {"feature_name": "num_files", "change_type": "explicit", "change_values": [100, 120, 150]}
-                    ]
+                    "predictions": {
+                        "month_1": {"prediction": 1, "confidence": 0.92},
+                        "month_2": {"prediction": 1, "confidence": 0.88}
+                    }
                 },
                 description="Successfully simulated project sustainability with specified feature changes."
             ),
@@ -1500,20 +1699,40 @@ class SimulateWithDeltasView(APIView):
         },
         examples=[
             OpenApiExample(
-                name="Valid Request Example (Percentage Change)",
-                description="An example where num_commits increases by 20% and num_files is explicitly set for 3 months.",
+                name="Valid Request Example (Monthly Changes)",
+                description="An example where specific features are modified for months 1 and 3.",
                 value={
                     "project_id": "200",
-                    "feature_changes": [
+                    "deltas": [
                         {
-                            "feature_name": "num_commits",
-                            "change_type": "percentage",
-                            "change_value": 20
+                            "months": [1, 3],
+                            "feature_changes": [
+                                {
+                                    "feature_name": "num_commits",
+                                    "change_type": "percentage",
+                                    "change_value": 20
+                                },
+                                {
+                                    "feature_name": "num_files",
+                                    "change_type": "explicit",
+                                    "change_values": [100, 150]
+                                }
+                            ]
                         },
                         {
-                            "feature_name": "num_files",
-                            "change_type": "explicit",
-                            "change_values": [100, 120, 150]
+                            "months": [6, 7],
+                            "feature_changes": [
+                                {
+                                    "feature_name": "num_commits",
+                                    "change_type": "explicit",
+                                    "change_value": 2
+                                },
+                                {
+                                    "feature_name": "num_files",
+                                    "change_type": "explicit",
+                                    "change_values": [13, 5]
+                                }
+                            ]
                         }
                     ]
                 },
@@ -1523,32 +1742,51 @@ class SimulateWithDeltasView(APIView):
                 name="Successful Response Example",
                 description="Example of a successful response.",
                 value={
-                    "project_id": "200",
-                    "predicted_status": "Sustainable",
-                    "confidence_score": 0.92,
-                    "modified_features": [
-                        {"feature_name": "num_commits", "change_type": "percentage", "change_value": 20},
-                        {"feature_name": "num_files", "change_type": "explicit", "change_values": [100, 120, 150]}
-                    ]
-                },
-                response_only=True
-            ),
-            OpenApiExample(
-                name="Error Example - Missing Project ID",
-                description="Returned when the project ID is not provided in the request.",
-                value={"error": "project_id is required"},
-                response_only=True
-            ),
-            OpenApiExample(
-                name="Error Example - Invalid Feature Change",
-                description="Returned when the feature change format is invalid or incomplete.",
-                value={
-                    "error": "Invalid feature change format",
-                    "details": {
-                        "feature_changes": [
-                            "Each feature change must include feature_name, change_type, and either change_value or change_values."
-                        ]
+                "project_id": "50",
+                "predictions": [
+                    {
+                    "month": 1,
+                    "status": 1,
+                    "confidence_score": 0.6548473834991455,
+                    "p_grad": 0.6548473834991455
+                    },
+                    {
+                    "month": 2,
+                    "status": 0,
+                    "confidence_score": 0.6758034825325012,
+                    "p_grad": 0.3241965174674988
+                    },
+                    {
+                    "month": 3,
+                    "status": 0,
+                    "confidence_score": 0.8469399213790894,
+                    "p_grad": 0.15306007862091064
+                    },
+                    {
+                    "month": 4,
+                    "status": 0,
+                    "confidence_score": 0.7732663154602051,
+                    "p_grad": 0.22673368453979492
+                    },
+                    {
+                    "month": 5,
+                    "status": 0,
+                    "confidence_score": 0.932475745677948,
+                    "p_grad": 0.067524254322052
+                    },
+                    {
+                    "month": 6,
+                    "status": 0,
+                    "confidence_score": 0.9629136323928833,
+                    "p_grad": 0.0370863676071167
+                    },
+                    {
+                    "month": 7,
+                    "status": 0,
+                    "confidence_score": 0.9556230306625366,
+                    "p_grad": 0.04437696933746338
                     }
+                ]
                 },
                 response_only=True
             )
@@ -1557,101 +1795,90 @@ class SimulateWithDeltasView(APIView):
     def post(self, request):
         print("🚨 RAW request body BEFORE anything:")
         print(request.body.decode("utf-8"))
+        
         project_id = request.data.get("project_id")
-        feature_changes = request.data.get("feature_changes")
+        monthly_changes = request.data.get("deltas")
 
         print("🚨 Parsed request.data from Django:")
         print(json.dumps(request.data, indent=4))
 
-        if not project_id or not feature_changes:
-            return Response({"error": "project_id and feature_changes are required"}, status=400)
-
-        # Validate Feature Changes
-        serializer = FeatureChangeSerializer(data=feature_changes, many=True)
+        if not project_id or not monthly_changes:
+            return Response({"error": "project_id and monthly_changes are required"}, status=400)
+        
+        
+        # Validate Monthly Feature Changes
+        serializer = FeatureChangeRequestSerializer(data=request.data)
         if not serializer.is_valid():
-            return Response({"error": "Invalid feature change format", "details": serializer.errors}, status=400)
-
-        # # Fetch all available history for project_id
-        # available_months = []
-        # for folder in os.listdir(TEMPORAL_DATA_DIR):
-        #     if folder.startswith("N_"):
-        #         num_months = int(folder.split("_")[1])  # Extract number from "N_X"
-        #         project_data_path = os.path.join(TEMPORAL_DATA_DIR, folder, f"{project_id}.json")
-        #         if os.path.exists(project_data_path):
-        #             available_months.append(num_months)
-
-        # if not available_months:
-        #     return Response({"error": f"No historical data found for project {project_id}"}, status=404)
-
+            return Response({"error": "Invalid request format", "details": serializer.errors}, status=400)
+        
+        # Load project data
         project_data_path = os.path.join(TEMPORAL_DATA_DIR, f"{project_id}.json")
-
+        
         # Load historical project data
         try:
             with open(project_data_path, "r", encoding="utf-8") as file:
                 project_history = json.load(file)
+        except FileNotFoundError:
+            return Response({"error": f"No historical data found for project {project_id}"}, status=404)
         except Exception as e:
             return Response({"error": "Failed to load project history", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        max_months = project_history.get("num_months", 0)
-        # best_data_path = os.path.join(TEMPORAL_DATA_DIR, f"N_{max_months}", f"{project_id}.json")
         
-        # Limit viable projects to those with 8 or more months of data
-        # if max_months < 8:
-        #     return Response({
-        #         "error": "Insufficient historical data", 
-        #         "details": f"At least 8 months of data required. Project {project_id} has : {max_months} months of data"
-        #     }, status=400)
-            
+        # Get the number of months in the history
+        max_months = project_history.get("num_months", 0)
+        
         print(f"Using data from: {project_data_path}")
 
+        # Clear cache for this project
         cache_key = f"history_{project_id}_{max_months}"
         cache.delete(cache_key)
         cache.clear()
 
-        # try:
-        #     with open(best_data_path, "r", encoding="utf-8") as file:
-        #         historical_data = json.load(file)
-        # except Exception as e:
-        #     return Response({"error": "Failed to load project history", "details": str(e)}, status=500)
-
-        # print(f"\n🔍 RAW Historical Data BEFORE Modification for project {project_id}:\n{json.dumps(project_history['history'], indent=4)}\n")
-
-        # print(f"Feature Changes Request: {json.dumps(feature_changes, indent=4)}")
-
-        modified_history = []
-        for i, month_data in enumerate(project_history["history"]):
-            modified_data = month_data.copy()
-
-            # Apply Feature Changes
-            for change in feature_changes:
-                feature = change['feature_name']
-                change_type = change['change_type']
-
-                # if feature in modified_data:
-                #     print(f"📌 Modifying {feature} from {modified_data[feature]} with {change['change_type']} {change.get('change_value', change.get('change_values'))}")
-
-
-                if change_type == "percentage":
-                    if feature in modified_data:
-                        modified_data[feature] *= (1 + change['change_value'] / 100.0)
-                elif change_type == "explicit":
-                    if 'change_values' in change and i < len(change['change_values']):
-                        modified_data[feature] = change['change_values'][i]
-
-            modified_history.append(modified_data)
-
+        # Create a copy of the original history to modify
+        modified_history = [month_data.copy() for month_data in project_history["history"]]
+        
+        # Apply monthly changes
+        for monthly_change in monthly_changes:
+            months_to_modify = monthly_change.get("months", [])
+            feature_changes = monthly_change.get("feature_changes", [])
+            
+            # Apply changes to specified months
+            for month_idx in months_to_modify:
+                # Make sure the month index is valid
+                if 0 <= month_idx < len(modified_history):
+                    # print(f"📅 Modifying month {month_idx}: {modified_history[month_idx-1]}")
+                    month_data = modified_history[month_idx-1]
+                    
+                    # Apply each feature change
+                    for change in feature_changes:
+                        feature = change.get('feature_name')
+                        change_type = change.get('change_type')
+                        
+                        if feature in month_data:
+                            print(f"📌 Modifying {feature} in month {month_idx} from {month_data[feature]}")
+                            
+                            if change_type == "percentage" and 'change_value' in change:
+                                month_data[feature] *= (1 + change['change_value'] / 100.0)
+                                print(f"  - New value after {change['change_value']}% change: {month_data[feature]}")
+                                
+                            elif change_type == "explicit" and 'change_values' in change:
+                                # Find the correct value for this month in the change_values array
+                                value_idx = months_to_modify.index(month_idx)
+                                if value_idx < len(change['change_values']):
+                                    month_data[feature] = change['change_values'][value_idx]
+                                    print(f"  - New explicit value: {month_data[feature]}")
+        
         # Prints Exact Data Passed to Model
         # print(f"\nFinal Model Input Data for project {project_id}:\n{json.dumps(modified_history, indent=4)}\n")
-
-         
-        # Single model path for 8-month prediction
+        
+        # Load model for prediction
         model_path = os.path.join(MODEL_DIR, "lstm_wo_padding_model.h5")
+        # model_path = os.path.join(MODEL_DIR, "model_8.h5")
         if not os.path.exists(model_path):
             return Response({"error": f"No model available for {max_months} months"}, status=400)
 
-        predictions= predict(modified_history, model_path)
-        # status = "Sustainable (Likely to Graduate)" if predicted_class == 1 else "Not Sustainable (Likely to Retire)"
-
+        # Make predictions
+        predictions = predict(modified_history, model_path)
+        
         # Prepare Response
         response_data = {
             "project_id": project_id,
@@ -1659,8 +1886,3 @@ class SimulateWithDeltasView(APIView):
         }
 
         return Response(response_data, status=200)
-
-    
-    
-    
-    

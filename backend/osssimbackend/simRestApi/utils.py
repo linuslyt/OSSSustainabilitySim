@@ -6,7 +6,16 @@ from sklearn.preprocessing import MinMaxScaler
 import os
 from pathlib import Path
 import json
+
+
 TEMPORAL_DATA_DIR = Path(__file__).parent /"asfi_project_info/project_temporal_json_data/"
+
+all_features = [
+            'active_devs', 'num_commits', 'num_files', 'num_emails', 'c_percentage', 'e_percentage',
+            'inactive_c', 'inactive_e', 'c_nodes', 'c_edges', 'c_c_coef', 'c_mean_degree', 'c_long_tail',
+            'e_nodes', 'e_edges', 'e_c_coef', 'e_mean_degree', 'e_long_tail'
+        ]
+
 
 def build_stateful_model(original_model_path, feature_dim):
     """
@@ -45,6 +54,7 @@ def predict(history, model_path):
     
     # Convert history to DataFrame and scale
     df = pd.DataFrame(history)
+    df = df[all_features] # Ensure all features are present
     scaled_data = scaler.fit_transform(df.values)  # Scale the data
     
     feature_dim = scaled_data.shape[1]  # Number of features per month

@@ -4,6 +4,7 @@
     "num_months": 3,
     "history": [
         {
+            "month": 1.0,
             "active_devs": 0.0,
             "num_commits": 0.0,
             "num_files": 0.0,
@@ -24,6 +25,7 @@
             "e_long_tail": 0.0
         },
         {
+            "month": 2.0,
             "active_devs": 4.0,
             "num_commits": 0.0,
             "num_files": 0.0,
@@ -44,6 +46,7 @@
             "e_long_tail": 1.0
         },
         {
+            "month": 3.0,
             "active_devs": 2.0,
             "num_commits": 0.0,
             "num_files": 0.0,

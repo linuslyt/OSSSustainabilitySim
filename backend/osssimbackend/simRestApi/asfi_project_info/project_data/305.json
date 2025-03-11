@@ -4,6 +4,7 @@
     "num_months": 1,
     "history": [
         {
+            "month": 1.0,
             "active_devs": 11.0,
             "num_commits": 608.0,
             "num_files": 465.0,

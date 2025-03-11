@@ -4,6 +4,7 @@
     "num_months": 4,
     "history": [
         {
+            "month": 1.0,
             "active_devs": 58.0,
             "num_commits": 1420.0,
             "num_files": 1035.0,
@@ -24,6 +25,7 @@
             "e_long_tail": 13.0
         },
         {
+            "month": 2.0,
             "active_devs": 72.0,
             "num_commits": 1581.0,
             "num_files": 1039.0,
@@ -44,6 +46,7 @@
             "e_long_tail": 11.0
         },
         {
+            "month": 3.0,
             "active_devs": 98.0,
             "num_commits": 901.0,
             "num_files": 442.0,
@@ -64,6 +67,7 @@
             "e_long_tail": 9.0
         },
         {
+            "month": 4.0,
             "active_devs": 84.0,
             "num_commits": 514.0,
             "num_files": 298.0,

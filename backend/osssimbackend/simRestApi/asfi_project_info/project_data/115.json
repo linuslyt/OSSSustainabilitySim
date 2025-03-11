@@ -4,6 +4,7 @@
     "num_months": 11,
     "history": [
         {
+            "month": 1.0,
             "active_devs": 10.0,
             "num_commits": 99.0,
             "num_files": 88.0,
@@ -24,6 +25,7 @@
             "e_long_tail": 5.0
         },
         {
+            "month": 2.0,
             "active_devs": 22.0,
             "num_commits": 61.0,
             "num_files": 46.0,
@@ -44,6 +46,7 @@
             "e_long_tail": 7.0
         },
         {
+            "month": 3.0,
             "active_devs": 21.0,
             "num_commits": 21.0,
             "num_files": 18.0,
@@ -64,6 +67,7 @@
             "e_long_tail": 8.0
         },
         {
+            "month": 4.0,
             "active_devs": 22.0,
             "num_commits": 150.0,
             "num_files": 95.0,
@@ -84,6 +88,7 @@
             "e_long_tail": 8.0
         },
         {
+            "month": 5.0,
             "active_devs": 11.0,
             "num_commits": 71.0,
             "num_files": 49.0,
@@ -104,6 +109,7 @@
             "e_long_tail": 7.0
         },
         {
+            "month": 6.0,
             "active_devs": 20.0,
             "num_commits": 54.0,
             "num_files": 41.0,
@@ -124,6 +130,7 @@
             "e_long_tail": 8.0
         },
         {
+            "month": 7.0,
             "active_devs": 25.0,
             "num_commits": 173.0,
             "num_files": 138.0,
@@ -144,6 +151,7 @@
             "e_long_tail": 4.0
         },
         {
+            "month": 8.0,
             "active_devs": 20.0,
             "num_commits": 17.0,
             "num_files": 12.0,
@@ -164,6 +172,7 @@
             "e_long_tail": 10.0
         },
         {
+            "month": 9.0,
             "active_devs": 28.0,
             "num_commits": 34.0,
             "num_files": 31.0,
@@ -184,6 +193,7 @@
             "e_long_tail": 9.0
         },
         {
+            "month": 10.0,
             "active_devs": 26.0,
             "num_commits": 54.0,
             "num_files": 48.0,
@@ -204,6 +214,7 @@
             "e_long_tail": 8.0
         },
         {
+            "month": 11.0,
             "active_devs": 9.0,
             "num_commits": 14.0,
             "num_files": 13.0,

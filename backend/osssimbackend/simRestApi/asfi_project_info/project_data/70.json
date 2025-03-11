@@ -4,6 +4,7 @@
     "num_months": 20,
     "history": [
         {
+            "month": 1.0,
             "active_devs": 22.0,
             "num_commits": 689.0,
             "num_files": 218.0,
@@ -24,6 +25,7 @@
             "e_long_tail": 7.0
         },
         {
+            "month": 2.0,
             "active_devs": 38.0,
             "num_commits": 909.0,
             "num_files": 425.0,
@@ -44,6 +46,7 @@
             "e_long_tail": 18.0
         },
         {
+            "month": 3.0,
             "active_devs": 44.0,
             "num_commits": 9838.0,
             "num_files": 2248.0,
@@ -64,6 +67,7 @@
             "e_long_tail": 20.0
         },
         {
+            "month": 4.0,
             "active_devs": 35.0,
             "num_commits": 797.0,
             "num_files": 477.0,
@@ -84,6 +88,7 @@
             "e_long_tail": 16.0
         },
         {
+            "month": 5.0,
             "active_devs": 36.0,
             "num_commits": 1395.0,
             "num_files": 733.0,
@@ -104,6 +109,7 @@
             "e_long_tail": 16.0
         },
         {
+            "month": 6.0,
             "active_devs": 38.0,
             "num_commits": 1130.0,
             "num_files": 596.0,
@@ -124,6 +130,7 @@
             "e_long_tail": 13.0
         },
         {
+            "month": 7.0,
             "active_devs": 42.0,
             "num_commits": 1122.0,
             "num_files": 531.0,
@@ -144,6 +151,7 @@
             "e_long_tail": 14.0
         },
         {
+            "month": 8.0,
             "active_devs": 47.0,
             "num_commits": 989.0,
             "num_files": 393.0,
@@ -164,6 +172,7 @@
             "e_long_tail": 16.0
         },
         {
+            "month": 9.0,
             "active_devs": 36.0,
             "num_commits": 793.0,
             "num_files": 407.0,
@@ -184,6 +193,7 @@
             "e_long_tail": 14.0
         },
         {
+            "month": 10.0,
             "active_devs": 43.0,
             "num_commits": 539.0,
             "num_files": 322.0,
@@ -204,6 +214,7 @@
             "e_long_tail": 12.0
         },
         {
+            "month": 11.0,
             "active_devs": 36.0,
             "num_commits": 317.0,
             "num_files": 191.0,
@@ -224,6 +235,7 @@
             "e_long_tail": 12.0
         },
         {
+            "month": 12.0,
             "active_devs": 46.0,
             "num_commits": 1231.0,
             "num_files": 551.0,
@@ -244,6 +256,7 @@
             "e_long_tail": 16.0
         },
         {
+            "month": 13.0,
             "active_devs": 34.0,
             "num_commits": 322.0,
             "num_files": 171.0,
@@ -264,6 +277,7 @@
             "e_long_tail": 11.0
         },
         {
+            "month": 14.0,
             "active_devs": 60.0,
             "num_commits": 509.0,
             "num_files": 306.0,
@@ -284,6 +298,7 @@
             "e_long_tail": 23.0
         },
         {
+            "month": 15.0,
             "active_devs": 54.0,
             "num_commits": 254.0,
             "num_files": 183.0,
@@ -304,6 +319,7 @@
             "e_long_tail": 22.0
         },
         {
+            "month": 16.0,
             "active_devs": 58.0,
             "num_commits": 15914.0,
             "num_files": 2479.0,
@@ -324,6 +340,7 @@
             "e_long_tail": 22.0
         },
         {
+            "month": 17.0,
             "active_devs": 62.0,
             "num_commits": 609.0,
             "num_files": 360.0,
@@ -344,6 +361,7 @@
             "e_long_tail": 16.0
         },
         {
+            "month": 18.0,
             "active_devs": 70.0,
             "num_commits": 906.0,
             "num_files": 632.0,
@@ -364,6 +382,7 @@
             "e_long_tail": 21.0
         },
         {
+            "month": 19.0,
             "active_devs": 69.0,
             "num_commits": 1329.0,
             "num_files": 602.0,
@@ -384,6 +403,7 @@
             "e_long_tail": 24.0
         },
         {
+            "month": 20.0,
             "active_devs": 52.0,
             "num_commits": 163.0,
             "num_files": 95.0,

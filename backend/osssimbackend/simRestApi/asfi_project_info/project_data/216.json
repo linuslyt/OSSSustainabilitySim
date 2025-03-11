@@ -4,6 +4,7 @@
     "num_months": 9,
     "history": [
         {
+            "month": 1.0,
             "active_devs": 22.0,
             "num_commits": 499.0,
             "num_files": 450.0,
@@ -24,6 +25,7 @@
             "e_long_tail": 7.0
         },
         {
+            "month": 2.0,
             "active_devs": 23.0,
             "num_commits": 0.0,
             "num_files": 0.0,
@@ -44,6 +46,7 @@
             "e_long_tail": 4.0
         },
         {
+            "month": 3.0,
             "active_devs": 71.0,
             "num_commits": 2678.0,
             "num_files": 554.0,
@@ -64,6 +67,7 @@
             "e_long_tail": 15.0
         },
         {
+            "month": 4.0,
             "active_devs": 73.0,
             "num_commits": 1317.0,
             "num_files": 376.0,
@@ -84,6 +88,7 @@
             "e_long_tail": 13.0
         },
         {
+            "month": 5.0,
             "active_devs": 74.0,
             "num_commits": 781.0,
             "num_files": 222.0,
@@ -104,6 +109,7 @@
             "e_long_tail": 10.0
         },
         {
+            "month": 6.0,
             "active_devs": 66.0,
             "num_commits": 625.0,
             "num_files": 233.0,
@@ -124,6 +130,7 @@
             "e_long_tail": 11.0
         },
         {
+            "month": 7.0,
             "active_devs": 101.0,
             "num_commits": 2393.0,
             "num_files": 517.0,
@@ -144,6 +151,7 @@
             "e_long_tail": 10.0
         },
         {
+            "month": 8.0,
             "active_devs": 172.0,
             "num_commits": 811.0,
             "num_files": 335.0,
@@ -164,6 +172,7 @@
             "e_long_tail": 19.0
         },
         {
+            "month": 9.0,
             "active_devs": 116.0,
             "num_commits": 501.0,
             "num_files": 348.0,
