@@ -4,7 +4,7 @@ import SouthWestIcon from '@mui/icons-material/SouthWest';
 import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
 import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
-import * as React from 'react';
+import React, { useState } from 'react';
 import { FEATURE_ORDER } from './constants';
 
 // TODO: highlight rows if changed
@@ -150,13 +150,18 @@ export default function FeatureEditor({ deltasState }) {
     (d) => d.month >= startMonth && d.month <= endMonth,
   );
 
-  const changes = [
+  const [changes, setChanges] = useState([
     {
       month: 1,
       feature: 'num_commits',
       newValue: 15,
     },
-  ];
+    {
+      month: 3,
+      feature: 'active_devs',
+      newValue: 12,
+    },
+  ]);
 
   // TODO: add state to keep track of changed features. store new simulated value not %.
   const rows = pivot(selectedData);
@@ -168,6 +173,48 @@ export default function FeatureEditor({ deltasState }) {
   // DELTAS:
   // array of objects (sparse)
   // if null no change
+
+  function handleReset(row) {
+    setChanges((prev) =>
+      prev.filter((c) => !(c.month === row.month && c.feature === row.feature)),
+    );
+  }
+
+  function handleCopyToAllMonths(row) {
+    // Save current change
+    const changeToCopy = changes.find(
+      (c) => c.month === row.month && c.feature === row.feature,
+    );
+
+    if (changeToCopy === undefined) {
+      // No change defined - reset to 0 for all months.
+      for (let i = selectedDelta.startMonth; i <= selectedDelta.endMonth; i++) {
+        handleReset({ ...row, month: i });
+      }
+      return;
+    }
+
+    let newValuesForMonth = [];
+    for (let i = selectedDelta.startMonth; i <= selectedDelta.endMonth; i++) {
+      if (i === row.month) continue;
+      newValuesForMonth.push({
+        month: i,
+        feature: changeToCopy.feature,
+        newValue: changeToCopy.newValue,
+      });
+    }
+    setChanges((prev) => [...prev, ...newValuesForMonth]);
+  }
+
+  function handleInspect(row) {
+    setDeltas((prev) => ({
+      ...prev,
+      selectedFeature: {
+        feature: row.feature,
+        month: row.month,
+      },
+    }));
+  }
 
   const columns = [
     {
@@ -183,6 +230,7 @@ export default function FeatureEditor({ deltasState }) {
     {
       field: 'value',
       headerName: 'Original value',
+      // headerClassName: 'border-cell',
       flex: 1,
       cellClassName: 'border-cell',
       rowSpanValueGetter: () => null,
@@ -233,7 +281,7 @@ export default function FeatureEditor({ deltasState }) {
               icon={<ReplayIcon />}
               label="Reset"
               className="textPrimary"
-              onClick={() => console.log('reset', params)}
+              onClick={() => handleReset(params.row)}
               color="inherit"
             />
           </Tooltip>,
@@ -244,7 +292,7 @@ export default function FeatureEditor({ deltasState }) {
             <GridActionsCellItem
               icon={<SouthWestIcon />}
               label="CopyToAllMonthsForFeature"
-              onClick={() => console.log('duplicate', params)}
+              onClick={() => handleCopyToAllMonths(params.row)}
               color="inherit"
             />
           </Tooltip>,
@@ -252,7 +300,7 @@ export default function FeatureEditor({ deltasState }) {
             <GridActionsCellItem
               icon={<QueryStatsIcon />}
               label="InspectFeature"
-              onClick={() => console.log('inspect', params)}
+              onClick={() => handleInspect(params.row)}
               color="inherit"
             />
           </Tooltip>,

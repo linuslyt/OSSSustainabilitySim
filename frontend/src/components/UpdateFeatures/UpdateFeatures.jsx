@@ -31,6 +31,7 @@ function UpdateFeatures() {
     // changedMonths: new Set(),
     changedMonths: new Set([1, 2, 3, 4]), // TODO: remove this. only used in selector. but make sure selector rerenders when deltas updates.
     selectedDelta: '1_1',
+    selectedFeature: {},
   });
 
   return (
@@ -61,7 +62,11 @@ function UpdateFeatures() {
         }}
       >
         <Typography variant="subtitle" sx={{ fontStyle: 'italic' }}>
-          Instructions for operating
+          Instructions for operating.
+          <br />
+          Selected feature: {deltas.selectedFeature.feature}
+          <br />
+          Selected feature month: {deltas.selectedFeature.month}
         </Typography>
       </Box>
       <Box
