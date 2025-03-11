@@ -1,19 +1,17 @@
+import HelpIcon from '@mui/icons-material/Help';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import ReplayIcon from '@mui/icons-material/Replay';
 import SouthWestIcon from '@mui/icons-material/SouthWest';
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
 import React, { useState } from 'react';
-import { FEATURE_ORDER } from './constants';
+import { FEATURE_DESCRIPTIONS, FEATURE_ORDER } from './constants';
 
-// TODO: highlight rows if changed
-// TODO: color
-// TODO: header border to separate original/simulated columns
+// TODO: set row color on editing select
 // TODO: convert to react context
-// TODO: alternating colors for features/months
-// TODO: renderCell tooltip for feature name
-
+// TODO: edit events
 // Data from server: array of objects. Pivot to array of monthly feature values.
 function pivot(data) {
   return data
@@ -163,7 +161,6 @@ export default function FeatureEditor({ deltasState }) {
     },
   ]);
 
-  // TODO: add state to keep track of changed features. store new simulated value not %.
   const rows = pivot(selectedData);
   // DATA:
   // array of objects
@@ -221,6 +218,19 @@ export default function FeatureEditor({ deltasState }) {
       field: 'feature',
       headerName: 'Feature',
       flex: 1,
+      renderCell: ({ value }) => {
+        return (
+          <Stack direction="row" alignItems="center" gap={1}>
+            {value}
+            <Tooltip title={FEATURE_DESCRIPTIONS.get(value)}>
+              <HelpIcon
+                fontSize="inherit"
+                sx={{ alignmentBaseline: 'after-edge', color: 'grey' }}
+              />
+            </Tooltip>
+          </Stack>
+        );
+      },
     },
     {
       field: 'month',
@@ -234,6 +244,7 @@ export default function FeatureEditor({ deltasState }) {
       flex: 1,
       cellClassName: 'border-cell',
       rowSpanValueGetter: () => null,
+      sortable: false,
     },
     {
       field: 'simVal',
@@ -248,6 +259,7 @@ export default function FeatureEditor({ deltasState }) {
         return change ? change.newValue : row.value;
       },
       rowSpanValueGetter: () => null,
+      sortable: false,
     },
     {
       field: 'pChange',
@@ -267,6 +279,16 @@ export default function FeatureEditor({ deltasState }) {
         return value === null ? '' : `${value?.toFixed(0).toLocaleString()}%`;
       },
       rowSpanValueGetter: () => null,
+      // cellClassName: ({ row }) => {
+      //   if (
+      //     changes.find(
+      //       (c) => c.month === row.month && c.feature === row.feature,
+      //     )
+      //   ) {
+      //     return 'changed-cell';
+      //   }
+      //   return '';
+      // },
     },
     {
       type: 'actions',
@@ -316,13 +338,12 @@ export default function FeatureEditor({ deltasState }) {
         <DataGrid
           rows={rows}
           columns={columns}
-          disableColumnSorting
           disableColumnMenu
           hideFooter="true"
           disableRowSelectionOnClick
           unstable_rowSpanning
           columnVisibilityModel={{
-            month: startMonth !== endMonth, // TODO: if delta range > 1
+            month: startMonth !== endMonth,
           }}
           getRowId={(r) => r.month + '_' + r.feature}
           sx={{
@@ -336,9 +357,38 @@ export default function FeatureEditor({ deltasState }) {
                 outline: 'none',
               },
             '& .border-cell': {
-              borderRight: '2px solid black',
+              borderRight: '2px solid rgba(180, 180, 180, 0.6)',
               // backgroundColor: 'red',
             },
+            '& .changed-row': {
+              // borderRight: '2px solid black',
+              backgroundColor: 'rgba(255, 222, 74, 0.5)',
+            },
+            '& .MuiDataGrid-row:hover': {
+              backgroundColor: 'rgba(0, 0, 228, 0.1)',
+              // color: "red"
+            },
+            '& .editing-row': {
+              backgroundColor: 'rgba(255, 222, 74, 0.9)',
+              // color: "red"
+            },
+            '& .even': {
+              backgroundColor: 'rgba(180, 180, 180, 0.1)',
+            },
+          }}
+          getRowClassName={(params) => {
+            // Highlight changed rows
+            if (
+              changes.find(
+                (c) =>
+                  c.month === params.row.month &&
+                  c.feature === params.row.feature,
+              )
+            ) {
+              return 'changed-row';
+            }
+            console.log(params);
+            return params.indexRelativeToCurrentPage % 2 === 0 ? '' : 'even';
           }}
         />
       </Box>
