@@ -58,8 +58,8 @@ function DeltaList({ deltasState }) {
       return (
         <Chip
           key={d.key}
-          label={mLabel}
           color={d.key === deltas.selectedDelta ? 'primary' : ''}
+          label={mLabel}
           onClick={() => handleSelect(d)}
           onDelete={() => handleDelete(d)}
         />
@@ -67,7 +67,7 @@ function DeltaList({ deltasState }) {
     });
 
   return (
-    <Stack spacing={0.5} direction="row" useFlexGap sx={{ flexWrap: 'wrap' }}>
+    <Stack useFlexGap direction="row" spacing={0.5} sx={{ flexWrap: 'wrap' }}>
       {monthChips}
     </Stack>
   );

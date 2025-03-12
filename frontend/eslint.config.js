@@ -56,6 +56,7 @@ export default [
     // override last
     rules: {
       'no-unused-vars': 'warn',
+      'react/prop-types': 'warn',
     },
   },
 ];

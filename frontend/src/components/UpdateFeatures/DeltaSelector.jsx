@@ -50,12 +50,12 @@ function DeltaSelector({ monthState, deltaState }) {
   };
 
   const startDropdownItems = startRange.map((m) => (
-    <MenuItem value={m} key={m}>
+    <MenuItem key={m} value={m}>
       {m.toString()}
     </MenuItem>
   ));
   const endDropdownItems = getEndRange().map((m) => (
-    <MenuItem value={m} key={m}>
+    <MenuItem key={m} value={m}>
       {m.toString()}
     </MenuItem>
   ));
@@ -102,30 +102,30 @@ function DeltaSelector({ monthState, deltaState }) {
       <FormControl size="small">
         <InputLabel id="start-label">Start</InputLabel>
         <Select
-          labelId="start-label"
-          value={selectedDelta.start}
           label="Start"
-          onChange={handleStartChange}
+          labelId="start-label"
           sx={{ width: '80px' }}
+          value={selectedDelta.start}
+          onChange={handleStartChange}
         >
           {startDropdownItems}
         </Select>
       </FormControl>
-      <Divider orientation="vertical" variant="middle" flexItem />
+      <Divider flexItem orientation="vertical" variant="middle" />
       <FormControl size="small">
         <InputLabel id="end-label">End</InputLabel>
         <Select
-          value={selectedDelta.end}
-          label="End"
-          onChange={handleEndChange}
           autoWidth
-          sx={{ width: '80px' }}
           disabled={selectedDelta.start === ''}
+          label="End"
+          sx={{ width: '80px' }}
+          value={selectedDelta.end}
+          onChange={handleEndChange}
         >
           {endDropdownItems}
         </Select>
       </FormControl>
-      <IconButton onClick={handleAddDelta} disabled={selectedDelta.end === ''}>
+      <IconButton disabled={selectedDelta.end === ''} onClick={handleAddDelta}>
         <AddIcon />
       </IconButton>
     </Box>

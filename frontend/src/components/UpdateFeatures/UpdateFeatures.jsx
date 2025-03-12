@@ -53,7 +53,7 @@ function UpdateFeatures() {
         }}
       >
         <Typography variant="h6">Update features</Typography>
-        <DeltaSelector monthState={[1, 13]} deltaState={[deltas, setDeltas]} />
+        <DeltaSelector deltaState={[deltas, setDeltas]} monthState={[1, 13]} />
       </Box>
       <Box
         sx={{
@@ -61,7 +61,7 @@ function UpdateFeatures() {
           // backgroundColor: 'red',
         }}
       >
-        <Typography variant="subtitle" sx={{ fontStyle: 'italic' }}>
+        <Typography sx={{ fontStyle: 'italic' }} variant="subtitle">
           Instructions for operating.
           <br />
           Selected feature: {deltas.selectedFeature.feature}
@@ -88,7 +88,7 @@ function UpdateFeatures() {
           <FeatureEditor deltasState={[deltas, setDeltas]} />
         ) : (
           <Typography>
-            'No deltas defined. Create a delta using the month picker above.'
+            No deltas defined. Create a delta using the month picker above.
           </Typography>
         )}
         {/* TODO: datagrid component. input state: selected month range. output state: selected  */}

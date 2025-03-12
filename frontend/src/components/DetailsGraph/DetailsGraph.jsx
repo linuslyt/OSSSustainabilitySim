@@ -10,7 +10,7 @@ function DetailsGraph() {
       {/* Right Column - Graph */}
       <Grid size={12}>
         <Box sx={{ p: 2, bgcolor: 'lightblue' }}>
-          <Typography variant="body1" sx={{ display: 'block' }}>
+          <Typography sx={{ display: 'block' }} variant="body1">
             Graph Display
           </Typography>
         </Box>

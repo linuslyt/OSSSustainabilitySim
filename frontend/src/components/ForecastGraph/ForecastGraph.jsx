@@ -243,8 +243,8 @@ export default function ForecastGraph() {
 
   return (
     <Box
-      id="box"
       ref={graphRef}
+      id="box"
       sx={{
         height: '100%',
         display: 'flex',
