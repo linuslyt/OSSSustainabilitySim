@@ -1,11 +1,11 @@
 import React, { useReducer } from 'react';
+import { DUMMY_CHANGES } from '../UpdateFeatures/constants';
 import {
   SimulationContext,
   SimulationDispatchContext,
 } from './SimulationContext';
-
 export function SimulationContextProvider({ children }) {
-  const [simulation, dispatch] = useReducer(simulationReducer, DEFAULT_SIM);
+  const [simulation, dispatch] = useReducer(simulationReducer, DUMMY_SIM);
 
   return (
     <SimulationContext.Provider value={simulation}>
@@ -16,19 +16,73 @@ export function SimulationContextProvider({ children }) {
   );
 }
 
-/**
- *
- *
- * @param {*} simulation previous simulation state
- * @param {*} action dispatch action
- * @return {*} new simulation state
- */
-function simulationReducer(simulation, action) {
+function simulationReducer(prev, action) {
   switch (action.type) {
     case 'update_selected_project': {
       return {
-        ...simulation,
+        ...prev,
         selectedProject: action.selectedValue,
+      };
+    }
+    case 'update_selected_period': {
+      return {
+        ...prev,
+        simulationData: {
+          ...prev.simulationData,
+          selectedPeriod: action.period,
+        },
+      };
+    }
+    case 'delete_selected_period': {
+      const newChangedPeriods = prev.simulationData.changedPeriods.filter(
+        (p) => p.key !== action.period.key,
+      );
+      const isInPeriod = (month) =>
+        month >= action.period.startMonth && month <= action.period.endMonth;
+      const newChanges = new Map(
+        [...prev.simulationData.changes.entries()].filter(
+          ([key, change]) => !isInPeriod(change.month),
+        ),
+      );
+      const newChangedMonths = new Set(
+        Array.from(prev.simulationData.changedMonths).filter(
+          (m) => !isInPeriod(m),
+        ),
+      );
+      const newSelectedPeriod =
+        prev.simulationData.selectedPeriod.key === action.period.key
+          ? newChangedPeriods[newChangedPeriods.length - 1]
+          : prev.simulationData.selectedPeriod;
+
+      return {
+        ...prev,
+        simulationData: {
+          changedPeriods: newChangedPeriods,
+          changedMonths: newChangedMonths,
+          changes: newChanges,
+          selectedPeriod: newSelectedPeriod,
+        },
+      };
+    }
+    case 'add_new_period': {
+      const { startMonth, endMonth } = action.period;
+      const newPeriod = {
+        key: `${startMonth}_${endMonth}`,
+        startMonth,
+        endMonth,
+      };
+      const newChangedMonths = prev.simulationData.changedMonths;
+      for (let i = startMonth; i <= endMonth; i++) {
+        newChangedMonths.add(i);
+      }
+      return {
+        ...prev,
+        simulationData: {
+          ...prev.simulationData, // `changes` remains unchanged
+          changedPeriods: [...prev.simulationData.changedPeriods, newPeriod],
+          changedMonths: newChangedMonths,
+          selectedPeriod: newPeriod,
+        },
       };
     }
     default: {
@@ -36,22 +90,6 @@ function simulationReducer(simulation, action) {
     }
   }
 }
-
-const DEFAULT_SIM = {
-  selectedProject: null, // Mirrors format of <Autocomplete/> options
-  selectedProjectData: {
-    id: null,
-    details: null,
-    predictions: [],
-    features: [],
-  },
-  simulationData: {
-    periods: [],
-    changes: [],
-    selectedPeriod: null,
-    selectedFeature: null,
-  },
-};
 
 const DUMMY_SIM = {
   selectedProject: {
@@ -73,11 +111,16 @@ const DUMMY_SIM = {
     predictions: [],
     features: [],
   },
+  selectedFeature: 'num_commits',
   simulationData: {
-    periods: [{ startMonth: 1, stopMonth: 1 }],
-    changes: [],
-    selectedPeriod: { startMonth: 1, stopMonth: 1 },
-    selectedFeature: 'num_commits',
+    changedPeriods: [
+      { key: '1_1', startMonth: 1, endMonth: 1 },
+      { key: '2_2', startMonth: 2, endMonth: 2 },
+      { key: '3_4', startMonth: 3, endMonth: 4 },
+    ],
+    changedMonths: new Set([1, 2, 3, 4]),
+    changes: new Map(DUMMY_CHANGES.map((c) => [c.id, c.change])),
+    selectedPeriod: { key: '1_1', startMonth: 1, endMonth: 1 },
   },
 };
 

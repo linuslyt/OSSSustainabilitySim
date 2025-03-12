@@ -6,38 +6,55 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
+import Tooltip from '@mui/material/Tooltip';
+import { isEmpty } from 'lodash';
 import React, { useState } from 'react';
+import {
+  useSimulation,
+  useSimulationDispatch,
+} from '../context/SimulationContext';
 
-function DeltaSelector({ monthState, deltaState }) {
-  const [startMonth, endMonth] = monthState;
-  const [deltas, setDeltas] = deltaState;
-  const DEFAULT_DELTA_SELECTION = {
-    start: '',
-    end: '',
+function DeltaSelector() {
+  // Local state
+  const EMPTY_PERIOD = {
+    startMonth: '',
+    endMonth: '',
   };
-  const [selectedDelta, setSelectedDelta] = useState(DEFAULT_DELTA_SELECTION);
-  const selectedMonths = deltas.changedMonths;
-
+  const [selectorState, setSelectorState] = useState(EMPTY_PERIOD);
   const handleStartChange = (event) => {
-    setSelectedDelta(() => ({
-      start: event.target.value,
-      end: event.target.value,
+    setSelectorState(() => ({
+      startMonth: event.target.value,
+      endMonth: event.target.value,
     }));
   };
   const handleEndChange = (event) => {
-    setSelectedDelta((prev) => ({
+    setSelectorState((prev) => ({
       ...prev,
-      end: event.target.value,
+      endMonth: event.target.value,
     }));
   };
 
-  const startRange = Array.from(
-    Array(endMonth - startMonth),
-    (_, x) => x + startMonth,
-  ).filter((m) => !selectedMonths.has(m));
+  // Context state
+  const simContext = useSimulation();
+  const simDispatch = useSimulationDispatch();
+  const selectedMonths = simContext.simulationData.changedMonths;
 
-  const getEndRange = () => {
-    const startOrLater = startRange.filter((m) => m >= selectedDelta.start);
+  const handleAddDelta = () => {
+    simDispatch({ type: 'add_new_period', period: selectorState });
+    setSelectorState(EMPTY_PERIOD);
+  };
+
+  // Generate valid month options
+  // TODO: memoize these
+  const nMonths = 12; // TODO: get from project feature/pred history from context
+  const startMonths = Array.from(Array(nMonths), (_, x) => x + 1).filter(
+    (m) => !selectedMonths.has(m),
+  );
+  const getEndMonthsForStartMonth = () => {
+    if (isEmpty(startMonths)) return [];
+    const startOrLater = startMonths.filter(
+      (m) => m >= selectorState.startMonth,
+    );
     let result = [startOrLater[0]]; // Start with the first element
 
     for (let i = 1; i < startOrLater.length; i++) {
@@ -49,39 +66,16 @@ function DeltaSelector({ monthState, deltaState }) {
     return result;
   };
 
-  const startDropdownItems = startRange.map((m) => (
+  const startDropdownItems = startMonths.map((m) => (
     <MenuItem key={m} value={m}>
       {m.toString()}
     </MenuItem>
   ));
-  const endDropdownItems = getEndRange().map((m) => (
+  const endDropdownItems = getEndMonthsForStartMonth().map((m) => (
     <MenuItem key={m} value={m}>
       {m.toString()}
     </MenuItem>
   ));
-
-  const handleAddDelta = () => {
-    setSelectedDelta(DEFAULT_DELTA_SELECTION);
-    setDeltas((prev) => {
-      for (let i = selectedDelta.start; i <= selectedDelta.end; i++) {
-        prev.changedMonths.add(i);
-      }
-      const key = `${selectedDelta.start}_${selectedDelta.end}`;
-      return {
-        deltas: [
-          ...prev.deltas,
-          {
-            key: key,
-            startMonth: selectedDelta.start,
-            endMonth: selectedDelta.end,
-          },
-        ],
-        changedMonths: new Set(prev.changedMonths),
-        selectedDelta: key,
-        selectedFeature: {},
-      };
-    });
-  };
 
   return (
     <Box
@@ -98,34 +92,52 @@ function DeltaSelector({ monthState, deltaState }) {
       }}
     >
       {/* TODO: fix wrapping on narrow box */}
-      <Typography sx={{ display: 'inline' }}>Add new delta: </Typography>
-      <FormControl size="small">
+      <Typography sx={{ display: 'inline' }}>
+        Add new change period:{' '}
+      </Typography>
+      <FormControl disabled={isEmpty(startMonths)} size="small">
         <InputLabel id="start-label">Start</InputLabel>
-        <Select
-          label="Start"
-          labelId="start-label"
-          sx={{ width: '80px' }}
-          value={selectedDelta.start}
-          onChange={handleStartChange}
+        <Tooltip
+          title={isEmpty(startMonths) ? 'No more months to simulate.' : ''}
         >
-          {startDropdownItems}
-        </Select>
+          <Select
+            label="Start"
+            labelId="start-label"
+            sx={{ width: '80px' }}
+            value={selectorState.startMonth}
+            onChange={handleStartChange}
+          >
+            {startDropdownItems}
+          </Select>
+        </Tooltip>
       </FormControl>
       <Divider flexItem orientation="vertical" variant="middle" />
-      <FormControl size="small">
+      <FormControl disabled={selectorState.startMonth === ''} size="small">
         <InputLabel id="end-label">End</InputLabel>
-        <Select
-          autoWidth
-          disabled={selectedDelta.start === ''}
-          label="End"
-          sx={{ width: '80px' }}
-          value={selectedDelta.end}
-          onChange={handleEndChange}
+        <Tooltip
+          title={
+            isEmpty(startMonths)
+              ? 'No more months to simulate.'
+              : selectorState.startMonth === ''
+                ? 'Select a starting month first.'
+                : ''
+          }
         >
-          {endDropdownItems}
-        </Select>
+          <Select
+            autoWidth
+            label="End"
+            sx={{ width: '80px' }}
+            value={selectorState.endMonth}
+            onChange={handleEndChange}
+          >
+            {endDropdownItems}
+          </Select>
+        </Tooltip>
       </FormControl>
-      <IconButton disabled={selectedDelta.end === ''} onClick={handleAddDelta}>
+      <IconButton
+        disabled={selectorState.endMonth === ''}
+        onClick={handleAddDelta}
+      >
         <AddIcon />
       </IconButton>
     </Box>

@@ -202,4 +202,12 @@ export const DUMMY_CHANGES = [
       new_value: 10,
     },
   },
+  {
+    id: '1-num_commits',
+    change: {
+      month: 1,
+      feature: 'num_commits',
+      new_value: 10,
+    },
+  },
 ];

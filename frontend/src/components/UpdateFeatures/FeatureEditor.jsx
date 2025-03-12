@@ -9,13 +9,16 @@ import { DataGrid, GridActionsCellItem, useGridApiRef } from '@mui/x-data-grid';
 import PropTypes from 'prop-types';
 import React, { useEffect, useState } from 'react';
 import {
+  useSimulation,
+  useSimulationDispatch,
+} from '../context/SimulationContext';
+import {
   DUMMY_CHANGES,
   DUMMY_DATA,
   FEATURE_DESCRIPTIONS,
   FEATURE_ORDER,
   FEATURE_TYPES,
 } from './constants';
-
 // TODO: color for row being edited
 // TODO: stripe edited rows
 // TODO: documentation
@@ -38,10 +41,19 @@ function getNewValueFromPChange(feature, oldVal, pChange) {
     : parseFloat((oldVal * (1 + pChange / 100)).toFixed(2));
 }
 
-export default function FeatureEditor({ deltasState }) {
+export default function FeatureEditor() {
   /* State */
   // TODO: 2) convert to react context
-  const [deltas, setDeltas] = deltasState;
+  const simContext = useSimulation();
+  const simDispatch = useSimulationDispatch();
+
+  const [deltas, setDeltas] = React.useState({
+    deltas: simContext.simulationData.changedPeriods,
+    // changedMonths: new Set(),
+    changedMonths: new Set([1, 2, 3, 4]), // TODO: remove this. only used in selector. but make sure selector rerenders when deltas updates.
+    selectedDelta: '1_1',
+    selectedFeature: {},
+  });
   const selectedDelta = deltas.deltas.find(
     (d) => d.key === deltas.selectedDelta,
   );
