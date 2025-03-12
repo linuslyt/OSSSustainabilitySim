@@ -7,6 +7,7 @@ function DeltaList({ deltasState }) {
   const [deltas, setDeltas] = deltasState;
 
   const handleSelect = (d) => {
+    // TODO: update selected_feature time range
     setDeltas((prev) => {
       return {
         ...prev,
@@ -16,7 +17,7 @@ function DeltaList({ deltasState }) {
   };
 
   const handleDelete = (d) => {
-    // TODO: remove stored changes for month range. For (k,v) in Map, if v.month in deltaRange, Map.delete(k).
+    // TODO: remove stored changes for delta's month range. For (k,v) in Map, if v.month in deltaRange, Map.delete(k).
     setDeltas((prev) => {
       const newDeltas = prev.deltas.filter(
         (prevDelta) => prevDelta.startMonth !== d.startMonth,
@@ -37,6 +38,7 @@ function DeltaList({ deltasState }) {
         deltas: newDeltas,
         changedMonths: new Set(prev.changedMonths),
         selectedDelta: selectedDelta,
+        selectedFeature: {},
       };
     });
   };

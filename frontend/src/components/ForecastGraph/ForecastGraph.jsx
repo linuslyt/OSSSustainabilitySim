@@ -239,8 +239,6 @@ export default function ForecastGraph() {
       .attr('id', 'y-axis')
       .append('text')
       .attr('id', 'y-axis-label');
-
-    console.log('appending');
   }, []);
 
   return (

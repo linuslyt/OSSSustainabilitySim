@@ -78,6 +78,7 @@ function DeltaSelector({ monthState, deltaState }) {
         ],
         changedMonths: new Set(prev.changedMonths),
         selectedDelta: key,
+        selectedFeature: {},
       };
     });
   };

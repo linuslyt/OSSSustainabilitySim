@@ -6,6 +6,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import { DataGrid, GridActionsCellItem, useGridApiRef } from '@mui/x-data-grid';
+import PropTypes from 'prop-types';
 import React, { useEffect, useState } from 'react';
 import {
   DUMMY_CHANGES,
@@ -26,13 +27,15 @@ function getRowId(month, feature) {
 }
 
 function getPercentChange(newVal, oldVal) {
+  // 1 d.p. in % units for pChange.
   return parseFloat((((newVal - oldVal) / oldVal) * 100.0).toFixed(1));
 }
 
 function getNewValueFromPChange(feature, oldVal, pChange) {
+  // 2 d.p. for new_value
   return FEATURE_TYPES.get(feature) === 'INTEGER'
     ? Math.round(oldVal * (1 + pChange / 100))
-    : parseFloat((oldVal * (1 + pChange / 100)).toFixed(2)); // 2 d.p. for new_value
+    : parseFloat((oldVal * (1 + pChange / 100)).toFixed(2));
 }
 
 export default function FeatureEditor({ deltasState }) {
@@ -59,12 +62,23 @@ export default function FeatureEditor({ deltasState }) {
 
   // Data from server: array of objects. Pivot to array of monthly feature values.
   function pivot(data) {
+    // Whenever a cell is updated, changes are persisted in the `changes` State by handleRowUpdate(), which triggers a rerender.
+    // pivot() runs on every render and pulls new_values fresh from `changes`. Since the pChange column is later derived from new_value,
+    // the simulated value and % change columns will always be synced and kept updated.
+    //
+    // To avoid calling pivot() during every render (cell edit), one could persist cell edits to `changes` only on changes to the
+    // selected delta, feature, or project. If pivot is not called every render, the valueSetter callback defined for the pChange
+    // column will then be used to keep pChange and new_value columns synced.
+
+    // console.log('pivoting');
+
     return data
       .flatMap(({ month, ...rest }) =>
         Object.entries(rest).map(([feature, value]) => ({
           month,
           feature,
           value,
+          // Simulated value
           new_value: changes.has(getRowId(month, feature))
             ? changes.get(getRowId(month, feature)).new_value
             : value,
@@ -198,11 +212,14 @@ export default function FeatureEditor({ deltasState }) {
       flex: 1,
       rowSpanValueGetter: () => null, // disable row spanning on equal values
       valueGetter: (_, row) => {
-        // Derive from new_value and original value. Use 1 d.p. in % units for pChange.
+        // When new_value changes, pChange will automatically update as well.
         return getPercentChange(row.new_value, row.value);
       },
       valueSetter: (pChange, row) => {
-        // Update new_value by pChange. Round depending on feature type.
+        // When editing pChange, update new_value as well.
+        //
+        // This currently duplicates work from pivot(), but if pivot() is not called per edit, then this function
+        // is needed for consistency. See comments under pivot() above.
         return {
           ...row,
           new_value: getNewValueFromPChange(row.feature, row.value, pChange),
@@ -337,6 +354,8 @@ export default function FeatureEditor({ deltasState }) {
             includeHeaders: true,
           }}
           apiRef={dataGridApiRef}
+          // This callback saves the updated row to state after every cell edit,
+          // triggering a rerender. See comments under pivot() and pChange's valueSetter for details.
           processRowUpdate={handleRowUpdate}
           onProcessRowUpdateError={() => console.log('failed to update')}
         />
@@ -344,3 +363,7 @@ export default function FeatureEditor({ deltasState }) {
     </Box>
   );
 }
+
+FeatureEditor.propTypes = {
+  deltasState: PropTypes.array.isRequired,
+};
