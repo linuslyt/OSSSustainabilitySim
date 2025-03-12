@@ -1,18 +1,18 @@
-import { Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid2';
 import { styled } from '@mui/material/styles';
 
-import React, { useState } from 'react';
+import React from 'react';
 
 import DetailsGraph from './components/DetailsGraph/DetailsGraph';
 import ForecastGraph from './components/ForecastGraph/ForecastGraph';
 import Header from './components/Header/Header';
 import UpdateFeatures from './components/UpdateFeatures/UpdateFeatures';
+import { SimulationContextProvider } from './components/context/SimulationContextProvider';
 
 // TODO: cssbaseline and theme provider if needed
 function App() {
-  const [selectedProject, setSelectedProject] = useState(null);
+  // const [selectedProject, setSelectedProject] = useState(null);
   // const [dashboardView, setDashboardView] = useState('explore');
   // const [nMonths, setNMonths] = useState('8');
 
@@ -27,63 +27,65 @@ function App() {
   }));
 
   return (
-    <Box
-      sx={{
-        width: '100vw',
-        height: '100vh',
-        backgroundColor: 'whitesmoke',
-        display: 'grid',
-        gridTemplateRows: 'min-content max(240px, 30%) auto',
-        overflow: 'hidden',
-      }}
-    >
-      <Header
-        projectState={[selectedProject, setSelectedProject]}
-        sx={{
-          backgroundColor: 'lightgrey',
-          color: 'black',
-          gridRow: 1,
-        }}
-      />
+    <SimulationContextProvider>
       <Box
         sx={{
-          color: 'black',
-          gridRow: 2,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'whitesmoke',
+          display: 'grid',
+          gridTemplateRows: 'min-content max(240px, 30%) auto',
           overflow: 'hidden',
         }}
       >
-        <ForecastGraph />
-      </Box>
-      <Box
-        sx={{
-          gridRow: 3,
-          height: '100%',
-        }}
-      >
-        <Grid container sx={{ padding: 2, height: '100%' }} spacing={2}>
-          <Grid size={8}>
-            <Panel>
-              <UpdateFeatures />
-            </Panel>
+        <Header
+          // projectState={[selectedProject, setSelectedProject]}
+          sx={{
+            backgroundColor: 'lightgrey',
+            color: 'black',
+            gridRow: 1,
+          }}
+        />
+        <Box
+          sx={{
+            color: 'black',
+            gridRow: 2,
+            overflow: 'hidden',
+          }}
+        >
+          <ForecastGraph />
+        </Box>
+        <Box
+          sx={{
+            gridRow: 3,
+            height: '100%',
+          }}
+        >
+          <Grid container spacing={2} sx={{ padding: 2, height: '100%' }}>
+            <Grid size={8}>
+              <Panel>
+                <UpdateFeatures />
+              </Panel>
+            </Grid>
+            <Grid size={4}>
+              <Panel>
+                {/* <Typography variant="body1" sx={{ display: 'block' }}>
+                  Selected project (select w/ dropdown to view here):
+                  <br />
+                  id: {selectedProject?.project_id}
+                  <br />
+                  name: {selectedProject?.project_name}
+                  <br />
+                  status: {selectedProject?.status}
+                </Typography> */}
+                <br />
+                <DetailsGraph />
+              </Panel>
+            </Grid>
           </Grid>
-          <Grid size={4}>
-            <Panel>
-              <Typography variant="body1" sx={{ display: 'block' }}>
-                Selected project (select w/ dropdown to view here):
-                <br />
-                id: {selectedProject?.project_id}
-                <br />
-                name: {selectedProject?.project_name}
-                <br />
-                status: {selectedProject?.status}
-              </Typography>
-              <br />
-              <DetailsGraph />
-            </Panel>
-          </Grid>
-        </Grid>
+        </Box>
       </Box>
-    </Box>
+    </SimulationContextProvider>
   );
 }
 

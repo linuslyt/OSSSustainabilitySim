@@ -19,10 +19,10 @@ import {
 // TODO: color for row being edited
 // TODO: stripe edited rows
 // TODO: documentation
-
+// TODO: known issue - if you edit then exit editing too quick (e.g. typing new value then pressing enter right after),
+//       it will fail to save, and you have to re-click and re-exit to save it properly.
 /* Helpers */
 function getRowId(month, feature) {
-  // TODO: move this to pivot and change getId to row.id
   return month + '-' + feature;
 }
 
@@ -40,7 +40,7 @@ function getNewValueFromPChange(feature, oldVal, pChange) {
 
 export default function FeatureEditor({ deltasState }) {
   /* State */
-  // TODO: convert to react context
+  // TODO: 2) convert to react context
   const [deltas, setDeltas] = deltasState;
   const selectedDelta = deltas.deltas.find(
     (d) => d.key === deltas.selectedDelta,
@@ -75,6 +75,7 @@ export default function FeatureEditor({ deltasState }) {
     return data
       .flatMap(({ month, ...rest }) =>
         Object.entries(rest).map(([feature, value]) => ({
+          id: getRowId(month, feature),
           month,
           feature,
           value,
@@ -135,9 +136,7 @@ export default function FeatureEditor({ deltasState }) {
   }
 
   function handleRowUpdate(updatedRow) {
-    console.log(updatedRow, changes);
-    const id = getRowId(updatedRow.month, updatedRow.feature);
-    changes.set(id, {
+    changes.set(updatedRow.id, {
       month: updatedRow.month,
       feature: updatedRow.feature,
       new_value: updatedRow.new_value,
@@ -154,8 +153,8 @@ export default function FeatureEditor({ deltasState }) {
       renderCell: ({ value }) => {
         return (
           <Stack
-            direction="row"
             alignItems="center"
+            direction="row"
             gap={1}
             sx={{ width: 'fit-content' }}
           >
@@ -232,6 +231,7 @@ export default function FeatureEditor({ deltasState }) {
           : `${value > 0 ? '+' : ''}${value.toLocaleString()} %`;
       },
       preProcessEditCellProps: (params) => {
+        // TODO: validation per feature type.
         // Validation to disallow negative numbers.
         // Setting `error: true` prevents MUI from saving the new value. Presenting the error needs to be done manually.
         // See: https://github.com/mui/mui-x/issues/8854#issuecomment-1534730413
@@ -248,32 +248,32 @@ export default function FeatureEditor({ deltasState }) {
       cellClassName: 'actions',
       getActions: (params) => {
         return [
-          <Tooltip title="Reset" key={params.id + '_reset'}>
+          <Tooltip key={params.id + '_reset'} title="Reset">
             <GridActionsCellItem
+              className="textPrimary"
+              color="inherit"
               icon={<ReplayIcon />}
               label="Reset"
-              className="textPrimary"
               onClick={() => handleReset(params)}
-              color="inherit"
             />
           </Tooltip>,
           <Tooltip
-            title="Copy % change to all months for feature"
             key={params.id + '_copyToAll'}
+            title="Copy % change to all months for feature"
           >
             <GridActionsCellItem
+              color="inherit"
               icon={<SouthWestIcon />}
               label="CopyToAllMonthsForFeature"
               onClick={() => handleCopyToAllMonths(params)}
-              color="inherit"
             />
           </Tooltip>,
-          <Tooltip title="Inspect feature" key={params.id + '_inspectFeature'}>
+          <Tooltip key={params.id + '_inspectFeature'} title="Inspect feature">
             <GridActionsCellItem
+              color="inherit"
               icon={<QueryStatsIcon />}
               label="InspectFeature"
               onClick={() => handleInspect(params.row)}
-              color="inherit"
             />
           </Tooltip>,
         ];
@@ -296,16 +296,31 @@ export default function FeatureEditor({ deltasState }) {
     <Box sx={{ flex: 1, position: 'relative', height: '100%', width: '100%' }}>
       <Box sx={{ position: 'absolute', height: '100%', width: '100%' }}>
         <DataGrid
-          rows={rows}
-          columns={columns}
+          autosizeOnMount
           disableColumnMenu
-          hideFooter="true"
           disableRowSelectionOnClick
           unstable_rowSpanning
+          apiRef={dataGridApiRef}
+          columns={columns}
+          getRowId={(r) => r.id}
+          hideFooter="true"
+          processRowUpdate={handleRowUpdate}
+          rows={rows}
+          autosizeOptions={{
+            columns: ['feature', 'actions'],
+            includeOutliers: true,
+            includeHeaders: true,
+          }}
           columnVisibilityModel={{
             month: startMonth !== endMonth,
           }}
-          getRowId={(r) => getRowId(r.month, r.feature)} // TODO: memoize
+          getRowClassName={(params) => {
+            // Highlight changed rows
+            if (params.row.value !== params.row.new_value) {
+              return 'changed-row';
+            }
+            return params.indexRelativeToCurrentPage % 2 === 0 ? '' : 'even';
+          }}
           sx={{
             borderRadius: '9px',
             // To disable cell/column header highlight on click - see https://github.com/mui/mui-x/issues/8104
@@ -340,23 +355,8 @@ export default function FeatureEditor({ deltasState }) {
               backgroundColor: 'rgba(180, 180, 180, 0.15)',
             },
           }}
-          getRowClassName={(params) => {
-            // Highlight changed rows
-            if (params.row.value !== params.row.new_value) {
-              return 'changed-row';
-            }
-            return params.indexRelativeToCurrentPage % 2 === 0 ? '' : 'even';
-          }}
-          autosizeOnMount
-          autosizeOptions={{
-            columns: ['feature', 'actions'],
-            includeOutliers: true,
-            includeHeaders: true,
-          }}
-          apiRef={dataGridApiRef}
           // This callback saves the updated row to state after every cell edit,
           // triggering a rerender. See comments under pivot() and pChange's valueSetter for details.
-          processRowUpdate={handleRowUpdate}
           onProcessRowUpdateError={() => console.log('failed to update')}
         />
       </Box>
