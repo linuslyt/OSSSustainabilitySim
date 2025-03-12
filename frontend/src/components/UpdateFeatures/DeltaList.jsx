@@ -33,7 +33,7 @@ function DeltaList() {
           }
           onClick={() =>
             simDispatch({
-              type: 'update_selected_period',
+              type: 'set_selected_period',
               period: {
                 key: d.key,
                 startMonth: d.startMonth,

@@ -1,11 +1,13 @@
 import { Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import React from 'react';
+import { useSimulation } from '../context/SimulationContext';
 import DeltaList from './DeltaList';
 import DeltaSelector from './DeltaSelector';
 import FeatureEditor from './FeatureEditor';
-
 function UpdateFeatures() {
+  const simContext = useSimulation();
+
   return (
     <Box
       sx={{
@@ -33,13 +35,13 @@ function UpdateFeatures() {
           // backgroundColor: 'red',
         }}
       >
-        {/* <Typography sx={{ fontStyle: 'italic' }} variant="subtitle">
+        <Typography sx={{ fontStyle: 'italic' }} variant="subtitle">
           Instructions for operating.
           <br />
-          Selected feature: {deltas.selectedFeature.feature}
+          Selected feature: {simContext.selectedFeature.feature}
           <br />
-          Selected feature month: {deltas.selectedFeature.month}
-        </Typography> */}
+          Selected feature month: {simContext.selectedFeature.month}
+        </Typography>
       </Box>
       <Box
         sx={{ gridRow: 3, display: 'flex', alignItems: 'center', my: '0.5rem' }}

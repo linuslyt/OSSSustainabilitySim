@@ -119,7 +119,7 @@ function DeltaSelector() {
             isEmpty(startMonths)
               ? 'No more months to simulate.'
               : selectorState.startMonth === ''
-                ? 'Select a starting month first.'
+                ? 'Select a start month first.'
                 : ''
           }
         >

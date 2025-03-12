@@ -116,7 +116,7 @@ function ProjectSelect() {
         onChange={(_, selected) => {
           console.log(selected);
           simDispatch({
-            type: 'update_selected_project',
+            type: 'set_selected_project',
             selectedValue: selected,
           });
         }}

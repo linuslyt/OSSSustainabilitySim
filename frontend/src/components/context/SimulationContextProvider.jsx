@@ -1,9 +1,16 @@
 import React, { useReducer } from 'react';
-import { DUMMY_CHANGES } from '../UpdateFeatures/constants';
+import { DUMMY_CHANGES, DUMMY_DATA } from '../UpdateFeatures/constants';
+import {
+  getNewValueFromPChange,
+  getPercentChange,
+  getRowId,
+  pivot,
+} from '../utils.js';
 import {
   SimulationContext,
   SimulationDispatchContext,
 } from './SimulationContext';
+
 export function SimulationContextProvider({ children }) {
   const [simulation, dispatch] = useReducer(simulationReducer, DUMMY_SIM);
 
@@ -18,13 +25,14 @@ export function SimulationContextProvider({ children }) {
 
 function simulationReducer(prev, action) {
   switch (action.type) {
-    case 'update_selected_project': {
+    case 'set_selected_project': {
+      // TODO: load data from server into selectedProjectData
       return {
         ...prev,
         selectedProject: action.selectedValue,
       };
     }
-    case 'update_selected_period': {
+    case 'set_selected_period': {
       return {
         ...prev,
         simulationData: {
@@ -41,7 +49,7 @@ function simulationReducer(prev, action) {
         month >= action.period.startMonth && month <= action.period.endMonth;
       const newChanges = new Map(
         [...prev.simulationData.changes.entries()].filter(
-          ([key, change]) => !isInPeriod(change.month),
+          ([, change]) => !isInPeriod(change.month),
         ),
       );
       const newChangedMonths = new Set(
@@ -85,6 +93,81 @@ function simulationReducer(prev, action) {
         },
       };
     }
+    case 'delete_change': {
+      const newChanges = new Map(prev.simulationData.changes);
+      newChanges.delete(action.gridRowParams.id);
+      return {
+        ...prev,
+        simulationData: {
+          ...prev.simulationData,
+          changes: newChanges,
+        },
+      };
+    }
+    case 'set_change': {
+      if (action.updatedRow.new_value === action.updatedRow.value) return prev;
+      const newChanges = new Map(prev.simulationData.changes);
+      newChanges.set(action.updatedRow.id, {
+        month: action.updatedRow.month,
+        feature: action.updatedRow.feature,
+        new_value: action.updatedRow.new_value,
+      });
+      return {
+        ...prev,
+        simulationData: {
+          ...prev.simulationData,
+          changes: newChanges,
+        },
+      };
+    }
+    case 'copy_change_to_range': {
+      const { row } = action.gridRowParams;
+
+      const newChanges = new Map(prev.simulationData.changes);
+      const { startMonth, endMonth } = prev.simulationData.selectedPeriod;
+      for (let m = startMonth; m <= endMonth; m++) {
+        const id = getRowId(m, row.feature);
+        const pChange = getPercentChange(row.new_value, row.value);
+
+        if (pChange === 0) {
+          // changes should only include non-zero changes
+          newChanges.delete(id);
+        } else {
+          const oldValue = pivot(
+            prev.selectedProjectData.features,
+            prev.simulationData.changes,
+          ).find((r) => r.feature === row.feature && r.month === m).value;
+
+          const newValue = getNewValueFromPChange(
+            row.feature,
+            oldValue,
+            pChange,
+          );
+          newChanges.set(id, {
+            month: row.month,
+            feature: row.feature,
+            new_value: newValue,
+          });
+        }
+      }
+
+      return {
+        ...prev,
+        simulationData: {
+          ...prev.simulationData,
+          changes: newChanges,
+        },
+      };
+    }
+    case 'set_selected_feature': {
+      return {
+        ...prev,
+        selectedFeature: {
+          feature: action.gridRowParams.row.feature,
+          month: action.gridRowParams.row.month,
+        },
+      };
+    }
     default: {
       throw Error('Unknown simulationReducer action: ' + action.type);
     }
@@ -109,9 +192,12 @@ const DUMMY_SIM = {
       sponsor: 'Incubator',
     },
     predictions: [],
-    features: [],
+    features: DUMMY_DATA,
   },
-  selectedFeature: 'num_commits',
+  selectedFeature: {
+    feature: 'num_commits',
+    month: 1,
+  },
   simulationData: {
     changedPeriods: [
       { key: '1_1', startMonth: 1, endMonth: 1 },
