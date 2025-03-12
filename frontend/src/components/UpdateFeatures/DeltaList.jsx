@@ -16,6 +16,7 @@ function DeltaList({ deltasState }) {
   };
 
   const handleDelete = (d) => {
+    // TODO: remove stored changes for month range. For (k,v) in Map, if v.month in deltaRange, Map.delete(k).
     setDeltas((prev) => {
       const newDeltas = prev.deltas.filter(
         (prevDelta) => prevDelta.startMonth !== d.startMonth,

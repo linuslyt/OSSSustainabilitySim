@@ -5,202 +5,109 @@ import SouthWestIcon from '@mui/icons-material/SouthWest';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
-import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
-import React, { useState } from 'react';
-import { FEATURE_DESCRIPTIONS, FEATURE_ORDER } from './constants';
+import { DataGrid, GridActionsCellItem, useGridApiRef } from '@mui/x-data-grid';
+import React, { useEffect, useState } from 'react';
+import {
+  DUMMY_CHANGES,
+  DUMMY_DATA,
+  FEATURE_DESCRIPTIONS,
+  FEATURE_ORDER,
+  FEATURE_TYPES,
+} from './constants';
 
-// TODO: set row color on editing select
-// TODO: convert to react context
-// TODO: edit events
-// Data from server: array of objects. Pivot to array of monthly feature values.
-function pivot(data) {
-  return data
-    .flatMap(({ month, ...rest }) =>
-      Object.entries(rest).map(([feature, value]) => ({
-        month,
-        feature,
-        value,
-      })),
-    )
-    .sort(
-      (a, b) =>
-        FEATURE_ORDER.indexOf(a.feature) - FEATURE_ORDER.indexOf(b.feature) ||
-        a.month - b.month,
-    );
+// TODO: color for row being edited
+// TODO: stripe edited rows
+// TODO: documentation
+
+/* Helpers */
+function getRowId(month, feature) {
+  // TODO: move this to pivot and change getId to row.id
+  return month + '-' + feature;
+}
+
+function getPercentChange(newVal, oldVal) {
+  return parseFloat((((newVal - oldVal) / oldVal) * 100.0).toFixed(1));
+}
+
+function getNewValueFromPChange(feature, oldVal, pChange) {
+  return FEATURE_TYPES.get(feature) === 'INTEGER'
+    ? Math.round(oldVal * (1 + pChange / 100))
+    : parseFloat((oldVal * (1 + pChange / 100)).toFixed(2)); // 2 d.p. for new_value
 }
 
 export default function FeatureEditor({ deltasState }) {
+  /* State */
+  // TODO: convert to react context
   const [deltas, setDeltas] = deltasState;
   const selectedDelta = deltas.deltas.find(
     (d) => d.key === deltas.selectedDelta,
   );
   const { _, startMonth, endMonth } = selectedDelta;
-  // TODO: get data from server
-  const data = [
-    {
-      month: 1,
-      active_devs: 10,
-      num_commits: 50,
-      num_files: 20,
-      num_emails: 15,
-      c_percentage: 0.7,
-      e_percentage: 0.3,
-      inactive_c: 5,
-      inactive_e: 2,
-      c_nodes: 30,
-      c_edges: 50,
-      c_c_coef: 0.6,
-      c_mean_degree: 2.5,
-      c_long_tail: 0.1,
-      e_nodes: 25,
-      e_edges: 40,
-      e_c_coef: 0.55,
-      e_mean_degree: 2,
-      e_long_tail: 0.05,
-    },
-    {
-      month: 2,
-      active_devs: 10,
-      num_commits: 100,
-      num_files: 26,
-      num_emails: 13,
-      c_percentage: 0.78,
-      e_percentage: 0.34,
-      inactive_c: 6,
-      inactive_e: 3,
-      c_nodes: 32,
-      c_edges: 54,
-      c_c_coef: 0.7,
-      c_mean_degree: 2.8,
-      c_long_tail: 0.4,
-      e_nodes: 26,
-      e_edges: 44,
-      e_c_coef: 0.5,
-      e_mean_degree: 3,
-      e_long_tail: 0.15,
-    },
-    {
-      month: 3,
-      active_devs: 10,
-      num_commits: 50,
-      num_files: 20,
-      num_emails: 15,
-      c_percentage: 0.7,
-      e_percentage: 0.3,
-      inactive_c: 5,
-      inactive_e: 2,
-      c_nodes: 30,
-      c_edges: 50,
-      c_c_coef: 0.6,
-      c_mean_degree: 2.5,
-      c_long_tail: 0.1,
-      e_nodes: 25,
-      e_edges: 40,
-      e_c_coef: 0.55,
-      e_mean_degree: 2,
-      e_long_tail: 0.05,
-    },
-    {
-      month: 4,
-      active_devs: 10,
-      num_commits: 100,
-      num_files: 26,
-      num_emails: 13,
-      c_percentage: 0.78,
-      e_percentage: 0.34,
-      inactive_c: 6,
-      inactive_e: 3,
-      c_nodes: 32,
-      c_edges: 54,
-      c_c_coef: 0.7,
-      c_mean_degree: 2.8,
-      c_long_tail: 0.4,
-      e_nodes: 26,
-      e_edges: 44,
-      e_c_coef: 0.5,
-      e_mean_degree: 3,
-      e_long_tail: 0.15,
-    },
-    {
-      month: 5,
-      active_devs: 10,
-      num_commits: 100,
-      num_files: 26,
-      num_emails: 13,
-      c_percentage: 0.78,
-      e_percentage: 0.34,
-      inactive_c: 6,
-      inactive_e: 3,
-      c_nodes: 32,
-      c_edges: 54,
-      c_c_coef: 0.7,
-      c_mean_degree: 2.8,
-      c_long_tail: 0.4,
-      e_nodes: 26,
-      e_edges: 44,
-      e_c_coef: 0.5,
-      e_mean_degree: 3,
-      e_long_tail: 0.15,
-    },
-  ];
 
+  // Changes format: Map of { string: `month-feature_name` -> object: { month: number, feature: string, new_value: number } }
+  const [changes, setChanges] = useState(
+    new Map(DUMMY_CHANGES.map((c) => [c.id, c.change])),
+  );
+  // Ref for DataGrid. Used to call DataGrid actions programmatically.
+  const dataGridApiRef = useGridApiRef();
+
+  // TODO: get data from server
+  const data = DUMMY_DATA;
   const selectedData = data.filter(
     (d) => d.month >= startMonth && d.month <= endMonth,
   );
 
-  const [changes, setChanges] = useState([
-    {
-      month: 1,
-      feature: 'num_commits',
-      newValue: 15,
-    },
-    {
-      month: 3,
-      feature: 'active_devs',
-      newValue: 12,
-    },
-  ]);
-
-  const rows = pivot(selectedData);
-  // DATA:
-  // array of objects
-  // objects in form in constants.js
-  // one object per month
-  // to initialize, populate from start_range to end_range
-  // DELTAS:
-  // array of objects (sparse)
-  // if null no change
-
-  function handleReset(row) {
-    setChanges((prev) =>
-      prev.filter((c) => !(c.month === row.month && c.feature === row.feature)),
-    );
+  // Data from server: array of objects. Pivot to array of monthly feature values.
+  function pivot(data) {
+    return data
+      .flatMap(({ month, ...rest }) =>
+        Object.entries(rest).map(([feature, value]) => ({
+          month,
+          feature,
+          value,
+          new_value: changes.has(getRowId(month, feature))
+            ? changes.get(getRowId(month, feature)).new_value
+            : value,
+        })),
+      )
+      .sort(
+        (a, b) =>
+          FEATURE_ORDER.indexOf(a.feature) - FEATURE_ORDER.indexOf(b.feature) ||
+          a.month - b.month,
+      );
   }
 
-  function handleCopyToAllMonths(row) {
-    // Save current change
-    const changeToCopy = changes.find(
-      (c) => c.month === row.month && c.feature === row.feature,
-    );
+  const rows = pivot(selectedData);
 
-    if (changeToCopy === undefined) {
-      // No change defined - reset to 0 for all months.
-      for (let i = selectedDelta.startMonth; i <= selectedDelta.endMonth; i++) {
-        handleReset({ ...row, month: i });
-      }
-      return;
-    }
+  /* Handlers */
+  // TODO: set all callbacks to useCallback()
+  function handleReset(params) {
+    const { id } = params;
+    changes.delete(id);
+    setChanges(new Map(changes));
+  }
 
-    let newValuesForMonth = [];
+  function handleCopyToAllMonths(params) {
+    console.log(params);
+    const { row } = params;
+    const pChange = getPercentChange(row.new_value, row.value);
+
     for (let i = selectedDelta.startMonth; i <= selectedDelta.endMonth; i++) {
-      if (i === row.month) continue;
-      newValuesForMonth.push({
-        month: i,
-        feature: changeToCopy.feature,
-        newValue: changeToCopy.newValue,
+      const id = getRowId(i, row.feature);
+      console.log(pChange);
+
+      const oldValue = rows.find(
+        (r) => r.feature === row.feature && r.month === i,
+      ).value;
+
+      const newValue = getNewValueFromPChange(row.feature, oldValue, pChange);
+      changes.set(id, {
+        month: row.month,
+        feature: row.feature,
+        new_value: newValue,
       });
+      setChanges(new Map(changes));
     }
-    setChanges((prev) => [...prev, ...newValuesForMonth]);
   }
 
   function handleInspect(row) {
@@ -213,6 +120,18 @@ export default function FeatureEditor({ deltasState }) {
     }));
   }
 
+  function handleRowUpdate(updatedRow) {
+    console.log(updatedRow, changes);
+    const id = getRowId(updatedRow.month, updatedRow.feature);
+    changes.set(id, {
+      month: updatedRow.month,
+      feature: updatedRow.feature,
+      new_value: updatedRow.new_value,
+    });
+    setChanges(new Map(changes));
+    return updatedRow;
+  }
+
   const columns = [
     {
       field: 'feature',
@@ -220,7 +139,12 @@ export default function FeatureEditor({ deltasState }) {
       flex: 1,
       renderCell: ({ value }) => {
         return (
-          <Stack direction="row" alignItems="center" gap={1}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            gap={1}
+            sx={{ width: 'fit-content' }}
+          >
             {value}
             <Tooltip title={FEATURE_DESCRIPTIONS.get(value)}>
               <HelpIcon
@@ -234,61 +158,70 @@ export default function FeatureEditor({ deltasState }) {
     },
     {
       field: 'month',
+      type: 'number',
       headerName: 'Month',
       flex: 1,
+      rowSpanValueGetter: () => null, // disable row spanning on equal values
     },
     {
       field: 'value',
+      type: 'number',
       headerName: 'Original value',
       // headerClassName: 'border-cell',
       flex: 1,
       cellClassName: 'border-cell',
-      rowSpanValueGetter: () => null,
       sortable: false,
+      rowSpanValueGetter: () => null,
     },
     {
-      field: 'simVal',
+      field: 'new_value',
+      type: 'number',
       headerName: 'Simulated value',
       editable: 1,
       flex: 1,
-      valueGetter: (_, row) => {
-        // TODO: validate changes. -100% is max negative change. no max positive change. integers vs decimals.
-        const change = changes.find(
-          (d) => d.feature === row.feature && d.month === row.month,
-        );
-        return change ? change.newValue : row.value;
-      },
-      rowSpanValueGetter: () => null,
       sortable: false,
+      rowSpanValueGetter: () => null, // disable row spanning on equal values
+      preProcessEditCellProps: (params) => {
+        // Validation to disallow negative numbers.
+        // Setting `error: true` prevents MUI from saving the new value. Presenting the error needs to be done manually.
+        // See: https://github.com/mui/mui-x/issues/8854#issuecomment-1534730413
+        // TODO: wrap renderEditCell to highlight cell as invalid
+        const isValid = params.props.value >= 0.0;
+        return { ...params.props, error: !isValid };
+      },
     },
     {
       field: 'pChange',
+      type: 'number',
       headerName: '% change simulated',
       editable: 1,
       flex: 1,
+      rowSpanValueGetter: () => null, // disable row spanning on equal values
       valueGetter: (_, row) => {
-        // TODO: validate changes. -100% is max negative change. no max positive change.
-        const change = changes.find(
-          (d) => d.feature === row.feature && d.month === row.month,
-        );
-        return change ? ((change.newValue - row.value) / row.value) * 100 : 0;
+        // Derive from new_value and original value. Use 1 d.p. in % units for pChange.
+        return getPercentChange(row.new_value, row.value);
       },
-      // TODO: fix valueFormatter throwing NPE on editing even with null check. Probably needs
-      // valueParser for editing to be implemented.
+      valueSetter: (pChange, row) => {
+        // Update new_value by pChange. Round depending on feature type.
+        return {
+          ...row,
+          new_value: getNewValueFromPChange(row.feature, row.value, pChange),
+        };
+      },
       valueFormatter: (value) => {
-        return value === null ? '' : `${value?.toFixed(0).toLocaleString()}%`;
+        // Format percentage for display.
+        return value === null
+          ? ''
+          : `${value > 0 ? '+' : ''}${value.toLocaleString()} %`;
       },
-      rowSpanValueGetter: () => null,
-      // cellClassName: ({ row }) => {
-      //   if (
-      //     changes.find(
-      //       (c) => c.month === row.month && c.feature === row.feature,
-      //     )
-      //   ) {
-      //     return 'changed-cell';
-      //   }
-      //   return '';
-      // },
+      preProcessEditCellProps: (params) => {
+        // Validation to disallow negative numbers.
+        // Setting `error: true` prevents MUI from saving the new value. Presenting the error needs to be done manually.
+        // See: https://github.com/mui/mui-x/issues/8854#issuecomment-1534730413
+        // TODO: wrap renderEditCell to highlight cell as invalid
+        const isValid = params.props.value >= -100.0;
+        return { ...params.props, error: !isValid };
+      },
     },
     {
       type: 'actions',
@@ -303,7 +236,7 @@ export default function FeatureEditor({ deltasState }) {
               icon={<ReplayIcon />}
               label="Reset"
               className="textPrimary"
-              onClick={() => handleReset(params.row)}
+              onClick={() => handleReset(params)}
               color="inherit"
             />
           </Tooltip>,
@@ -314,7 +247,7 @@ export default function FeatureEditor({ deltasState }) {
             <GridActionsCellItem
               icon={<SouthWestIcon />}
               label="CopyToAllMonthsForFeature"
-              onClick={() => handleCopyToAllMonths(params.row)}
+              onClick={() => handleCopyToAllMonths(params)}
               color="inherit"
             />
           </Tooltip>,
@@ -330,6 +263,16 @@ export default function FeatureEditor({ deltasState }) {
       },
     },
   ];
+
+  useEffect(() => {
+    // Autosize columns on data update
+    dataGridApiRef.current.autosizeColumns({
+      columns: ['feature', 'actions'],
+      includeOutliers: true,
+      includeHeaders: true,
+    });
+  }, [dataGridApiRef, changes]);
+
   return (
     // Double Box is a weird hack to prevent DataGrid from overflowing height.
     // See: https://stackoverflow.com/questions/76118183/mui-datagrid-height-exceeds-parents-div-when-the-rows-are-more-than-the-height
@@ -345,7 +288,7 @@ export default function FeatureEditor({ deltasState }) {
           columnVisibilityModel={{
             month: startMonth !== endMonth,
           }}
-          getRowId={(r) => r.month + '_' + r.feature}
+          getRowId={(r) => getRowId(r.month, r.feature)} // TODO: memoize
           sx={{
             borderRadius: '9px',
             // To disable cell/column header highlight on click - see https://github.com/mui/mui-x/issues/8104
@@ -365,31 +308,37 @@ export default function FeatureEditor({ deltasState }) {
               backgroundColor: 'rgba(255, 222, 74, 0.5)',
             },
             '& .MuiDataGrid-row:hover': {
-              backgroundColor: 'rgba(0, 0, 228, 0.1)',
+              backgroundColor: 'rgba(0, 0, 228, 0.15)',
               // color: "red"
+            },
+            '& .changed-row.MuiDataGrid-row:hover': {
+              // borderRight: '2px solid black',
+              backgroundColor: 'rgba(128, 111, 151, 0.3)',
             },
             '& .editing-row': {
               backgroundColor: 'rgba(255, 222, 74, 0.9)',
               // color: "red"
             },
             '& .even': {
-              backgroundColor: 'rgba(180, 180, 180, 0.1)',
+              backgroundColor: 'rgba(180, 180, 180, 0.15)',
             },
           }}
           getRowClassName={(params) => {
             // Highlight changed rows
-            if (
-              changes.find(
-                (c) =>
-                  c.month === params.row.month &&
-                  c.feature === params.row.feature,
-              )
-            ) {
+            if (params.row.value !== params.row.new_value) {
               return 'changed-row';
             }
-            console.log(params);
             return params.indexRelativeToCurrentPage % 2 === 0 ? '' : 'even';
           }}
+          autosizeOnMount
+          autosizeOptions={{
+            columns: ['feature', 'actions'],
+            includeOutliers: true,
+            includeHeaders: true,
+          }}
+          apiRef={dataGridApiRef}
+          processRowUpdate={handleRowUpdate}
+          onProcessRowUpdateError={() => console.log('failed to update')}
         />
       </Box>
     </Box>
