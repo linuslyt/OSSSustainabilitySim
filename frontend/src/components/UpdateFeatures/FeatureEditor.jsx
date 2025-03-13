@@ -12,27 +12,39 @@ import {
   useSimulation,
   useSimulationDispatch,
 } from '../context/SimulationContext';
-import { getNewValueFromPChange, getPercentChange, pivot } from '../utils.js';
+import {
+  FEATURE_VALIDATOR_MAP,
+  getNewValueFromPChange,
+  getPercentChange,
+  pivot,
+} from '../utils.js';
 import { FEATURE_DESCRIPTIONS } from './constants';
 
-// TODO: color for row being edited but not hovered on
-// TODO: background color for grid rows
 // TODO: documentation
 // TODO: known issue - if you edit then exit editing too quick (e.g. typing new value then pressing enter right after),
 //       it will fail to save, and you have to re-click and re-exit to save it properly.
-
 export default function FeatureEditor() {
   const dataGridApiRef = useGridApiRef(); // Ref for DataGrid. Used to call DataGrid actions programmatically.
   const simContext = useSimulation();
   const simDispatch = useSimulationDispatch();
 
-  const { startMonth, endMonth } = simContext.simulationData.selectedPeriod;
+  const { startMonth, endMonth } = simContext.simulationData.selectedPeriod
+    ? simContext.simulationData.selectedPeriod
+    : { startMonth: -1, endMonth: -1 };
   const selectedData = simContext.selectedProjectData.features.filter(
     (d) => d.month >= startMonth && d.month <= endMonth,
   );
 
-  const rows = pivot(selectedData, simContext.simulationData.changes);
+  useEffect(() => {
+    // Autosize columns on data update
+    dataGridApiRef.current?.autosizeColumns({
+      columns: ['feature', 'actions'],
+      includeOutliers: true,
+      includeHeaders: true,
+    });
+  }, [dataGridApiRef, simContext]);
 
+  const rows = pivot(selectedData, simContext.simulationData.changes);
   const columns = [
     {
       field: 'feature',
@@ -44,7 +56,7 @@ export default function FeatureEditor() {
             alignItems="center"
             direction="row"
             gap={1}
-            sx={{ width: 'fit-content' }}
+            sx={{ width: 'fit-content', mr: 0.5 }}
           >
             {value}
             <Tooltip title={FEATURE_DESCRIPTIONS.get(value)}>
@@ -83,12 +95,11 @@ export default function FeatureEditor() {
       sortable: false,
       rowSpanValueGetter: () => null, // disable row spanning on equal values
       preProcessEditCellProps: (params) => {
-        // Validation to disallow negative numbers.
         // Setting `error: true` prevents MUI from saving the new value. Presenting the error needs to be done manually.
         // See: https://github.com/mui/mui-x/issues/8854#issuecomment-1534730413
         // TODO: wrap renderEditCell to highlight cell as invalid
-        const isValid = params.props.value >= 0.0;
-        return { ...params.props, error: !isValid };
+        const validator = FEATURE_VALIDATOR_MAP.get(params.row.feature);
+        return { ...params.props, error: !validator(params.props.value) };
       },
     },
     {
@@ -119,14 +130,17 @@ export default function FeatureEditor() {
           : `${value > 0 ? '+' : ''}${value.toLocaleString()} %`;
       },
       preProcessEditCellProps: (params) => {
-        // TODO: validation per feature type.
-        // Validation to disallow negative numbers.
         // Setting `error: true` prevents MUI from saving the new value. Presenting the error needs to be done manually.
         // See: https://github.com/mui/mui-x/issues/8854#issuecomment-1534730413
         // TODO: wrap renderEditCell to highlight cell as invalid
-        // isValidForFeatureType(value, featureName)
-        const isValid = params.props.value >= -100.0;
-        return { ...params.props, error: !isValid };
+        const validator = FEATURE_VALIDATOR_MAP.get(params.row.feature);
+        // Value is in % units. Convert to new actual value for validation.
+        const newValue = getNewValueFromPChange(
+          params.row.feature,
+          params.row.value,
+          params.props.value,
+        );
+        return { ...params.props, error: !validator(newValue) };
       },
     },
     {
@@ -182,19 +196,17 @@ export default function FeatureEditor() {
     },
   ];
 
-  useEffect(() => {
-    // Autosize columns on data update
-    dataGridApiRef.current.autosizeColumns({
-      columns: ['actions'],
-      includeOutliers: true,
-      includeHeaders: true,
-    });
-  }, [dataGridApiRef, simContext]);
-
   return (
     // Double Box is a weird hack to prevent DataGrid from overflowing height.
     // See: https://stackoverflow.com/questions/76118183/mui-datagrid-height-exceeds-parents-div-when-the-rows-are-more-than-the-height
-    <Box sx={{ flex: 1, position: 'relative', height: '100%', width: '100%' }}>
+    <Box
+      sx={{
+        flex: 1,
+        position: 'relative',
+        height: '100%',
+        width: '100%',
+      }}
+    >
       <Box sx={{ position: 'absolute', height: '100%', width: '100%' }}>
         <DataGrid
           autosizeOnMount
@@ -209,7 +221,7 @@ export default function FeatureEditor() {
           // triggering a rerender. See comments under pivot() and pChange's valueSetter for details.
           rows={rows}
           autosizeOptions={{
-            columns: ['actions'],
+            columns: ['feature', 'actions'],
             includeOutliers: true,
             includeHeaders: true,
           }}
@@ -223,12 +235,16 @@ export default function FeatureEditor() {
             }
             return params.indexRelativeToCurrentPage % 2 === 0 ? '' : 'even';
           }}
+          localeText={{
+            noRowsLabel: 'Create a change period to start simulating.',
+          }}
           processRowUpdate={(updatedRow) => {
             simDispatch({ type: 'set_change', updatedRow });
             return updatedRow;
           }}
           sx={{
             borderRadius: '9px',
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
             // To disable cell/column header highlight on click - see https://github.com/mui/mui-x/issues/8104
             '& .MuiDataGrid-columnHeaderTitleContainer, & .MuiDataGrid-cell': {
               outline: 'transparent',
@@ -238,7 +254,7 @@ export default function FeatureEditor() {
                 outline: 'none',
               },
             '& .border-cell': {
-              borderRight: '2px solid rgba(180, 180, 180, 0.6)',
+              borderRight: '3px solid rgba(180, 180, 180, 0.6)',
               // backgroundColor: 'red',
             },
             '& .changed-row': {

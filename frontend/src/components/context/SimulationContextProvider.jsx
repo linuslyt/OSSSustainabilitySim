@@ -1,4 +1,4 @@
-import React, { useReducer } from 'react';
+import React, { useEffect, useReducer } from 'react';
 import { DUMMY_CHANGES, DUMMY_DATA } from '../UpdateFeatures/constants';
 import {
   getNewValueFromPChange,
@@ -13,6 +13,10 @@ import {
 
 export function SimulationContextProvider({ children }) {
   const [simulation, dispatch] = useReducer(simulationReducer, DUMMY_SIM);
+
+  useEffect(() => {
+    console.log('Saved changes updated: ', simulation.simulationData.changes);
+  }, [simulation.simulationData.changes]);
 
   return (
     <SimulationContext.Provider value={simulation}>
@@ -59,7 +63,9 @@ function simulationReducer(prev, action) {
       );
       const newSelectedPeriod =
         prev.simulationData.selectedPeriod.key === action.period.key
-          ? newChangedPeriods[newChangedPeriods.length - 1]
+          ? newChangedPeriods.length > 0
+            ? newChangedPeriods[newChangedPeriods.length - 1]
+            : null
           : prev.simulationData.selectedPeriod;
 
       return {

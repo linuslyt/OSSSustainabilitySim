@@ -47,3 +47,43 @@ export function pivot(data, changes) {
         a.month - b.month,
     );
 }
+
+const integerValidator = (newValue) =>
+  newValue >= 0 && !Object.is(newValue, -0) && Number.isInteger(newValue);
+
+const percentageValidator = (newValue) =>
+  newValue >= 0.0 && !Object.is(newValue, -0.0) && newValue <= 1.0;
+
+const decimalValidator = (newValue) =>
+  newValue >= 0.0 && !Object.is(newValue, -0.0);
+
+export const FEATURE_VALIDATOR_MAP = new Map(
+  Object.entries({
+    c_percentage: percentageValidator,
+    e_percentage: percentageValidator,
+    // NOTE: Logically, these should also be nondecreasing.
+    //       However, this would require 1) checking it's >= previous month's value, and
+    //       2) Adding the same offset to all remaining months' values when changed.
+    active_devs: integerValidator,
+    num_commits: integerValidator,
+    num_files: integerValidator,
+    num_emails: integerValidator,
+    // NOTE: Logically, these should also be <= the total time intervals elapsed from
+    //       project start to the current month.
+    inactive_c: integerValidator,
+    inactive_e: integerValidator,
+    // NOTE: Logically, these should have extra constraints depending on how the network is defined.
+    //       e.g. perhaps c_nodes should correspond to the number of commits.
+    c_nodes: integerValidator,
+    c_edges: integerValidator,
+    c_c_coef: percentageValidator,
+    e_nodes: integerValidator,
+    e_edges: integerValidator,
+    e_c_coef: percentageValidator,
+    // NOTE: Logically, these should not exceed *_nodes.
+    c_mean_degree: decimalValidator,
+    c_long_tail: decimalValidator,
+    e_mean_degree: decimalValidator,
+    e_long_tail: decimalValidator,
+  }),
+);

@@ -46,7 +46,7 @@ function DeltaSelector() {
 
   // Generate valid month options
   // TODO: memoize these
-  const nMonths = 12; // TODO: get from project feature/pred history from context
+  const nMonths = 12; // TODO: get # available months from project feature/pred history in context
   const startMonths = Array.from(Array(nMonths), (_, x) => x + 1).filter(
     (m) => !selectedMonths.has(m),
   );
@@ -84,9 +84,8 @@ function DeltaSelector() {
         flexWrap: 'wrap',
         direction: 'column',
         alignItems: 'center',
-        my: '0.5rem',
-        backgroundColor: '31',
-        width: 'max-content',
+        mt: '0.5rem',
+        width: 'fit-content',
         overflow: 'wrap',
         gap: 1,
       }}

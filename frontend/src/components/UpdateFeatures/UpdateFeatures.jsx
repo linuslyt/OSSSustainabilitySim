@@ -24,6 +24,9 @@ function UpdateFeatures() {
           // backgroundColor: 'blue',
           display: 'flex',
           justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 1,
+          mx: 0.5,
         }}
       >
         <Typography variant="h6">Update features</Typography>
@@ -32,19 +35,11 @@ function UpdateFeatures() {
       <Box
         sx={{
           gridRow: 2,
-          // backgroundColor: 'red',
+          display: 'flex',
+          alignItems: 'center',
+          mb: 0.5,
+          mx: 0.5,
         }}
-      >
-        <Typography sx={{ fontStyle: 'italic' }} variant="subtitle">
-          Instructions for operating.
-          <br />
-          Selected feature: {simContext.selectedFeature.feature}
-          <br />
-          Selected feature month: {simContext.selectedFeature.month}
-        </Typography>
-      </Box>
-      <Box
-        sx={{ gridRow: 3, display: 'flex', alignItems: 'center', my: '0.5rem' }}
       >
         <Typography
           sx={{
@@ -56,6 +51,41 @@ function UpdateFeatures() {
           Change periods:
         </Typography>
         <DeltaList />
+      </Box>
+      <Box
+        sx={{
+          gridRow: 3,
+          mt: 1,
+          mb: 0.5,
+          mx: 0.5,
+        }}
+      >
+        <Typography sx={{ fontStyle: '' }} variant="subtitle">
+          Double click on a cell in either{' '}
+          <Typography
+            sx={{ fontStyle: 'normal', fontWeight: 600 }}
+            variant="subtitle"
+          >
+            &#39;Simulated value&#39;
+          </Typography>{' '}
+          or{' '}
+          <Typography
+            sx={{ fontStyle: 'normal', fontWeight: 600 }}
+            variant="subtitle"
+          >
+            &#39;% change simulated&#39;
+          </Typography>{' '}
+          to edit. <br />
+          Note that{' '}
+          <Typography
+            sx={{ fontStyle: 'normal', fontWeight: 600 }}
+            variant="subtitle"
+          >
+            &#39;% change simulated&#39;
+          </Typography>{' '}
+          is rounded to the nearest percentage that changes the rounded
+          simulated value.
+        </Typography>
       </Box>
       <Box
         sx={{
