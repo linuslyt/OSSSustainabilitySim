@@ -129,6 +129,11 @@ export default function FeatureGraph() {
         .attr('width', size.width)
         .attr('height', size.height);
 
+      const { x: offsetX, y: offsetY } = d3
+        .select('#feature-graph')
+        .node()
+        .getBoundingClientRect();
+
       svg
         .select('#title')
         .attr('transform', `translate(${size.width / 2}, ${margin.top / 2})`)
@@ -197,11 +202,6 @@ export default function FeatureGraph() {
           const x = bbox.x + bbox.width / 2;
           const y = bbox.y + bbox.height / 2;
 
-          const { x: offsetX, y: offsetY } = d3
-            .select('#feature-graph')
-            .node()
-            .getBoundingClientRect();
-
           // TODO: pivot to left side if out of box range
           setTooltip({
             x: offsetX + x,
@@ -241,11 +241,6 @@ export default function FeatureGraph() {
             .attr('y2', mouseY)
             .style('visibility', inBounds ? 'visible' : 'hidden');
 
-          const { x: offsetX, y: offsetY } = d3
-            .select('#feature-graph')
-            .node()
-            .getBoundingClientRect();
-
           // TODO: pivot to left side if out of box range
           setCrosshairLabel({
             x: offsetX + mouseX,
@@ -262,7 +257,7 @@ export default function FeatureGraph() {
         });
     };
     renderGraph(data);
-  }, [size, data, selectedFeature, dataDomain, dataRange, display]);
+  }, [size, simContext.selectedProjectData.features]);
 
   useEffect(() => {
     // Run once on initialize. See https://react.dev/learn/you-might-not-need-an-effect#initializing-the-application

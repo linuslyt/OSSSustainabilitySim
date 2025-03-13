@@ -136,7 +136,7 @@ export default function ForecastGraph() {
         )
         .attr('fill', 'black')
         .attr('text-anchor', 'middle')
-        .text('P(Graduate)')
+        .text('P(Graduate) at month m+1')
         .style('font-size', '1rem')
         .style('font-family', "'Roboto', sans-serif");
 
