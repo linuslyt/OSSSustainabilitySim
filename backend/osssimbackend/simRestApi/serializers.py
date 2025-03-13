@@ -71,13 +71,15 @@ class MonthPredictionSerializer(serializers.Serializer):
     """Serializer for monthly prediction entries"""
     def to_representation(self, instance):
         # Extract the month number and prediction data
+        # {"month_1": {"prediction": 1, "confidence": 0.94, "p_graduate": 0.20}}
         month_key = list(instance.keys())[0]  # e.g., 'month_1'
         prediction_data = instance[month_key]
         
         return {
             month_key: {
                 'prediction': prediction_data['prediction'],
-                'confidence': prediction_data['confidence']
+                'confidence': prediction_data['confidence'],
+                'p_graduate': prediction_data.get('p_graduate')
             }
         }
 
