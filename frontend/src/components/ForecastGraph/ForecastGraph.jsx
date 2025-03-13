@@ -63,13 +63,13 @@ export default function ForecastGraph() {
   }, [handleResize]);
 
   useEffect(() => {
-    const renderGraph = () => {
+    const renderGraph = (data) => {
       // Derive constants from parent container size
       const margin = {
         top: size.height * 0.16,
         right: size.width * 0.1,
         bottom: size.height * 0.16,
-        left: size.width * 0.12,
+        left: size.width * 0.1,
       };
       const xScale = d3
         .scalePoint()
@@ -81,7 +81,7 @@ export default function ForecastGraph() {
         .range([size.height - margin.bottom, margin.top]);
       const xAxis = d3.axisBottom(xScale).ticks(data.length);
       const yAxis = d3.axisLeft(yScale).ticks(5);
-      const lineGerator = d3
+      const lineGenerator = d3
         .line()
         .x((d) => xScale(d.month))
         .y((d) => yScale(d.pGraduate));
@@ -96,6 +96,15 @@ export default function ForecastGraph() {
         .attr('height', size.height);
 
       svg
+        .select('#title')
+        .attr('x', width / 2)
+        .attr('y', margin.top * 0.75)
+        .text('Sustainability forecast for month X+1 for Project 1')
+        .attr('text-anchor', 'middle')
+        .style('font-size', '1.25rem')
+        .style('font-family', "'Roboto', sans-serif");
+
+      svg
         .select('#x-axis')
         .attr('transform', `translate(0,${height - margin.bottom})`)
         .call(xAxis) // The first invocation of .call(axis) creates the axis; subsequent calls update it.
@@ -105,8 +114,7 @@ export default function ForecastGraph() {
 
       svg
         .select('#x-axis-label')
-        .attr('x', width / 2)
-        .attr('y', margin.bottom * 0.9)
+        .attr('transform', `translate(${width / 2}, ${margin.bottom * 0.9})`)
         .attr('fill', 'black')
         .text('Month')
         .style('font-size', '1rem')
@@ -120,10 +128,12 @@ export default function ForecastGraph() {
         .style('font-size', '0.8rem')
         .style('font-family', "'Roboto', sans-serif");
 
-      d3.select('#y-axis-label')
-        .attr('transform', 'rotate(-90)')
-        .attr('x', -height / 2)
-        .attr('y', -margin.top)
+      svg
+        .select('#y-axis-label')
+        .attr(
+          'transform',
+          `translate(${-margin.left / 3}, ${height / 2}) rotate(-90)`,
+        )
         .attr('fill', 'black')
         .attr('text-anchor', 'middle')
         .text('P(Graduate)')
@@ -133,7 +143,7 @@ export default function ForecastGraph() {
       svg
         .select('#trendline')
         .datum(data)
-        .attr('d', lineGerator)
+        .attr('d', lineGenerator)
         .attr('fill', 'none')
         .attr('stroke', 'orange')
         .attr('stroke-width', '2px');
@@ -147,7 +157,6 @@ export default function ForecastGraph() {
         .attr('cx', (d) => xScale(d.month))
         .attr('cy', (d) => yScale(d.pGraduate))
         .attr('fill', '#E97451')
-        .on('click', (e, d) => console.log(d))
         .on('mouseover', function (event, d) {
           const bbox = this.getBBox(); // Get bounding box of marker
 
@@ -166,8 +175,8 @@ export default function ForecastGraph() {
           setTooltip((prev) => ({ ...prev, visible: false }));
         });
 
-      d3.select('#y-crosshair')
-        .attr('class', 'crosshair')
+      d3.select('#forecast-graph')
+        .select('#y-crosshair')
         .attr('x1', margin.left)
         .attr('x2', size.width - margin.right)
         .attr('y1', 0)
@@ -187,7 +196,8 @@ export default function ForecastGraph() {
             mouseY > margin.top &&
             mouseY < height - margin.bottom;
 
-          d3.select('#y-crosshair')
+          d3.select('#forecast-graph')
+            .select('#y-crosshair')
             .attr('y1', mouseY)
             .attr('y2', mouseY)
             .style('visibility', inBounds ? 'visible' : 'hidden');
@@ -200,18 +210,11 @@ export default function ForecastGraph() {
           });
         })
         .on('mouseleave', () => {
-          d3.select('#y-crosshair').style('visibility', 'hidden');
+          d3.select('#forecast-graph')
+            .select('#y-crosshair')
+            .style('visibility', 'hidden');
           setCrosshairLabel((prev) => ({ ...prev, visible: false }));
         });
-
-      svg
-        .select('#title')
-        .attr('x', width / 2)
-        .attr('y', margin.top * 0.75)
-        .text('Sustainability forecast for month X+1 for Project 1')
-        .attr('text-anchor', 'middle')
-        .style('font-size', '1.25rem')
-        .style('font-family', "'Roboto', sans-serif");
     };
     renderGraph(data);
   }, [size, data]);
@@ -244,7 +247,6 @@ export default function ForecastGraph() {
   return (
     <Box
       ref={graphRef}
-      id="box"
       sx={{
         height: '100%',
         display: 'flex',

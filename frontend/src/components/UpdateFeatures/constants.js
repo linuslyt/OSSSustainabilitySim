@@ -191,6 +191,27 @@ export const DUMMY_DATA = [
     e_mean_degree: 3,
     e_long_tail: 0.15,
   },
+  {
+    month: 6,
+    active_devs: 10,
+    num_commits: 100,
+    num_files: 26,
+    num_emails: 13,
+    c_percentage: 0.78,
+    e_percentage: 0.34,
+    inactive_c: 6,
+    inactive_e: 3,
+    c_nodes: 32,
+    c_edges: 54,
+    c_c_coef: 0.7,
+    c_mean_degree: 2.8,
+    c_long_tail: 0.4,
+    e_nodes: 26,
+    e_edges: 44,
+    e_c_coef: 0.5,
+    e_mean_degree: 3,
+    e_long_tail: 0.15,
+  },
 ];
 
 export const DUMMY_CHANGES = [
