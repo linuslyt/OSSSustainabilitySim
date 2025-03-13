@@ -1,7 +1,7 @@
 import { Box, Typography } from '@mui/material';
 import useResizeObserver from '@react-hook/resize-observer';
 import * as d3 from 'd3';
-import { debounce, isEmpty } from 'lodash';
+import { debounce } from 'lodash';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useSimulation } from '../context/SimulationContext';
 
@@ -70,9 +70,6 @@ export default function FeatureGraph() {
   const simContext = useSimulation();
   const { month: selectedMonth, feature: selectedFeature } =
     simContext.selectedFeature;
-  const display =
-    !isEmpty(selectedFeature) &&
-    !isEmpty(simContext.simulationData.selectedPeriod);
   const inFocusRange = (month, centerMonth) => {
     const monthMargin = 3; // display a quarter of data on each side
     // TODO: add extra months on left or right if total shown < margin * 2 + 1
@@ -257,7 +254,11 @@ export default function FeatureGraph() {
         });
     };
     renderGraph(data);
-  }, [size, simContext.selectedProjectData.features]);
+  }, [
+    size,
+    simContext.selectedProjectData.features,
+    simContext.selectedFeature,
+  ]);
 
   useEffect(() => {
     // Run once on initialize. See https://react.dev/learn/you-might-not-need-an-effect#initializing-the-application
@@ -284,23 +285,17 @@ export default function FeatureGraph() {
       .attr('id', 'y-axis-label');
   }, []);
 
-  const emptyMessage = (
-    <Typography sx={{ fontStyle: 'italic' }} variant="body">
-      Select a project, define a change period, then select a feature to examine
-      its history.
-    </Typography>
-  );
-
   return (
     <Box
       ref={graphRef}
       sx={{
         height: '100%',
+        width: '100%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'rgba(255, 255, 255, 1)',
-        borderRadius: '8px',
+        borderRadius: '9px',
       }}
     >
       {tooltip.visible && (
@@ -352,12 +347,6 @@ export default function FeatureGraph() {
           </Typography>
         </Box>
       )}
-      {/* {!display && (
-        <Typography sx={{ fontStyle: 'italic' }} variant="body">
-          Select a project, define a change period, then select a feature to
-          examine its history.
-        </Typography>
-      )} */}
       <svg id="feature-graph"></svg>
     </Box>
   );

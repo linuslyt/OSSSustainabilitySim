@@ -100,7 +100,7 @@ function ProjectSelect() {
         groupBy={(option) => option.status}
         renderOption={renderOptionWithAutocomplete}
         size="small"
-        sx={{ width: 300 }}
+        sx={{ width: 300, '& fieldset': { borderRadius: 3 } }}
         value={simContext.selectedProject}
         isOptionEqualToValue={(option, value) =>
           option.project_id === value?.project_id

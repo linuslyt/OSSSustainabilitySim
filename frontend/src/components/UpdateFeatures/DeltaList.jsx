@@ -56,7 +56,7 @@ function DeltaList() {
     });
 
   return (
-    <Stack useFlexGap direction="row" spacing={0.5} sx={{ flexWrap: 'wrap' }}>
+    <Stack useFlexGap direction="row" spacing={0.5} sx={{ flexWrap: 'nowrap' }}>
       {monthChips}
     </Stack>
   );

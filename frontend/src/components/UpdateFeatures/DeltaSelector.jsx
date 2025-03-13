@@ -84,15 +84,13 @@ function DeltaSelector() {
         flexWrap: 'wrap',
         direction: 'column',
         alignItems: 'center',
-        mt: '0.5rem',
         width: 'fit-content',
         overflow: 'wrap',
         gap: 1,
       }}
     >
-      {/* TODO: fix wrapping on narrow box */}
-      <Typography sx={{ display: 'inline' }}>
-        Add new change period:{' '}
+      <Typography sx={{ display: 'inline', fontWeight: 500, mr: 1 }}>
+        Add change period:{' '}
       </Typography>
       <FormControl disabled={isEmpty(startMonths)} size="small">
         <InputLabel id="start-label">Start</InputLabel>
@@ -102,7 +100,7 @@ function DeltaSelector() {
           <Select
             label="Start"
             labelId="start-label"
-            sx={{ width: '80px' }}
+            sx={{ width: '80px', borderRadius: 3 }}
             value={selectorState.startMonth}
             onChange={handleStartChange}
           >
@@ -125,7 +123,7 @@ function DeltaSelector() {
           <Select
             autoWidth
             label="End"
-            sx={{ width: '80px' }}
+            sx={{ width: '80px', borderRadius: 3 }}
             value={selectorState.endMonth}
             onChange={handleEndChange}
           >

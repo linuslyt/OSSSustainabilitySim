@@ -76,7 +76,7 @@ function simulationReducer(prev, action) {
         ...prev,
         selectedFeature: {
           ...prev.selectedFeature,
-          month: newSelectedPeriod.startMonth,
+          month: newSelectedPeriod?.startMonth,
         },
         simulationData: {
           changedPeriods: newChangedPeriods,

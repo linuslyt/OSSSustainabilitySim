@@ -42,7 +42,7 @@ export default function FeatureEditor() {
       includeOutliers: true,
       includeHeaders: true,
     });
-  }, [dataGridApiRef, simContext]);
+  }, [dataGridApiRef, simContext.selectedPeriod]);
 
   const rows = pivot(selectedData, simContext.simulationData.changes);
   const columns = [
@@ -236,7 +236,8 @@ export default function FeatureEditor() {
             return params.indexRelativeToCurrentPage % 2 === 0 ? '' : 'even';
           }}
           localeText={{
-            noRowsLabel: 'Create a change period to start simulating.',
+            noRowsLabel:
+              'Create a change period to view/simulate changes to features.',
           }}
           processRowUpdate={(updatedRow) => {
             simDispatch({ type: 'set_change', updatedRow });
