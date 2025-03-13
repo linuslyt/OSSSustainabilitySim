@@ -1441,6 +1441,29 @@ class ProjectPredictionHistoryView(APIView):
             if not prediction_history:
                 return Response({"error": "Project does not have prediction history"}, status=status.HTTP_404_NOT_FOUND)
 
+            # Calculate p_graduate from confidence
+            for month_entry in prediction_history:
+                for month_key, data in month_entry.items():
+                    if "p_graduate" not in data or data["p_graduate"] is None:
+
+                        prediction = data.get("prediction", None)
+                        confidence = data.get("confidence", None)
+
+                        if prediction is not None and confidence is not None:
+                            p_graduate = confidence if prediction == 1 else 1 - confidence
+                        else:
+                            p_graduate = None
+
+                        data["p_graduate"] = p_graduate
+            
+
+
+            # Ensure updated data is used in the response
+            serialized_history = []
+            for entry in prediction_history:
+                serializer = MonthPredictionSerializer(instance=entry)
+                serialized_history.append(serializer.data)
+
             response_data = {
                 "project_id": project_id,
                 "project_name": project_info["listname"],
@@ -1450,7 +1473,7 @@ class ProjectPredictionHistoryView(APIView):
                 "pj_github_url": project_info["pj_github_url"],
                 "intro": project_info["intro"],
                 "sponsor": project_info["sponsor"],
-                "prediction_history": prediction_history
+                "prediction_history": serialized_history
             }
 
             # Cache the result for 1 hour
@@ -1876,6 +1899,7 @@ class SimulateWithDeltasView(APIView):
         if not os.path.exists(model_path):
             return Response({"error": f"No model available for {max_months} months"}, status=400)
 
+<<<<<<< HEAD
         # Make predictions
         predictions = predict(modified_history, model_path)
         
@@ -1883,6 +1907,18 @@ class SimulateWithDeltasView(APIView):
         response_data = {
             "project_id": project_id,
             "predictions": predictions
+=======
+        predicted_class, confidence, p_graduate = predict(modified_history, model_path, max_months)
+        status = "Sustainable (Likely to Graduate)" if predicted_class == 1 else "Not Sustainable (Likely to Retire)"
+
+        # Prepare Response
+        response_data = {
+            "project_id": project_id,
+            "predicted_status": status,
+            "confidence_score": round(confidence, 2),
+            "modified_features": feature_changes,
+            "p_graduate": round(p_graduate, 2)
+>>>>>>> 5e3fcba22bcc54b40833572a38f79c872aa488aa
         }
 
         return Response(response_data, status=200)
