@@ -1,21 +1,15 @@
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid2';
 import { styled } from '@mui/material/styles';
-
 import React from 'react';
-
-import DetailsGraph from './components/DetailsGraph/DetailsGraph';
+import { SimulationContextProvider } from './components/context/SimulationContextProvider';
+import FeatureGraph from './components/FeatureGraph/FeatureGraph';
 import ForecastGraph from './components/ForecastGraph/ForecastGraph';
 import Header from './components/Header/Header';
+import ProjectDetails from './components/ProjectDetails/ProjectDetails';
 import UpdateFeatures from './components/UpdateFeatures/UpdateFeatures';
-import { SimulationContextProvider } from './components/context/SimulationContextProvider';
 
-// TODO: cssbaseline and theme provider if needed
 function App() {
-  // const [selectedProject, setSelectedProject] = useState(null);
-  // const [dashboardView, setDashboardView] = useState('explore');
-  // const [nMonths, setNMonths] = useState('8');
-
   const Panel = styled(Box)(({ theme }) => ({
     backgroundColor: 'linen',
     height: '100%',
@@ -39,7 +33,6 @@ function App() {
         }}
       >
         <Header
-          // projectState={[selectedProject, setSelectedProject]}
           sx={{
             backgroundColor: 'lightgrey',
             color: 'black',
@@ -68,19 +61,32 @@ function App() {
               </Panel>
             </Grid>
             <Grid size={4}>
-              <Panel>
-                {/* <Typography variant="body1" sx={{ display: 'block' }}>
-                  Selected project (select w/ dropdown to view here):
-                  <br />
-                  id: {selectedProject?.project_id}
-                  <br />
-                  name: {selectedProject?.project_name}
-                  <br />
-                  status: {selectedProject?.status}
-                </Typography> */}
-                <br />
-                <DetailsGraph />
-              </Panel>
+              <Box
+                sx={{
+                  height: '100%',
+                  display: 'grid',
+                  gridTemplateRows: 'min-content auto',
+                  overflow: 'hidden',
+                  gap: 2,
+                }}
+              >
+                <Panel
+                  sx={{
+                    gridRow: 1,
+                    mx: 0.5,
+                  }}
+                >
+                  <ProjectDetails />
+                </Panel>
+                <Panel
+                  sx={{
+                    gridRow: 2,
+                    mx: 0.5,
+                  }}
+                >
+                  <FeatureGraph />
+                </Panel>
+              </Box>
             </Grid>
           </Grid>
         </Box>

@@ -60,7 +60,7 @@ function UpdateFeatures() {
           mx: 0.5,
         }}
       >
-        <Typography sx={{ fontStyle: '' }} variant="subtitle">
+        <Typography variant="subtitle">
           Double click on a cell in either{' '}
           <Typography
             sx={{ fontStyle: 'normal', fontWeight: 600 }}
