@@ -7,6 +7,33 @@ import { useSimulation } from '../context/SimulationContext';
 
 let graphInitialized = false;
 
+const PERCENT_FORMAT = '.0%';
+const FLOAT_FORMAT = '.2f';
+const INT_FORMAT = '.0f';
+
+const formatStrings = new Map(
+  Object.entries({
+    c_percentage: PERCENT_FORMAT,
+    e_percentage: PERCENT_FORMAT,
+    active_devs: INT_FORMAT,
+    num_commits: INT_FORMAT,
+    num_files: INT_FORMAT,
+    num_emails: INT_FORMAT,
+    inactive_c: INT_FORMAT,
+    inactive_e: INT_FORMAT,
+    c_nodes: INT_FORMAT,
+    c_edges: INT_FORMAT,
+    c_c_coef: PERCENT_FORMAT,
+    e_nodes: INT_FORMAT,
+    e_edges: INT_FORMAT,
+    e_c_coef: PERCENT_FORMAT,
+    c_mean_degree: FLOAT_FORMAT,
+    c_long_tail: FLOAT_FORMAT,
+    e_mean_degree: FLOAT_FORMAT,
+    e_long_tail: FLOAT_FORMAT,
+  }),
+);
+
 // TODO: prevent tooltip from overflowing page
 // TODO: make scrollable; center on month
 // TODO: fix default if no project selected.
@@ -69,7 +96,9 @@ export default function FeatureGraph() {
         .domain(dataRange)
         .range([size.height - margin.bottom, margin.top]);
       const xAxis = d3.axisBottom(xScale).ticks(data.length);
-      const yAxis = d3.axisLeft(yScale).tickFormat(d3.format('.2f')); // TODO: adjust based on feature type
+      const yAxis = d3
+        .axisLeft(yScale)
+        .tickFormat(d3.format(formatStrings.get(selectedFeature)));
       const lineGenerator = d3
         .line()
         .x((d) => xScale(d.month))

@@ -18,6 +18,7 @@ import {
 
 // TODO: add link to ASFI
 // TODO: information IconButton that reveals project info/authors/status etc
+// TODO: set default and disable clearing dropdown
 function ProjectSelect() {
   const simContext = useSimulation();
   const simDispatch = useSimulationDispatch();
