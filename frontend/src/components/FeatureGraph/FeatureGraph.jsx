@@ -68,14 +68,30 @@ export default function FeatureGraph() {
   });
 
   const simContext = useSimulation();
-  const selectedFeature = simContext.selectedFeature.feature;
+  const { month: selectedMonth, feature: selectedFeature } =
+    simContext.selectedFeature;
   const display =
     !isEmpty(selectedFeature) &&
     !isEmpty(simContext.simulationData.selectedPeriod);
-  const data = simContext.selectedProjectData.features.map((m) => ({
-    month: m.month,
-    value: m[selectedFeature],
-  }));
+  const inFocusRange = (month, centerMonth) => {
+    const monthMargin = 3; // display a quarter of data on each side
+    // TODO: add extra months on left or right if total shown < margin * 2 + 1
+    return (
+      month >= Math.max(1, centerMonth - monthMargin) &&
+      month <=
+        Math.min(
+          simContext.selectedProjectData.features.length,
+          centerMonth + monthMargin,
+        )
+    );
+  };
+
+  const data = simContext.selectedProjectData.features
+    .map((d) => ({
+      month: d.month,
+      value: d[selectedFeature],
+    }))
+    .filter((d) => inFocusRange(d.month, selectedMonth));
   const dataDomain = d3.extent(data.map((d) => d.month));
   const dataRange = d3.extent(data.map((d) => d.value));
 

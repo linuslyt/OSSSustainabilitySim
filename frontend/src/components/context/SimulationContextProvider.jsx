@@ -39,6 +39,10 @@ function simulationReducer(prev, action) {
     case 'set_selected_period': {
       return {
         ...prev,
+        selectedFeature: {
+          ...prev.selectedFeature,
+          month: action.period.startMonth,
+        },
         simulationData: {
           ...prev.simulationData,
           selectedPeriod: action.period,
@@ -70,6 +74,10 @@ function simulationReducer(prev, action) {
 
       return {
         ...prev,
+        selectedFeature: {
+          ...prev.selectedFeature,
+          month: newSelectedPeriod.startMonth,
+        },
         simulationData: {
           changedPeriods: newChangedPeriods,
           changedMonths: newChangedMonths,
@@ -91,6 +99,10 @@ function simulationReducer(prev, action) {
       }
       return {
         ...prev,
+        selectedFeature: {
+          ...prev.selectedFeature,
+          month: newPeriod.startMonth,
+        },
         simulationData: {
           ...prev.simulationData, // `changes` remains unchanged
           changedPeriods: [...prev.simulationData.changedPeriods, newPeriod],
