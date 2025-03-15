@@ -23,23 +23,23 @@ function DashboardToggle({ dashboardViewState }) {
   return (
     <div className="dashboard-mode-toggle">
       <ToggleButtonGroup
+        exclusive
+        aria-label="Dashboard View"
         color="primary"
         value={dashboardView}
-        exclusive
         onChange={(event, newValue) => setDashboardView(newValue)}
-        aria-label="Dashboard View"
       >
         <ToggleButton
+          aria-label="explore"
           className="toggle-button"
           value="explore"
-          aria-label="explore"
         >
           Explore
         </ToggleButton>
         <ToggleButton
+          aria-label="simulate"
           className="toggle-button"
           value="simulate"
-          aria-label="simulate"
         >
           Simulate
         </ToggleButton>
@@ -83,7 +83,7 @@ function MonthRangeSlider({ nMonthsState }) {
   return (
     <div className="month-range-select">
       <Box sx={{ width: 250 }}>
-        <Typography id="input-slider" gutterBottom>
+        <Typography gutterBottom id="input-slider">
           # Months
         </Typography>
         <Grid container spacing={2} sx={{ alignItems: 'center' }}>
@@ -92,19 +92,17 @@ function MonthRangeSlider({ nMonthsState }) {
           </Grid>
           <Grid item xs>
             <Slider
+              aria-labelledby="input-slider"
+              max={MAX_MONTHS}
+              min={MIN_MONTHS}
               value={typeof sliderValue === 'number' ? sliderValue : 0}
               onChange={handleSliderChange}
-              aria-labelledby="input-slider"
-              min={MIN_MONTHS}
-              max={MAX_MONTHS}
             />
           </Grid>
           <Grid item>
             <Input
-              value={sliderValue}
               size="small"
-              onChange={handleInputChange}
-              onBlur={handleBlur}
+              value={sliderValue}
               inputProps={{
                 step: 1,
                 min: MIN_MONTHS,
@@ -112,10 +110,12 @@ function MonthRangeSlider({ nMonthsState }) {
                 type: 'number',
                 'aria-labelledby': 'input-slider',
               }}
+              onBlur={handleBlur}
+              onChange={handleInputChange}
             />
           </Grid>
         </Grid>
-        <Typography id="input-slider" gutterBottom>
+        <Typography gutterBottom id="input-slider">
           # Months selected = {nMonths}
         </Typography>
       </Box>

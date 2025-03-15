@@ -37,9 +37,26 @@ export default [
         'warn',
         { allowConstantExport: true },
       ],
+      'react/jsx-sort-props': [
+        'error',
+        {
+          callbacksLast: true,
+          shorthandFirst: true,
+          multiline: 'last',
+          ignoreCase: true,
+          reservedFirst: true,
+        },
+      ],
     },
   },
   pluginJs.configs.recommended,
   pluginReact.configs.flat.recommended,
   eslintPluginPrettierRecommended,
+  {
+    // override last
+    rules: {
+      'no-unused-vars': 'warn',
+      'react/prop-types': 'warn',
+    },
+  },
 ];

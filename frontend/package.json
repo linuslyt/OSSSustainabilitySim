@@ -16,8 +16,10 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@fontsource/roboto": "^5.2.5",
     "@mui/icons-material": "^6.4.5",
     "@mui/material": "^6.4.4",
+    "@mui/x-data-grid": "^7.27.2",
     "@react-hook/resize-observer": "^2.0.2",
     "autosuggest-highlight": "^3.3.4",
     "d3": "^7.9.0",
@@ -44,7 +46,10 @@
     "prettier": "^3.5.1"
   },
   "lint-staged": {
-    "*.js": "eslint --cache --fix",
-    "**/*": "prettier --write --ignore-unknown"
+    "*.{js,jsx}": [
+      "eslint --fix",
+      "prettier --write --ignore-unknown"
+    ],
+    "!(*.js|*.jsx})": "prettier --write --ignore-unknown"
   }
 }
