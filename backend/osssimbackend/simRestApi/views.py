@@ -1866,13 +1866,15 @@ class SimulateWithDeltasView(APIView):
                                 if value_idx < len(change['change_values']):
                                     month_data[feature] = change['change_values'][value_idx]
                                     print(f"  - New explicit value: {month_data[feature]}")
+                else: 
+                    print(f"❌ Invalid month index: {month_idx}")
         
         # Prints Exact Data Passed to Model
         # print(f"\nFinal Model Input Data for project {project_id}:\n{json.dumps(modified_history, indent=4)}\n")
         
         # Load model for prediction
-        model_path = os.path.join(MODEL_DIR, "lstm_wo_padding_model.h5")
-        # model_path = os.path.join(MODEL_DIR, "model_8.h5")
+        # model_path = os.path.join(MODEL_DIR, "lstm_wo_padding_model.h5")
+        model_path = os.path.join(MODEL_DIR, "model_8.h5")
         if not os.path.exists(model_path):
             return Response({"error": f"No model available for {max_months} months"}, status=400)
 

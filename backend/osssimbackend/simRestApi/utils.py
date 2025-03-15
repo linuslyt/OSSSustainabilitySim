@@ -30,7 +30,7 @@ def build_stateful_model(original_model_path, feature_dim):
     
     # Rebuild model with stateful LSTM (accepting one month at a time)
     model = Sequential([
-        LSTM(64, batch_input_shape=(1, 1, feature_dim), stateful=True),  # Now accepts (1, 1, feature_dim)
+        LSTM(64, input_shape=(None, feature_dim), return_sequences=False),  # Accepts variable time steps
         Dropout(0.3),
         Dense(2, activation='softmax')
     ])
@@ -64,11 +64,14 @@ def predict(history, model_path):
     model = build_stateful_model(model_path, feature_dim)
     
     predictions = []
-    model.reset_states()  # Reset state before new sequence
+    # model.reset_states()  # Reset state before new sequence
     
     for month_idx in range(len(history)):
-        # Extract one month at a time
-        model_input = np.expand_dims(scaled_data[month_idx], axis=(0, 1))  # Shape (1,1,features)
+        # # Extract one month at a time
+        # model_input = np.expand_dims(scaled_data[month_idx], axis=(0, 1))  # Shape (1,1,features)
+        
+        # Increasing input length for each step
+        model_input = np.expand_dims(scaled_data[:month_idx + 1], axis=0)  # Shape (1, time_steps, features)
         
         # Predict
         y_pred = model.predict(model_input, batch_size=1)  # Ensure batch_size=1 to match stateful model
