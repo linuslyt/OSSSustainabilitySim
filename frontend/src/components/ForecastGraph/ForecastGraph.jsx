@@ -6,8 +6,6 @@ import { debounce } from 'lodash';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 // TODO: get data from API
-// TODO: plot predictions
-// TODO: add nearest datapoint logic for hover
 let graphInitialized = false;
 
 export default function ForecastGraph() {
@@ -32,17 +30,35 @@ export default function ForecastGraph() {
     [],
   );
 
+  const simData = useMemo(() => {
+    const simulated = [
+      { month: 13, pGraduate: 0.5 },
+      { month: 14, pGraduate: 0.3 },
+      { month: 15, pGraduate: 0.1 },
+      { month: 16, pGraduate: 0.7 },
+      { month: 17, pGraduate: 0.7 },
+      { month: 10, pGraduate: 0.1 },
+    ];
+    const simMap = new Map(simulated.map((sim) => [sim.month, sim]));
+    const merged = data.map((original) =>
+      simMap.has(original.month) ? simMap.get(original.month) : original,
+    );
+    return merged;
+  }, [data]);
+
   const domain = d3.extent(data.map((d) => d.month));
 
   const [tooltip, setTooltip] = useState({
     x: 0,
     y: 0,
+    transform: '',
     visible: false,
     text: '',
   });
   const [crosshairLabel, setCrosshairLabel] = useState({
     x: 0,
     y: 0,
+    transform: '',
     visible: false,
     text: '',
   });
@@ -163,17 +179,63 @@ export default function ForecastGraph() {
           // Compute center coordinate of marker
           const x = bbox.x + bbox.width / 2;
           const y = bbox.y + bbox.height / 2;
+          const transform =
+            x > size.width / 2
+              ? 'translateX(-110%) translateY(2rem)'
+              : 'translateX(10%) translateY(2rem)';
 
           setTooltip({
             x,
             y,
             visible: true,
+            transform: transform,
             text: `P(Graduate): ${d.pGraduate}\nMonth: ${d.month}`,
           });
         })
         .on('mouseout', () => {
           setTooltip((prev) => ({ ...prev, visible: false }));
         });
+
+      svg
+        .select('#sim-markers')
+        .selectAll('circle')
+        .data(simData)
+        .join('circle')
+        .attr('r', '7px')
+        .attr('cx', (d) => xScale(d.month))
+        .attr('cy', (d) => yScale(d.pGraduate))
+        .attr('fill', 'rgb(17, 105, 193)')
+        .on('mouseover', function (event, d) {
+          const bbox = this.getBBox(); // Get bounding box of marker
+
+          // Compute center coordinate of marker
+          const x = bbox.x + bbox.width / 2;
+          const y = bbox.y + bbox.height / 2;
+
+          const transform =
+            x > size.width / 2
+              ? 'translateX(-110%) translateY(2rem)'
+              : 'translateX(10%) translateY(2rem)';
+
+          setTooltip({
+            x,
+            y,
+            visible: true,
+            transform: transform,
+            text: `P(Graduate): ${d.pGraduate}\nMonth: ${d.month}`,
+          });
+        })
+        .on('mouseout', () => {
+          setTooltip((prev) => ({ ...prev, visible: false }));
+        });
+
+      svg
+        .select('#sim-trendline')
+        .datum(simData)
+        .attr('d', lineGenerator)
+        .attr('fill', 'none')
+        .attr('stroke', 'rgb(25, 118, 210)')
+        .attr('stroke-width', '2px');
 
       d3.select('#forecast-graph')
         .select('#y-crosshair')
@@ -202,10 +264,16 @@ export default function ForecastGraph() {
             .attr('y2', mouseY)
             .style('visibility', inBounds ? 'visible' : 'hidden');
 
+          const transform =
+            mouseX > size.width / 2
+              ? 'translateX(-110%) translateY(3.3rem)'
+              : 'translateX(10%) translateY(3.3rem)';
+
           setCrosshairLabel({
             x: mouseX,
             y: mouseY,
             visible: inBounds,
+            transform: transform,
             text: `P(Graduate): ${yScale.invert(mouseY).toFixed(2)}`,
           });
         })
@@ -229,8 +297,11 @@ export default function ForecastGraph() {
     // by redrawing the same element instead of appending a new one.
     const svg = d3.select('#forecast-graph');
     svg.append('text').attr('id', 'title');
-    svg.append('g').append('path').attr('id', 'trendline');
     svg.append('line').attr('id', 'y-crosshair');
+
+    svg.append('g').append('path').attr('id', 'sim-trendline');
+    svg.append('g').attr('id', 'sim-markers');
+    svg.append('g').append('path').attr('id', 'trendline');
     svg.append('g').attr('id', 'markers');
     svg
       .append('g')
@@ -269,9 +340,10 @@ export default function ForecastGraph() {
             boxSizing: 'border-box',
             px: 1,
             py: 0.5,
-            transform: 'translateX(10%) translateY(3rem)', // Center horizontally and offset vertically
+            transform: tooltip.transform, // Center horizontally and offset vertically
             textAlign: 'center',
             pointerEvents: 'none',
+            zIndex: 999,
           }}
         >
           <Typography sx={{ whiteSpace: 'pre-wrap', textAlign: 'left' }}>
@@ -287,15 +359,16 @@ export default function ForecastGraph() {
             position: 'absolute',
             left: `${crosshairLabel.x}px`,
             top: `${crosshairLabel.y}px`,
-            height: '1.5rem',
+            height: 'auto',
             width: 'auto',
             border: '0px',
             borderRadius: '7px',
             boxSizing: 'border-box',
             px: 1,
-            transform: 'translateX(10%) translateY(220%)', // Center horizontally and offset vertically
+            transform: crosshairLabel.transform, // Center horizontally and offset vertically
             textAlign: 'center',
             pointerEvents: 'none',
+            zIndex: 999,
           }}
         >
           <Typography sx={{ whiteSpace: 'pre-wrap', textAlign: 'left' }}>

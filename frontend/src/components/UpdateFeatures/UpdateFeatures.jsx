@@ -1,4 +1,4 @@
-import PublishIcon from '@mui/icons-material/Publish';
+import UploadIcon from '@mui/icons-material/Upload';
 import { Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -50,7 +50,7 @@ function UpdateFeatures() {
           <Button
             disableElevation
             disabled={isEmpty(simContext.simulationData?.changes)}
-            endIcon={<PublishIcon />}
+            endIcon={<UploadIcon />}
             loading={submitting}
             loadingPosition="end"
             size="large"

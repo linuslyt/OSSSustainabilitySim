@@ -162,7 +162,7 @@ function simulationReducer(prev, action) {
             pChange,
           );
           newChanges.set(id, {
-            month: row.month,
+            month: m,
             feature: row.feature,
             new_value: newValue,
           });

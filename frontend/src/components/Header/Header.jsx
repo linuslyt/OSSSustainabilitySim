@@ -16,9 +16,7 @@ import {
   useSimulationDispatch,
 } from '../context/SimulationContext';
 
-// TODO: add link to ASFI
-// TODO: information IconButton that reveals project info/authors/status etc
-// TODO: set default and disable clearing dropdown
+// TODO: set default
 function ProjectSelect() {
   const simContext = useSimulation();
   const simDispatch = useSimulationDispatch();
@@ -94,6 +92,7 @@ function ProjectSelect() {
       <Autocomplete
         blurOnSelect
         clearOnEscape
+        disableClearable
         handleHomeEndKeys
         selectOnFocus
         getOptionLabel={(option) => option?.project_name ?? ''}
@@ -140,6 +139,14 @@ export default function Header() {
           ASFI Project Sustainability Simulator
         </Typography>
         <Box>
+          <Link
+            href="https://incubator.apache.org/"
+            rel="noopener"
+            sx={{ marginRight: '1rem', verticalAlign: 'middle' }}
+            target="_blank"
+          >
+            ASFI
+          </Link>
           <Link
             href="https://arxiv.org/abs/2105.14252"
             rel="noopener"

@@ -34,10 +34,6 @@ const formatStrings = new Map(
   }),
 );
 
-// TODO: prevent tooltip from overflowing page
-// TODO: make scrollable; center on month
-// TODO: fix default if no project selected.
-// TODO: add dropdown selector for feature
 export default function FeatureGraph() {
   // Set up observer for parent container size
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -89,11 +85,20 @@ export default function FeatureGraph() {
       value: d[selectedFeature],
     }))
     .filter((d) => inFocusRange(d.month, selectedMonth));
-  const dataDomain = d3.extent(data.map((d) => d.month));
-  const dataRange = d3.extent(data.map((d) => d.value));
 
   useEffect(() => {
     const renderGraph = (data) => {
+      const changedData = data.map((original) => {
+        const changeId = `${original.month}-${selectedFeature}`;
+        if (simContext.simulationData.changes.has(changeId)) {
+          const { month, new_value: value } =
+            simContext.simulationData.changes.get(changeId);
+          return { month, value };
+        } else return original;
+      });
+      const dataDomain = d3.extent(changedData.map((d) => d.month));
+      const dataRange = d3.extent(changedData.map((d) => d.value));
+
       const margin = {
         top: size.height * 0.2,
         right: size.width * 0.1,
@@ -106,7 +111,7 @@ export default function FeatureGraph() {
         .range([margin.left, size.width - margin.right]);
       const yScale = d3
         .scaleLinear()
-        .domain(dataRange)
+        .domain([0, dataRange[1] * 1.25])
         .range([size.height - margin.bottom, margin.top]);
       const xAxis = d3.axisBottom(xScale).ticks(data.length);
       const yAxis = d3
@@ -199,7 +204,6 @@ export default function FeatureGraph() {
           const x = bbox.x + bbox.width / 2;
           const y = bbox.y + bbox.height / 2;
 
-          // TODO: pivot to left side if out of box range
           setTooltip({
             x: offsetX + x,
             y: offsetY + y,
@@ -210,6 +214,41 @@ export default function FeatureGraph() {
         .on('mouseout', () => {
           setTooltip((prev) => ({ ...prev, visible: false }));
         });
+
+      svg
+        .select('#change-markers')
+        .selectAll('circle')
+        .data(changedData)
+        .join('circle')
+        .attr('r', '7px')
+        .attr('cx', (d) => xScale(d.month))
+        .attr('cy', (d) => yScale(d.value))
+        .attr('fill', 'rgb(224, 186, 34)')
+        .on('mouseover', function (event, d) {
+          const bbox = this.getBBox(); // Get bounding box of marker
+
+          // Compute center coordinate of marker
+          const x = bbox.x + bbox.width / 2;
+          const y = bbox.y + bbox.height / 2;
+
+          setTooltip({
+            x: offsetX + x,
+            y: offsetY + y,
+            visible: true,
+            text: `${selectedFeature}*: ${d.value}\nMonth: ${d.month}`,
+          });
+        })
+        .on('mouseout', () => {
+          setTooltip((prev) => ({ ...prev, visible: false }));
+        });
+
+      svg
+        .select('#change-trendline')
+        .datum(changedData)
+        .attr('d', lineGenerator)
+        .attr('fill', 'none')
+        .attr('stroke', 'rgb(224, 186, 34)')
+        .attr('stroke-width', '2px');
 
       d3.select('#feature-graph')
         .select('#y-crosshair')
@@ -238,7 +277,6 @@ export default function FeatureGraph() {
             .attr('y2', mouseY)
             .style('visibility', inBounds ? 'visible' : 'hidden');
 
-          // TODO: pivot to left side if out of box range
           setCrosshairLabel({
             x: offsetX + mouseX,
             y: offsetY + mouseY,
@@ -258,6 +296,7 @@ export default function FeatureGraph() {
     size,
     simContext.selectedProjectData.features,
     simContext.selectedFeature,
+    simContext.simulationData.changes,
   ]);
 
   useEffect(() => {
@@ -270,9 +309,13 @@ export default function FeatureGraph() {
     // by redrawing the same element instead of appending a new one.
     const svg = d3.select('#feature-graph');
     svg.append('text').attr('id', 'title');
-    svg.append('g').append('path').attr('id', 'trendline');
     svg.append('line').attr('id', 'y-crosshair');
+
+    svg.append('g').append('path').attr('id', 'change-trendline');
+    svg.append('g').attr('id', 'change-markers');
+    svg.append('g').append('path').attr('id', 'trendline');
     svg.append('g').attr('id', 'markers');
+
     svg
       .append('g')
       .attr('id', 'x-axis')
@@ -313,9 +356,10 @@ export default function FeatureGraph() {
             boxSizing: 'border-box',
             px: 1,
             py: 0.5,
-            transform: 'translateX(10%) translateY(-20%)', // Center horizontally and offset vertically
+            transform: 'translateX(-110%) translateY(-20%)', // Center horizontally and offset vertically
             textAlign: 'center',
             pointerEvents: 'none',
+            zIndex: 999,
           }}
         >
           <Typography sx={{ whiteSpace: 'pre-wrap', textAlign: 'left' }}>
@@ -331,15 +375,16 @@ export default function FeatureGraph() {
             position: 'absolute',
             left: `${crosshairLabel.x}px`,
             top: `${crosshairLabel.y}px`,
-            height: '1.5rem',
+            height: 'auto',
             width: 'auto',
             border: '0px',
             borderRadius: '7px',
             boxSizing: 'border-box',
             px: 1,
-            transform: 'translateX(10%) translateY(-50%)', // Center horizontally and offset vertically
+            transform: 'translateX(-110%) translateY(-50%)', // Center horizontally and offset vertically
             textAlign: 'center',
             pointerEvents: 'none',
+            zIndex: 999,
           }}
         >
           <Typography sx={{ whiteSpace: 'pre-wrap', textAlign: 'left' }}>
