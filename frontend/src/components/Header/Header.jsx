@@ -22,6 +22,7 @@ import {
 } from '../endpoints';
 
 // TODO: set default
+// TODO: add confirm dialogue when changing project with non-empty simulated changes
 function ProjectSelect() {
   const simContext = useSimulation();
   const simDispatch = useSimulationDispatch();
@@ -92,6 +93,7 @@ function ProjectSelect() {
       simDispatch({
         type: 'set_selected_project',
         selectedValue: selected,
+        id: selected.project_id,
         projectDetails: detailsJson,
         historicalFeatureData: featuresJson,
       });

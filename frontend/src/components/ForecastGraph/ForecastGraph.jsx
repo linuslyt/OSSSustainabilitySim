@@ -90,8 +90,8 @@ export default function ForecastGraph() {
         .attr('y', margin.top * 0.75)
         .text(
           simContext.selectedProject?.project_id
-            ? `Sustainability forecasts for ${simContext.selectedProjectData.details.project_name}`
-            : 'Select project from dropdown to get started.',
+            ? `Sustainability predictions for ${simContext.selectedProjectData.details.project_name}`
+            : 'Select project to view prediction data.',
         )
         .attr('text-anchor', 'middle')
         .style('font-size', '1.25rem')

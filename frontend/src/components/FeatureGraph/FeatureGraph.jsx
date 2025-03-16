@@ -112,7 +112,7 @@ export default function FeatureGraph() {
         .range([margin.left, size.width - margin.right]);
       const yScale = d3
         .scaleLinear()
-        .domain([0, Math.max(dataRange[1], changedDataRange[1]) * 1.25])
+        .domain([0, Math.max(dataRange[1], changedDataRange[1])])
         .range([size.height - margin.bottom, margin.top]);
       const xAxis = d3.axisBottom(xScale).ticks(data.length);
       const yAxis = d3
@@ -140,7 +140,11 @@ export default function FeatureGraph() {
       svg
         .select('#title')
         .attr('transform', `translate(${size.width / 2}, ${margin.top / 2})`)
-        .text(`${selectedFeature} over time`)
+        .text(
+          simContext.selectedProject?.project_id
+            ? `${selectedFeature} over time`
+            : 'Select a project to view feature data.',
+        )
         .attr('text-anchor', 'middle')
         .style('font-size', '1.1rem')
         .style('font-family', "'Roboto', sans-serif");

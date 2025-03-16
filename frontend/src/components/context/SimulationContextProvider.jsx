@@ -1,6 +1,5 @@
 import { pick } from 'lodash';
 import React, { useEffect, useReducer } from 'react';
-import { DUMMY_CHANGES, DUMMY_DATA } from '../UpdateFeatures/constants';
 import {
   getNewValueFromPChange,
   getPercentChange,
@@ -49,7 +48,7 @@ function simulationReducer(prev, action) {
       ]);
 
       return {
-        ...prev,
+        ...DUMMY_SIM,
         selectedProject: action.selectedValue,
         selectedProjectData: {
           id: action.id,
@@ -220,7 +219,8 @@ function simulationReducer(prev, action) {
   }
 }
 
-// TODO: set all data to null and check for NPEs
+// TODO: set to default empty state
+// TODO: check for NPEs
 const DUMMY_SIM = {
   selectedProject: {
     // project_id: '49',
@@ -228,32 +228,20 @@ const DUMMY_SIM = {
     // status: 'Graduated',
   },
   selectedProjectData: {
-    id: '112',
-    details: {
-      project_name: 'FtpServer',
-      start_date: '3/29/2003',
-      end_date: '12/18/2007',
-      status: 1,
-      pj_github_url: 'https://github.com/apache/FtpServer',
-      intro: 'A complete FTP Server based on Mina I/O system.',
-      sponsor: 'Incubator',
-    },
+    id: null,
+    details: {},
     predictions: [],
-    features: DUMMY_DATA,
+    features: [],
   },
   selectedFeature: {
     feature: 'num_commits',
     month: 1,
   },
   simulationData: {
-    changedPeriods: [
-      { key: '1_1', startMonth: 1, endMonth: 1 },
-      { key: '2_2', startMonth: 2, endMonth: 2 },
-      { key: '3_4', startMonth: 3, endMonth: 4 },
-    ],
-    changedMonths: new Set([1, 2, 3, 4]),
-    changes: new Map(DUMMY_CHANGES.map((c) => [c.id, c.change])),
-    selectedPeriod: { key: '1_1', startMonth: 1, endMonth: 1 },
+    changedPeriods: [],
+    changedMonths: new Set(),
+    changes: new Map(),
+    selectedPeriod: {},
   },
   simulatedPredictions: [
     { month: 10, p_grad: 0.1 },

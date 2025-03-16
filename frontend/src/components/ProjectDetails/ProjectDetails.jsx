@@ -27,22 +27,35 @@ export default function ProjectDetails() {
     month: 'short',
     day: 'numeric',
   };
-  const activeDates = `${startDate.toLocaleDateString(undefined, dateFormat)} - ${endDate.toLocaleDateString(undefined, dateFormat)}`;
+  const activeDates = simContext.selectedProjectData.id
+    ? `${startDate.toLocaleDateString(undefined, dateFormat)} - ${endDate.toLocaleDateString(undefined, dateFormat)}`
+    : '';
 
   return (
     <>
       <Stack direction="row" gap={1} sx={{ alignItems: 'center' }}>
-        <Typography variant="h6">{projectDetails.project_name}</Typography>
-        <StyledTooltip arrow title={projectDetails.intro}>
-          <InfoIcon
-            fontSize="small"
-            sx={{ alignmentBaseline: 'after-edge', color: 'grey' }}
-          />
-        </StyledTooltip>
+        <Typography variant="h6">
+          {simContext.selectedProjectData.id === null
+            ? 'Select a project to see details.'
+            : projectDetails.project_name}
+        </Typography>
+        {simContext.selectedProjectData.id && (
+          <StyledTooltip arrow title={projectDetails.intro}>
+            <InfoIcon
+              fontSize="small"
+              sx={{ alignmentBaseline: 'after-edge', color: 'grey' }}
+            />
+          </StyledTooltip>
+        )}
       </Stack>
       <Typography variant="body1">Active: {activeDates}</Typography>
       <Typography variant="body1">
-        Status: {projectDetails.status ? 'Graduated' : 'Retired'}
+        Status:{' '}
+        {simContext.selectedProjectData.id
+          ? projectDetails.status
+            ? 'Graduated'
+            : 'Retired'
+          : ''}
       </Typography>
       <Typography variant="body1">Sponsor: {projectDetails.sponsor}</Typography>
       <Typography variant="body1">
