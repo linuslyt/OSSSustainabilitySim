@@ -52,10 +52,10 @@ function simulationReducer(prev, action) {
         ...prev,
         selectedProject: action.selectedValue,
         selectedProjectData: {
-          id: action.projectDetails.project_id,
+          id: action.id,
           details: projectDetails,
-          predictions: action.projectDetails.prediction_history,
-          features: action.historicalFeatureData.history,
+          predictions: action.projectDetails.prediction_history || [],
+          features: action.historicalFeatureData.history || [],
         },
       };
     }
@@ -255,6 +255,14 @@ const DUMMY_SIM = {
     changes: new Map(DUMMY_CHANGES.map((c) => [c.id, c.change])),
     selectedPeriod: { key: '1_1', startMonth: 1, endMonth: 1 },
   },
+  simulatedPredictions: [
+    { month: 10, p_grad: 0.1 },
+    { month: 13, p_grad: 0.5 },
+    { month: 14, p_grad: 0.3 },
+    { month: 15, p_grad: 0.1 },
+    { month: 16, p_grad: 0.7 },
+    { month: 17, p_grad: 0.7 },
+  ],
 };
 
 SimulationContextProvider.propTypes = {

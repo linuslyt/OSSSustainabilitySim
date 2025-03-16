@@ -4,47 +4,20 @@ import useResizeObserver from '@react-hook/resize-observer';
 import * as d3 from 'd3';
 import { debounce } from 'lodash';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useSimulation } from '../context/SimulationContext';
 
-// TODO: get data from API
 let graphInitialized = false;
 
 export default function ForecastGraph() {
-  const data = useMemo(
-    () => [
-      { month: 8, pGraduate: 0.1 },
-      { month: 9, pGraduate: 0.2 },
-      { month: 10, pGraduate: 0.25 },
-      { month: 11, pGraduate: 0.5 },
-      { month: 12, pGraduate: 0.4 },
-      { month: 13, pGraduate: 0.5 },
-      { month: 14, pGraduate: 0.5 },
-      { month: 15, pGraduate: 0.55 },
-      { month: 16, pGraduate: 0.7 },
-      { month: 17, pGraduate: 0.7 },
-      { month: 18, pGraduate: 0.65 },
-      { month: 19, pGraduate: 0.55 },
-      { month: 20, pGraduate: 0.5 },
-      { month: 21, pGraduate: 0.4 },
-      { month: 22, pGraduate: 0.5 },
-    ],
-    [],
-  );
+  const simContext = useSimulation();
 
-  const simData = useMemo(() => {
-    const simulated = [
-      { month: 13, pGraduate: 0.5 },
-      { month: 14, pGraduate: 0.3 },
-      { month: 15, pGraduate: 0.1 },
-      { month: 16, pGraduate: 0.7 },
-      { month: 17, pGraduate: 0.7 },
-      { month: 10, pGraduate: 0.1 },
-    ];
-    const simMap = new Map(simulated.map((sim) => [sim.month, sim]));
-    const merged = data.map((original) =>
-      simMap.has(original.month) ? simMap.get(original.month) : original,
-    );
-    return merged;
-  }, [data]);
+  const data = simContext.selectedProjectData.predictions;
+  const simMap = new Map(
+    simContext.simulatedPredictions.map((sim) => [sim.month, sim]),
+  );
+  const simData = data.map((original) =>
+    simMap.has(original.month) ? simMap.get(original.month) : original,
+  );
 
   const domain = d3.extent(data.map((d) => d.month));
 
@@ -100,7 +73,7 @@ export default function ForecastGraph() {
       const lineGenerator = d3
         .line()
         .x((d) => xScale(d.month))
-        .y((d) => yScale(d.pGraduate));
+        .y((d) => yScale(d.p_grad));
       const { width, height } = size;
 
       // Draw graph
@@ -115,7 +88,11 @@ export default function ForecastGraph() {
         .select('#title')
         .attr('x', width / 2)
         .attr('y', margin.top * 0.75)
-        .text('Sustainability forecast for month X+1 for Project 1')
+        .text(
+          simContext.selectedProject?.project_id
+            ? `Sustainability forecasts for ${simContext.selectedProjectData.details.project_name}`
+            : 'Select project from dropdown to get started.',
+        )
         .attr('text-anchor', 'middle')
         .style('font-size', '1.25rem')
         .style('font-family', "'Roboto', sans-serif");
@@ -162,7 +139,7 @@ export default function ForecastGraph() {
         .attr('d', lineGenerator)
         .attr('fill', 'none')
         .attr('stroke', 'orange')
-        .attr('stroke-width', '2px');
+        .attr('stroke-width', '2.5px');
 
       svg
         .select('#markers')
@@ -171,7 +148,7 @@ export default function ForecastGraph() {
         .join('circle')
         .attr('r', '7px')
         .attr('cx', (d) => xScale(d.month))
-        .attr('cy', (d) => yScale(d.pGraduate))
+        .attr('cy', (d) => yScale(d.p_grad))
         .attr('fill', '#E97451')
         .on('mouseover', function (event, d) {
           const bbox = this.getBBox(); // Get bounding box of marker
@@ -189,7 +166,7 @@ export default function ForecastGraph() {
             y,
             visible: true,
             transform: transform,
-            text: `P(Graduate): ${d.pGraduate}\nMonth: ${d.month}`,
+            text: `P(Graduate): ${d.p_grad.toFixed(2)}\nMonth: ${d.month}`,
           });
         })
         .on('mouseout', () => {
@@ -203,7 +180,7 @@ export default function ForecastGraph() {
         .join('circle')
         .attr('r', '7px')
         .attr('cx', (d) => xScale(d.month))
-        .attr('cy', (d) => yScale(d.pGraduate))
+        .attr('cy', (d) => yScale(d.p_grad))
         .attr('fill', 'rgb(17, 105, 193)')
         .on('mouseover', function (event, d) {
           const bbox = this.getBBox(); // Get bounding box of marker
@@ -222,7 +199,7 @@ export default function ForecastGraph() {
             y,
             visible: true,
             transform: transform,
-            text: `P'(Graduate): ${d.pGraduate}\nMonth: ${d.month}`,
+            text: `P'(Graduate): ${d.p_grad}\nMonth: ${d.month}`,
           });
         })
         .on('mouseout', () => {
@@ -235,7 +212,7 @@ export default function ForecastGraph() {
         .attr('d', lineGenerator)
         .attr('fill', 'none')
         .attr('stroke', 'rgb(25, 118, 210)')
-        .attr('stroke-width', '2px');
+        .attr('stroke-width', '2.5px');
 
       d3.select('#forecast-graph')
         .select('#y-crosshair')
@@ -285,7 +262,7 @@ export default function ForecastGraph() {
         });
     };
     renderGraph(data);
-  }, [size, data]);
+  }, [size, data, simContext]);
 
   useEffect(() => {
     // Run once on initialize. See https://react.dev/learn/you-might-not-need-an-effect#initializing-the-application

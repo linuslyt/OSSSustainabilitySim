@@ -98,6 +98,13 @@ function ProjectSelect() {
     } catch (e) {
       // TODO: add Snackbar for fetch feedback
       console.log(e);
+      simDispatch({
+        type: 'set_selected_project',
+        selectedValue: selected,
+        id: selected.project_id,
+        projectDetails: {},
+        historicalFeatureData: {},
+      });
     }
   };
 
