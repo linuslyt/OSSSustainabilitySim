@@ -1,18 +1,46 @@
+import InfoIcon from '@mui/icons-material/Info';
 import { Typography } from '@mui/material';
 import Link from '@mui/material/Link';
+import Stack from '@mui/material/Stack';
+import { styled } from '@mui/material/styles';
+import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import React from 'react';
 import { useSimulation } from '../context/SimulationContext';
+
+const StyledTooltip = styled(({ className, ...props }) => (
+  <Tooltip {...props} classes={{ popper: className }} />
+))(({ theme }) => ({
+  [`& .${tooltipClasses.tooltip}`]: {
+    boxShadow: theme.shadows[1],
+    fontSize: 14,
+  },
+}));
 
 export default function ProjectDetails() {
   const simContext = useSimulation();
   const projectDetails = simContext.selectedProjectData.details;
 
+  const startDate = new Date(projectDetails.start_date);
+  const endDate = new Date(projectDetails.end_date);
+  const dateFormat = {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  };
+  const activeDates = `${startDate.toLocaleDateString(undefined, dateFormat)} - ${endDate.toLocaleDateString(undefined, dateFormat)}`;
+
   return (
     <>
-      <Typography variant="h6">{projectDetails.project_name}</Typography>
-      <Typography variant="body1">
-        Active: {projectDetails.start_date + ' - ' + projectDetails.end_date}
-      </Typography>
+      <Stack direction="row" gap={1} sx={{ alignItems: 'center' }}>
+        <Typography variant="h6">{projectDetails.project_name}</Typography>
+        <StyledTooltip arrow title={projectDetails.intro}>
+          <InfoIcon
+            fontSize="small"
+            sx={{ alignmentBaseline: 'after-edge', color: 'grey' }}
+          />
+        </StyledTooltip>
+      </Stack>
+      <Typography variant="body1">Active: {activeDates}</Typography>
       <Typography variant="body1">
         Status: {projectDetails.status ? 'Graduated' : 'Retired'}
       </Typography>
@@ -26,9 +54,6 @@ export default function ProjectDetails() {
         >
           {projectDetails.pj_github_url}
         </Link>
-      </Typography>
-      <Typography sx={{ fontStyle: 'italic' }} variant="body">
-        {projectDetails.intro}
       </Typography>
     </>
   );

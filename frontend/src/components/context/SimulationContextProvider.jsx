@@ -1,3 +1,4 @@
+import { pick } from 'lodash';
 import React, { useEffect, useReducer } from 'react';
 import { DUMMY_CHANGES, DUMMY_DATA } from '../UpdateFeatures/constants';
 import {
@@ -18,6 +19,13 @@ export function SimulationContextProvider({ children }) {
     console.log('Saved changes updated: ', simulation.simulationData.changes);
   }, [simulation.simulationData.changes]);
 
+  useEffect(() => {
+    console.log(
+      'Saved project details updated: ',
+      simulation.selectedProjectData,
+    );
+  }, [simulation.selectedProjectData]);
+
   return (
     <SimulationContext.Provider value={simulation}>
       <SimulationDispatchContext.Provider value={dispatch}>
@@ -30,10 +38,25 @@ export function SimulationContextProvider({ children }) {
 function simulationReducer(prev, action) {
   switch (action.type) {
     case 'set_selected_project': {
-      // TODO: load data from server into selectedProjectData
+      const projectDetails = pick(action.projectDetails, [
+        'project_name',
+        'start_date',
+        'end_date',
+        'status',
+        'pj_github_url',
+        'intro',
+        'sponsor',
+      ]);
+
       return {
         ...prev,
         selectedProject: action.selectedValue,
+        selectedProjectData: {
+          id: action.projectDetails.project_id,
+          details: projectDetails,
+          predictions: action.projectDetails.prediction_history,
+          features: action.historicalFeatureData.history,
+        },
       };
     }
     case 'set_selected_period': {
@@ -41,7 +64,9 @@ function simulationReducer(prev, action) {
         ...prev,
         selectedFeature: {
           ...prev.selectedFeature,
-          month: action.period.startMonth,
+          month: Math.round(
+            action.period.startMonth + action.period.endMonth / 2,
+          ),
         },
         simulationData: {
           ...prev.simulationData,
@@ -186,17 +211,21 @@ function simulationReducer(prev, action) {
         },
       };
     }
+    case 'simulate_changes': {
+      return prev;
+    }
     default: {
       throw Error('Unknown simulationReducer action: ' + action.type);
     }
   }
 }
 
+// TODO: set all data to null and check for NPEs
 const DUMMY_SIM = {
   selectedProject: {
-    project_id: '1',
-    project_name: 'Amaterasu',
-    status: 'Retired',
+    // project_id: '49',
+    // project_name: 'Abdera',
+    // status: 'Graduated',
   },
   selectedProjectData: {
     id: '112',
