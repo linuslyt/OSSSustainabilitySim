@@ -14,23 +14,24 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
 from django.core.cache import cache
 
 
-from .utils import predict
+from .utils import predict, get_future_data
 import os
 
 from pathlib import Path
 ################################
 import json
 
+PROJECT_LIST = ['49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59', '60', '61', '62', '63', '64', '65', '66', '67', '68', '70', '71', '72', '73', '74', '75', '76', '77', '78', '79', '80', '81', '82', '83', '84', '85', '86', '87', '88', '89', '90', '91', '92', '93', '94', '95', '96', '97', '98', '99', '100', '101', '102', '103', '104', '105', '106', '107', '108', '109', '110', '111', '112', '113', '114', '115', '116', '117', '118', '119', '120', '121', '122', '123', '124', '125', '126', '127', '128', '129', '130', '131', '132', '133', '134', '135', '136', '137', '138', '139', '140', '141', '142', '143', '144', '145', '146', '147', '148', '149', '150', '151', '152', '153', '154', '155', '156', '157', '158', '159', '160', '161', '162', '163', '164', '165', '166', '167', '168', '169', '170', '222', '171', '172', '173', '174', '175', '176', '177', '178', '179', '180', '181', '182', '183', '184', '185', '186', '187', '188', '189', '190', '191', '192', '193', '194', '195', '196', '250', '197', '198', '199', '200', '201', '202', '203', '204', '205', '206', '207', '208', '209', '210', '211', '212', '213', '214', '215', '216', '217', '218', '219', '220', '221', '223', '224', '225', '226', '227', '228', '229', '230', '231', '232', '233', '234', '235', '236', '237', '238', '239', '240', '241', '242', '243', '244', '245', '246', '247', '248', '249', '251', '252', '253', '254', '255', '256', '257', '258', '259', '260', '261', '262', '263', '264', '265', '266', '267', '268', '269', '270', '271', '272', '273', '274', '275', '276', '277', '278', '279', '280', '281', '282', '283', '284', '285', '286', '287', '288', '289', '290', '291', '292', '293', '294', '295', '296', '297', '298', '299', '300', '301', '302', '303', '304', '305', '306', '307', '308', '309', '310', '311', '312']
 
 # Path to the JSON file
 ASFI_JSON_FILE_PATH = Path(__file__).parent / 'asfi_project_info/projects_list.json'
 
-PROJECT_PREDICTIONS_FILE = Path(__file__).parent / 'asfi_project_info/project_predictions.json'
+PROJECT_PREDICTIONS_FILE = Path(__file__).parent / 'asfi_project_info/project_predictions_sequential.json'
 
 MODEL_DIR =  Path(__file__).parent / 'lstm_models/' # Directory where models are stored
 
 
-TEMPORAL_DATA_DIR = Path(__file__).parent /"asfi_project_info/project_temporal_json_data/"
+TEMPORAL_DATA_DIR = Path(__file__).parent /"asfi_project_info/project_data/"
 
 
 # List all items or create a new one
@@ -88,12 +89,13 @@ class GroupViewSet(viewsets.ModelViewSet):
 
 class PredictOSSSustainabilityView(APIView):
     @extend_schema(
-        summary="Predict OSS Project Status using LSTM",
+        summary="Forecasts OSS Project Sustainability using LSTM models",
         description="""
-            Accepts historical OSS project data (ranging from 1 to 29 months) and 
-            processes it using a pre-trained LSTM model. The appropriate model is selected 
-            based on the length of the input data. Returns the predicted project status 
-            ('sustainable' or 'Retired') along with the number of months used for the prediction.
+            Accepts historical OSS project data (ranging from 1 to 29 months), passes it to a pre-trained LSTM model 
+            for sustainability forecasting. The appropriate model is selected based on the length of the input data.
+            Returns the project id and sustainability forecasts for future months using the projects future data available. 
+            Each month's prediction has a status field that can assume the values  0 (Likely to Retire) and 1 
+            (Likely to graduate) along with a confidence score (a value from 0 to 1) for that prediction.
         """,
         request=StatusPredictionInputSerializer,
         examples=[
@@ -101,27 +103,467 @@ class PredictOSSSustainabilityView(APIView):
                 "Valid Request Example",
                 description="A valid request with project_id and history of monthly data.",
                 value={
-                    "project_id": "project_123",
+                    "project_id": 270,
                     "history": [
+                            {
+                            "active_devs": 0.0,
+                            "num_commits": 0.0,
+                            "num_files": 0.0,
+                            "num_emails": 0.0,
+                            "c_percentage": 0.0,
+                            "e_percentage": 0.0,
+                            "inactive_c": 1.0,
+                            "inactive_e": 1.0,
+                            "c_nodes": 0.0,
+                            "c_edges": 0.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 0.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 0.0,
+                            "e_edges": 0.0,
+                            "e_c_coef": 0.0,
+                            "e_mean_degree": 0.0,
+                            "e_long_tail": 0.0
+                        },
                         {
-                            "active_devs": 10,
-                            "num_commits": 50,
-                            "num_files": 20,
-                            "num_emails": 15,
-                            "c_percentage": 0.7,
-                            "e_percentage": 0.3,
-                            "inactive_c": 5,
-                            "inactive_e": 2,
-                            "c_nodes": 30,
-                            "c_edges": 50,
-                            "c_c_coef": 0.6,
-                            "c_mean_degree": 2.5,
-                            "c_long_tail": 0.1,
-                            "e_nodes": 25,
-                            "e_edges": 40,
-                            "e_c_coef": 0.55,
+                            "active_devs": 0.0,
+                            "num_commits": 0.0,
+                            "num_files": 0.0,
+                            "num_emails": 0.0,
+                            "c_percentage": 0.0,
+                            "e_percentage": 0.0,
+                            "inactive_c": 1.0,
+                            "inactive_e": 1.0,
+                            "c_nodes": 0.0,
+                            "c_edges": 0.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 0.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 0.0,
+                            "e_edges": 0.0,
+                            "e_c_coef": 0.0,
+                            "e_mean_degree": 0.0,
+                            "e_long_tail": 0.0
+                        },
+                        {
+                            "active_devs": 0.0,
+                            "num_commits": 0.0,
+                            "num_files": 0.0,
+                            "num_emails": 0.0,
+                            "c_percentage": 0.0,
+                            "e_percentage": 0.0,
+                            "inactive_c": 1.0,
+                            "inactive_e": 1.0,
+                            "c_nodes": 0.0,
+                            "c_edges": 0.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 0.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 0.0,
+                            "e_edges": 0.0,
+                            "e_c_coef": 0.0,
+                            "e_mean_degree": 0.0,
+                            "e_long_tail": 0.0
+                        },
+                        {
+                            "active_devs": 3.0,
+                            "num_commits": 44.0,
+                            "num_files": 36.0,
+                            "num_emails": 1.0,
+                            "c_percentage": 0.6818181818181818,
+                            "e_percentage": 1.0,
+                            "inactive_c": 0.7,
+                            "inactive_e": 0.0,
+                            "c_nodes": 2.0,
+                            "c_edges": 1.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 1.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 2.0,
+                            "e_edges": 1.0,
+                            "e_c_coef": 0.0,
+                            "e_mean_degree": 1.0,
+                            "e_long_tail": 0.0
+                        },
+                        {
+                            "active_devs": 10.0,
+                            "num_commits": 158.0,
+                            "num_files": 84.0,
+                            "num_emails": 48.0,
+                            "c_percentage": 0.8860759493670886,
+                            "e_percentage": 0.3333333333333333,
+                            "inactive_c": 0.75,
+                            "inactive_e": 0.5833333333333334,
+                            "c_nodes": 2.0,
+                            "c_edges": 1.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 1.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 10.0,
+                            "e_edges": 13.0,
+                            "e_c_coef": 0.0,
+                            "e_mean_degree": 2.6,
+                            "e_long_tail": 3.0
+                        },
+                        {
+                            "active_devs": 11.0,
+                            "num_commits": 3.0,
+                            "num_files": 2.0,
+                            "num_emails": 31.0,
+                            "c_percentage": 1.0,
+                            "e_percentage": 0.1612903225806451,
+                            "inactive_c": 0.0,
+                            "inactive_e": 0.7727272727272727,
+                            "c_nodes": 0.0,
+                            "c_edges": 0.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 0.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 10.0,
+                            "e_edges": 14.0,
+                            "e_c_coef": 0.3833333333333333,
+                            "e_mean_degree": 2.8,
+                            "e_long_tail": 1.0
+                        },
+                        {
+                            "active_devs": 15.0,
+                            "num_commits": 27.0,
+                            "num_files": 9.0,
+                            "num_emails": 88.0,
+                            "c_percentage": 0.7037037037037037,
+                            "e_percentage": 0.5568181818181818,
+                            "inactive_c": 0.4736842105263157,
+                            "inactive_e": 0.2142857142857142,
+                            "c_nodes": 2.0,
+                            "c_edges": 1.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 1.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 14.0,
+                            "e_edges": 23.0,
+                            "e_c_coef": 0.1467532467532467,
+                            "e_mean_degree": 3.2857142857142856,
+                            "e_long_tail": 3.0
+                        },
+                        {
+                            "active_devs": 10.0,
+                            "num_commits": 2.0,
+                            "num_files": 1.0,
+                            "num_emails": 28.0,
+                            "c_percentage": 1.0,
+                            "e_percentage": 0.3928571428571428,
+                            "inactive_c": 0.0,
+                            "inactive_e": 0.36,
+                            "c_nodes": 0.0,
+                            "c_edges": 0.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 0.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 10.0,
+                            "e_edges": 11.0,
+                            "e_c_coef": 0.2047619047619047,
+                            "e_mean_degree": 2.2,
+                            "e_long_tail": 3.0
+                        },
+                        {
+                            "active_devs": 16.0,
+                            "num_commits": 147.0,
+                            "num_files": 64.0,
+                            "num_emails": 88.0,
+                            "c_percentage": 0.8503401360544217,
+                            "e_percentage": 0.5,
+                            "inactive_c": 0.782608695652174,
+                            "inactive_e": 0.1785714285714285,
+                            "c_nodes": 2.0,
+                            "c_edges": 1.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 1.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 16.0,
+                            "e_edges": 29.0,
+                            "e_c_coef": 0.3513257575757576,
+                            "e_mean_degree": 3.625,
+                            "e_long_tail": 4.0
+                        },
+                        {
+                            "active_devs": 7.0,
+                            "num_commits": 15.0,
+                            "num_files": 15.0,
+                            "num_emails": 35.0,
+                            "c_percentage": 1.0,
+                            "e_percentage": 0.3142857142857143,
+                            "inactive_c": 0.0,
+                            "inactive_e": 0.6296296296296297,
+                            "c_nodes": 0.0,
+                            "c_edges": 0.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 0.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 6.0,
+                            "e_edges": 11.0,
+                            "e_c_coef": 0.7222222222222222,
+                            "e_mean_degree": 3.6666666666666665,
+                            "e_long_tail": 2.0
+                        },
+                        {
+                            "active_devs": 12.0,
+                            "num_commits": 565.0,
+                            "num_files": 266.0,
+                            "num_emails": 64.0,
+                            "c_percentage": 0.9876106194690264,
+                            "e_percentage": 0.34375,
+                            "inactive_c": 0.6428571428571429,
+                            "inactive_e": 0.2962962962962963,
+                            "c_nodes": 4.0,
+                            "c_edges": 3.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 1.5,
+                            "c_long_tail": 1.0,
+                            "e_nodes": 8.0,
+                            "e_edges": 10.0,
+                            "e_c_coef": 0.2625,
+                            "e_mean_degree": 2.5,
+                            "e_long_tail": 2.0
+                        },
+                        {
+                            "active_devs": 11.0,
+                            "num_commits": 74.0,
+                            "num_files": 43.0,
+                            "num_emails": 124.0,
+                            "c_percentage": 1.0,
+                            "e_percentage": 0.5241935483870968,
+                            "inactive_c": 0.5,
+                            "inactive_e": 0.1481481481481481,
+                            "c_nodes": 0.0,
+                            "c_edges": 0.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 0.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 14.0,
+                            "e_edges": 19.0,
+                            "e_c_coef": 0.195578231292517,
+                            "e_mean_degree": 2.7142857142857144,
+                            "e_long_tail": 4.0
+                        },
+                        {
+                            "active_devs": 6.0,
+                            "num_commits": 180.0,
+                            "num_files": 80.0,
+                            "num_emails": 64.0,
+                            "c_percentage": 1.0,
+                            "e_percentage": 0.609375,
+                            "inactive_c": 0.2608695652173913,
+                            "inactive_e": 0.3043478260869565,
+                            "c_nodes": 0.0,
+                            "c_edges": 0.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 0.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 5.0,
+                            "e_edges": 9.0,
+                            "e_c_coef": 0.4333333333333334,
+                            "e_mean_degree": 3.6,
+                            "e_long_tail": 4.0
+                        },
+                        {
+                            "active_devs": 10.0,
+                            "num_commits": 149.0,
+                            "num_files": 89.0,
+                            "num_emails": 105.0,
+                            "c_percentage": 0.8523489932885906,
+                            "e_percentage": 0.3428571428571428,
+                            "inactive_c": 0.3928571428571428,
+                            "inactive_e": 0.2142857142857142,
+                            "c_nodes": 2.0,
+                            "c_edges": 1.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 1.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 8.0,
+                            "e_edges": 16.0,
+                            "e_c_coef": 0.6666666666666666,
+                            "e_mean_degree": 4.0,
+                            "e_long_tail": 5.0
+                        },
+                        {
+                            "active_devs": 17.0,
+                            "num_commits": 162.0,
+                            "num_files": 126.0,
+                            "num_emails": 76.0,
+                            "c_percentage": 0.8703703703703703,
+                            "e_percentage": 0.5526315789473685,
+                            "inactive_c": 0.5833333333333334,
+                            "inactive_e": 0.0625,
+                            "c_nodes": 2.0,
+                            "c_edges": 1.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 1.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 15.0,
+                            "e_edges": 19.0,
+                            "e_c_coef": 0.1148148148148148,
+                            "e_mean_degree": 2.533333333333333,
+                            "e_long_tail": 4.0
+                        },
+                        {
+                            "active_devs": 12.0,
+                            "num_commits": 55.0,
+                            "num_files": 46.0,
+                            "num_emails": 113.0,
+                            "c_percentage": 0.8909090909090909,
+                            "e_percentage": 0.3982300884955752,
+                            "inactive_c": 0.625,
+                            "inactive_e": 0.4583333333333333,
+                            "c_nodes": 0.0,
+                            "c_edges": 0.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 0.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 12.0,
+                            "e_edges": 17.0,
+                            "e_c_coef": 0.2281746031746031,
+                            "e_mean_degree": 2.833333333333333,
+                            "e_long_tail": 5.0
+                        },
+                        {
+                            "active_devs": 11.0,
+                            "num_commits": 134.0,
+                            "num_files": 79.0,
+                            "num_emails": 119.0,
+                            "c_percentage": 0.7835820895522388,
+                            "e_percentage": 0.4369747899159664,
+                            "inactive_c": 0.3,
+                            "inactive_e": 0.2,
+                            "c_nodes": 2.0,
+                            "c_edges": 1.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 1.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 10.0,
+                            "e_edges": 13.0,
+                            "e_c_coef": 0.2738095238095238,
+                            "e_mean_degree": 2.6,
+                            "e_long_tail": 2.0
+                        },
+                        {
+                            "active_devs": 6.0,
+                            "num_commits": 758.0,
+                            "num_files": 152.0,
+                            "num_emails": 23.0,
+                            "c_percentage": 0.974934036939314,
+                            "e_percentage": 0.4782608695652174,
+                            "inactive_c": 0.7727272727272727,
+                            "inactive_e": 0.7586206896551724,
+                            "c_nodes": 0.0,
+                            "c_edges": 0.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 0.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 5.0,
+                            "e_edges": 4.0,
+                            "e_c_coef": 0.0,
+                            "e_mean_degree": 1.6,
+                            "e_long_tail": 2.0
+                        },
+                        {
+                            "active_devs": 10.0,
+                            "num_commits": 105.0,
+                            "num_files": 45.0,
+                            "num_emails": 26.0,
+                            "c_percentage": 0.9333333333333332,
+                            "e_percentage": 0.5,
+                            "inactive_c": 0.4615384615384615,
+                            "inactive_e": 0.6071428571428571,
+                            "c_nodes": 2.0,
+                            "c_edges": 1.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 1.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 8.0,
+                            "e_edges": 9.0,
+                            "e_c_coef": 0.0,
+                            "e_mean_degree": 2.25,
+                            "e_long_tail": 2.0
+                        },
+                        {
+                            "active_devs": 4.0,
+                            "num_commits": 32.0,
+                            "num_files": 32.0,
+                            "num_emails": 9.0,
+                            "c_percentage": 1.0,
+                            "e_percentage": 0.5555555555555556,
+                            "inactive_c": 0.0,
+                            "inactive_e": 0.8695652173913043,
+                            "c_nodes": 0.0,
+                            "c_edges": 0.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 0.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 3.0,
+                            "e_edges": 4.0,
+                            "e_c_coef": 1.0,
+                            "e_mean_degree": 2.6666666666666665,
+                            "e_long_tail": 1.0
+                        },
+                        {
+                            "active_devs": 5.0,
+                            "num_commits": 106.0,
+                            "num_files": 52.0,
+                            "num_emails": 19.0,
+                            "c_percentage": 1.0,
+                            "e_percentage": 0.4210526315789473,
+                            "inactive_c": 0.8461538461538461,
+                            "inactive_e": 0.5384615384615384,
+                            "c_nodes": 0.0,
+                            "c_edges": 0.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 0.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 5.0,
+                            "e_edges": 5.0,
+                            "e_c_coef": 0.4666666666666666,
                             "e_mean_degree": 2.0,
-                            "e_long_tail": 0.05
+                            "e_long_tail": 4.0
+                        },
+                        {
+                            "active_devs": 6.0,
+                            "num_commits": 18.0,
+                            "num_files": 15.0,
+                            "num_emails": 26.0,
+                            "c_percentage": 1.0,
+                            "e_percentage": 0.5384615384615384,
+                            "inactive_c": 0.0,
+                            "inactive_e": 0.6190476190476191,
+                            "c_nodes": 0.0,
+                            "c_edges": 0.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 0.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 8.0,
+                            "e_edges": 10.0,
+                            "e_c_coef": 0.2333333333333333,
+                            "e_mean_degree": 2.5,
+                            "e_long_tail": 3.0
+                        },
+                        {
+                            "active_devs": 12.0,
+                            "num_commits": 6.0,
+                            "num_files": 6.0,
+                            "num_emails": 86.0,
+                            "c_percentage": 0.8333333333333334,
+                            "e_percentage": 0.5465116279069767,
+                            "inactive_c": 0.8333333333333334,
+                            "inactive_e": 0.4285714285714285,
+                            "c_nodes": 0.0,
+                            "c_edges": 0.0,
+                            "c_c_coef": 0.0,
+                            "c_mean_degree": 0.0,
+                            "c_long_tail": 0.0,
+                            "e_nodes": 12.0,
+                            "e_edges": 16.0,
+                            "e_c_coef": 0.2978174603174603,
+                            "e_mean_degree": 2.6666666666666665,
+                            "e_long_tail": 2.0
                         }
                     ]
                 },
@@ -131,10 +573,122 @@ class PredictOSSSustainabilityView(APIView):
                 "Successful Response",
                 description="A successful response returning the predicted project status.",
                 value={
-                    "project_id": "project_123",
-                    "num_months": 1,
-                    "status": "Graduated"
-                },
+                        "project_id": "270",
+                        "predictions": [
+                            {
+                            "start_month": 1,
+                            "predicted_month": 9,
+                            "status": 0,
+                            "confidence_score": 0.9266119599342346,
+                            "p_grad": 0.07338804006576538
+                            },
+                            {
+                            "start_month": 2,
+                            "predicted_month": 10,
+                            "status": 0,
+                            "confidence_score": 0.874457597732544,
+                            "p_grad": 0.12554240226745605
+                            },
+                            {
+                            "start_month": 3,
+                            "predicted_month": 11,
+                            "status": 1,
+                            "confidence_score": 1,
+                            "p_grad": 1
+                            },
+                            {
+                            "start_month": 4,
+                            "predicted_month": 12,
+                            "status": 1,
+                            "confidence_score": 0.9999995231628418,
+                            "p_grad": 0.9999995231628418
+                            },
+                            {
+                            "start_month": 5,
+                            "predicted_month": 13,
+                            "status": 1,
+                            "confidence_score": 0.9999994039535522,
+                            "p_grad": 0.9999994039535522
+                            },
+                            {
+                            "start_month": 6,
+                            "predicted_month": 14,
+                            "status": 1,
+                            "confidence_score": 1,
+                            "p_grad": 1
+                            },
+                            {
+                            "start_month": 7,
+                            "predicted_month": 15,
+                            "status": 1,
+                            "confidence_score": 1,
+                            "p_grad": 1
+                            },
+                            {
+                            "start_month": 8,
+                            "predicted_month": 16,
+                            "status": 1,
+                            "confidence_score": 1,
+                            "p_grad": 1
+                            },
+                            {
+                            "start_month": 9,
+                            "predicted_month": 17,
+                            "status": 1,
+                            "confidence_score": 1,
+                            "p_grad": 1
+                            },
+                            {
+                            "start_month": 10,
+                            "predicted_month": 18,
+                            "status": 1,
+                            "confidence_score": 1,
+                            "p_grad": 1
+                            },
+                            {
+                            "start_month": 11,
+                            "predicted_month": 19,
+                            "status": 1,
+                            "confidence_score": 0.9999690055847168,
+                            "p_grad": 0.9999690055847168
+                            },
+                            {
+                            "start_month": 12,
+                            "predicted_month": 20,
+                            "status": 1,
+                            "confidence_score": 0.9988135099411011,
+                            "p_grad": 0.9988135099411011
+                            },
+                            {
+                            "start_month": 13,
+                            "predicted_month": 21,
+                            "status": 0,
+                            "confidence_score": 0.8949622511863708,
+                            "p_grad": 0.10503774881362915
+                            },
+                            {
+                            "start_month": 14,
+                            "predicted_month": 22,
+                            "status": 0,
+                            "confidence_score": 0.9999953508377075,
+                            "p_grad": 0.000004649162292480469
+                            },
+                            {
+                            "start_month": 15,
+                            "predicted_month": 23,
+                            "status": 0,
+                            "confidence_score": 0.996653139591217,
+                            "p_grad": 0.003346860408782959
+                            },
+                            {
+                            "start_month": 16,
+                            "predicted_month": 24,
+                            "status": 0,
+                            "confidence_score": 0.9999309778213501,
+                            "p_grad": 0.00006902217864990234
+                            }
+                        ]
+},
                 response_only=True
             ),
             OpenApiExample(
@@ -153,48 +707,121 @@ class PredictOSSSustainabilityView(APIView):
             ),
         ],
         responses={
-            200: OpenApiResponse(
-                response={
-                    "project_id": "string",
-                    "num_months": "integer",
-                    "status": "Graduated or Retired",
-                },
-                description="Successful prediction response."
-            ),
-            400: OpenApiResponse(
-                response={"error": "No model available for X months"},
-                description="Returned when no model exists for the requested number of months."
-            ),
-            422: OpenApiResponse(
-                response={"error": "Invalid input format"},
-                description="Returned when the input data is incorrect."
-            ),
-        }
+                200: OpenApiResponse(
+                    response={
+                        "type": "object",
+                        "properties": {
+                            "project_id": {"type": "string"},
+                            "predictions": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "start_month": {"type": "integer"},
+                                        "predicted_month": {"type": "integer"},
+                                        "status": {"type": "string", "enum": ["0", "1"]},
+                                        "confidence_score": {"type": "number", "format": "float"}
+                                    },
+                                    "required": ["start_month", "predicted_month", "status", "confidence_score"]
+                                }
+                            }
+                        },
+                        "required": ["project_id", "predictions"]
+                    },
+                    description="Successful prediction response."
+                ),
+                400: OpenApiResponse(
+                    response={
+                        "type": "object",
+                        "properties": {
+                            "error": {"type": "string"},
+                            "details": {"type": "string"}
+                        }
+                    },
+                    description="Returned when there is insufficient historical data or model issues."
+                ),
+                404: OpenApiResponse(
+                    response={
+                        "type": "object",
+                        "properties": {
+                            "error": {"type": "string"}
+                        }
+                    },
+                    description="Returned when the project ID is not found."
+                ),
+                422: OpenApiResponse(
+                    response={
+                        "type": "object",
+                        "properties": {
+                            "error": {"type": "string"},
+                            "details": {"type": "object"}
+                        }
+                    },
+                    description="Returned when the input data is incorrect."
+                )
+            }
     )
+    
     def post(self, request, *args, **kwargs):
         serializer = StatusPredictionInputSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({"error": "Invalid input format", "details": serializer.errors}, status=422)
-
+        
         validated_data = serializer.validated_data
         project_id = validated_data["project_id"]
-        history = validated_data["history"]  # List of monthly data
-
-        num_months = len(history)  # Get the number of months
-        model_path = os.path.join(MODEL_DIR, f"model_{num_months}.h5")
-
-        if not os.path.exists(model_path):
-            return Response({"error": f"No model available for {num_months} months"}, status=400)
+        history = validated_data["history"]
         
-        predicted_class, confidence = predict(history, model_path, num_months)
-        status = "Sustainable (Likely to Graduate)" if predicted_class == 1 else "Not Sustainable (Likely to Retire)"
-
+        # Check if the project has at least 8 months of historical data
+        num_months = len(history)
+        if num_months < 8:
+            return Response({
+                "error": "Insufficient historical data", 
+                "details": f"At least 8 months of data required. Provided: {num_months} months"
+            }, status=400)
+        
+        # Validate project ID
+        if project_id not in PROJECT_LIST:
+            return Response({"error": "Invalid project ID"}, status=404)
+        
+        # Single model path for 8-month prediction
+        model_path = os.path.join(MODEL_DIR, "lstm_wo_padding_model.h5")
+        # model_path = os.path.join(MODEL_DIR, "model_8.h5")
+        if not os.path.exists(model_path):
+            return Response({"error": "LSTM model not found"}, status=500)
+        
+        # Pass the historical data to the LSTM model for prediction
+        predictions= predict(history, model_path)
+                
         return Response({
             "project_id": project_id,
-            "num_months": num_months,
-            "status_prediction": status,
-            "confidence_score": round(confidence, 2)
+            "predictions": predictions
         }, status=200)
+
+    
+    # def post(self, request, *args, **kwargs):
+    #     serializer = StatusPredictionInputSerializer(data=request.data)
+    #     if not serializer.is_valid():
+    #         return Response({"error": "Invalid input format", "details": serializer.errors}, status=422)
+
+    #     validated_data = serializer.validated_data
+    #     project_id = validated_data["project_id"]
+    #     history = validated_data["history"]  # List of monthly data
+
+    #     num_months = len(history)  # Get the number of months
+    #     model_path = os.path.join(MODEL_DIR, f"model_{num_months}.h5")
+
+    #     if not os.path.exists(model_path):
+    #         return Response({"error": f"No model available for {num_months} months"}, status=400)
+        
+    #     predicted_class, confidence = predict(history, model_path, num_months)
+    #     status = "Sustainable (Likely to Graduate)" if predicted_class == 1 else "Not Sustainable (Likely to Retire)"
+
+    #     return Response({
+    #         "project_id": project_id,
+    #         "num_months": num_months,
+    #         "status": predicted_class,
+    #         "confidence_score": round(confidence, 2)
+    #     }, status=200)
 
         # serializer = OSSDataSerializer(data=request.data)
         
@@ -286,6 +913,7 @@ class ListProjectsView(APIView):
         
         
 class HistoricalDataView(APIView):
+    """Get the historical data for a project."""
     @extend_schema(
         summary="Retrieve Historical Project Data",
         description="""
@@ -445,7 +1073,14 @@ class HistoricalDataView(APIView):
             return Response({"error": "num_months must be an integer"}, status=status.HTTP_400_BAD_REQUEST)
 
         cache_key = f"history_{project_id}_{num_months}_{fields_param or 'all'}"
-        cached_data = cache.get(cache_key)
+        
+        # Try to get cached data, with a fallback if Redis is down
+        try:
+            print("Checking redis cache")
+            cached_data = cache.get(cache_key)
+        except Exception as e:
+            print(f"Error accessing cache: {e}")
+            cached_data = None
 
         #  If cache exists, return cached response
         if cached_data:
@@ -459,8 +1094,9 @@ class HistoricalDataView(APIView):
         requested_fields = set(fields_param.split(',')) if fields_param else None
 
         # Construct path to the historical data folder
-        months_folder = f"N_{num_months}"
-        project_data_path = os.path.join(TEMPORAL_DATA_DIR, months_folder, f"{project_id}.json")
+        # months_folder = f"N_{num_months}"
+        # project_data_path = os.path.join(TEMPORAL_DATA_DIR, months_folder, f"{project_id}.json")
+        project_data_path = os.path.join(TEMPORAL_DATA_DIR, f"{project_id}.json")
 
         print("Project Data Path: ", project_data_path) # Debugging
 
@@ -480,6 +1116,7 @@ class HistoricalDataView(APIView):
         if not project_info:
             return Response({"error": "Project not found in metadata"}, status=status.HTTP_404_NOT_FOUND)
 
+
         # Load historical project data
         try:
             with open(project_data_path, "r", encoding="utf-8") as file:
@@ -487,12 +1124,17 @@ class HistoricalDataView(APIView):
         except Exception as e:
             return Response({"error": "Failed to load project history", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+        # Check if requested number of months is available
+        num_of_months_available = project_history.get("num_months", 0)
+        if num_of_months_available < num_months:
+            return  Response({"error": f"Project data insufficient. Requested: {num_months} months, available: {num_of_months_available} months of data."}, status=status.HTTP_404_NOT_FOUND) 
+        
         # Filter fields if requested
         filtered_history = []
         for month in project_history.get("history", []):
             if requested_fields:
                 # Ensure only existing fields are returned
-                filtered_entry = {field: month.get(field, None) for field in requested_fields}
+                filtered_entry = {field: month.get(field.strip(), None) for field in requested_fields}
             else:
                 # Default: Include all fields
                 filtered_entry = month
@@ -502,13 +1144,17 @@ class HistoricalDataView(APIView):
         response_data = {
             "project_id": project_id,
             "project_name": project_info["listname"],
+            "num_months": num_of_months_available,
             "start_date": project_info.get("start_date", "N/A"),
             "end_date": project_info.get("end_date", "N/A"),
             "history": filtered_history  # List of monthly data
         }
 
-        # Store response in Redis cache for future use
-        cache.set(cache_key, response_data, timeout=3600)
+        # Store response in Redis cache for future use, if Redis is available
+        try:
+            cache.set(cache_key, response_data, timeout=3600)
+        except Exception as e:
+            print(f"Error saving to cache: {e}")
 
         return Response(response_data, status=status.HTTP_200_OK)
     
@@ -795,6 +1441,29 @@ class ProjectPredictionHistoryView(APIView):
             if not prediction_history:
                 return Response({"error": "Project does not have prediction history"}, status=status.HTTP_404_NOT_FOUND)
 
+            # Calculate p_graduate from confidence
+            for month_entry in prediction_history:
+                for month_key, data in month_entry.items():
+                    if "p_graduate" not in data or data["p_graduate"] is None:
+
+                        prediction = data.get("prediction", None)
+                        confidence = data.get("confidence", None)
+
+                        if prediction is not None and confidence is not None:
+                            p_graduate = confidence if prediction == 1 else 1 - confidence
+                        else:
+                            p_graduate = None
+
+                        data["p_graduate"] = p_graduate
+            
+
+
+            # Ensure updated data is used in the response
+            serialized_history = []
+            for entry in prediction_history:
+                serializer = MonthPredictionSerializer(instance=entry)
+                serialized_history.append(serializer.data)
+
             response_data = {
                 "project_id": project_id,
                 "project_name": project_info["listname"],
@@ -804,7 +1473,7 @@ class ProjectPredictionHistoryView(APIView):
                 "pj_github_url": project_info["pj_github_url"],
                 "intro": project_info["intro"],
                 "sponsor": project_info["sponsor"],
-                "prediction_history": prediction_history
+                "prediction_history": serialized_history
             }
 
             # Cache the result for 1 hour
@@ -816,8 +1485,439 @@ class ProjectPredictionHistoryView(APIView):
         except Exception as e:
             return Response({"error": "Failed to load project data or prediction history", "details": str(e)}, status=500)
 
+
+# class SimulateWithDeltasView(APIView):
+#     @extend_schema(
+#         summary="Simulate Sustainability with Feature Changes",
+#         description="""
+#             This endpoint modifies only the specified features by user while backfilling 
+#             the rest of the historical data from the project's existing history.
+#             It includes percentage changes and explicit value changes for specific features.
+#         """,
+#         request=FeatureChangeRequestSerializer,
+#         responses={
+#             200: OpenApiResponse(
+#                 response={
+#                     "project_id": "200",
+#                     "predicted_status": "Sustainable",
+#                     "confidence_score": 0.92,
+#                     "modified_features": [
+#                         {"feature_name": "num_commits", "change_type": "percentage", "change_value": 20},
+#                         {"feature_name": "num_files", "change_type": "explicit", "change_values": [100, 120, 150]}
+#                     ]
+#                 },
+#                 description="Successfully simulated project sustainability with specified feature changes."
+#             ),
+#             400: OpenApiResponse(
+#                 response={"error": "Invalid input"},
+#                 description="Returned when the input parameters are missing, malformed, or invalid."
+#             ),
+#             404: OpenApiResponse(
+#                 response={"error": "Project not found"},
+#                 description="Returned when no historical data exists for the given project ID."
+#             ),
+#             500: OpenApiResponse(
+#                 response={"error": "Failed to process the simulation"},
+#                 description="Returned when an internal server error occurs during processing."
+#             )
+#         },
+#         examples=[
+#             OpenApiExample(
+#                 name="Valid Request Example (Percentage Change)",
+#                 description="An example where num_commits increases by 20% and num_files is explicitly set for 3 months.",
+#                 value={
+#                     "project_id": "200",
+#                     "feature_changes": [
+#                         {
+#                             "feature_name": "num_commits",
+#                             "change_type": "percentage",
+#                             "change_value": 20
+#                         },
+#                         {
+#                             "feature_name": "num_files",
+#                             "change_type": "explicit",
+#                             "change_values": [100, 120, 150]
+#                         }
+#                     ]
+#                 },
+#                 request_only=True
+#             ),
+#             OpenApiExample(
+#                 name="Successful Response Example",
+#                 description="Example of a successful response.",
+#                 value={
+#                     "project_id": "200",
+#                     "predicted_status": "Sustainable",
+#                     "confidence_score": 0.92,
+#                     "modified_features": [
+#                         {"feature_name": "num_commits", "change_type": "percentage", "change_value": 20},
+#                         {"feature_name": "num_files", "change_type": "explicit", "change_values": [100, 120, 150]}
+#                     ]
+#                 },
+#                 response_only=True
+#             ),
+#             OpenApiExample(
+#                 name="Error Example - Missing Project ID",
+#                 description="Returned when the project ID is not provided in the request.",
+#                 value={"error": "project_id is required"},
+#                 response_only=True
+#             ),
+#             OpenApiExample(
+#                 name="Error Example - Invalid Feature Change",
+#                 description="Returned when the feature change format is invalid or incomplete.",
+#                 value={
+#                     "error": "Invalid feature change format",
+#                     "details": {
+#                         "feature_changes": [
+#                             "Each feature change must include feature_name, change_type, and either change_value or change_values."
+#                         ]
+#                     }
+#                 },
+#                 response_only=True
+#             )
+#         ]
+#     )  
+#     def post(self, request):
+#         print("🚨 RAW request body BEFORE anything:")
+#         print(request.body.decode("utf-8"))
+#         project_id = request.data.get("project_id")
+#         feature_changes = request.data.get("feature_changes")
+
+#         print("🚨 Parsed request.data from Django:")
+#         print(json.dumps(request.data, indent=4))
+
+#         if not project_id or not feature_changes:
+#             return Response({"error": "project_id and feature_changes are required"}, status=400)
+
+#         # Validate Feature Changes
+#         serializer = MonthlyFeatureChangesSerializer(data=feature_changes, many=True)
+#         if not serializer.is_valid():
+#             return Response({"error": "Invalid feature change format", "details": serializer.errors}, status=400)
+
+#         # # Fetch all available history for project_id
+#         # available_months = []
+#         # for folder in os.listdir(TEMPORAL_DATA_DIR):
+#         #     if folder.startswith("N_"):
+#         #         num_months = int(folder.split("_")[1])  # Extract number from "N_X"
+#         #         project_data_path = os.path.join(TEMPORAL_DATA_DIR, folder, f"{project_id}.json")
+#         #         if os.path.exists(project_data_path):
+#         #             available_months.append(num_months)
+
+#         # if not available_months:
+#         #     return Response({"error": f"No historical data found for project {project_id}"}, status=404)
+
+#         project_data_path = os.path.join(TEMPORAL_DATA_DIR, f"{project_id}.json")
+
+#         # Load historical project data
+#         try:
+#             with open(project_data_path, "r", encoding="utf-8") as file:
+#                 project_history = json.load(file)
+#         except Exception as e:
+#             return Response({"error": "Failed to load project history", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+#         max_months = project_history.get("num_months", 0)
+#         # best_data_path = os.path.join(TEMPORAL_DATA_DIR, f"N_{max_months}", f"{project_id}.json")
+        
+#         # Limit viable projects to those with 8 or more months of data
+#         # if max_months < 8:
+#         #     return Response({
+#         #         "error": "Insufficient historical data", 
+#         #         "details": f"At least 8 months of data required. Project {project_id} has : {max_months} months of data"
+#         #     }, status=400)
+            
+#         print(f"Using data from: {project_data_path}")
+
+#         cache_key = f"history_{project_id}_{max_months}"
+#         cache.delete(cache_key)
+#         cache.clear()
+
+#         # try:
+#         #     with open(best_data_path, "r", encoding="utf-8") as file:
+#         #         historical_data = json.load(file)
+#         # except Exception as e:
+#         #     return Response({"error": "Failed to load project history", "details": str(e)}, status=500)
+
+#         # print(f"\n🔍 RAW Historical Data BEFORE Modification for project {project_id}:\n{json.dumps(project_history['history'], indent=4)}\n")
+
+#         # print(f"Feature Changes Request: {json.dumps(feature_changes, indent=4)}")
+
+#         modified_history = []
+#         for i, month_data in enumerate(project_history["history"]):
+#             modified_data = month_data.copy()
+
+#             # Apply Feature Changes
+#             for change in feature_changes:
+#                 feature = change['feature_name']
+#                 change_type = change['change_type']
+
+#                 # if feature in modified_data:
+#                 #     print(f"📌 Modifying {feature} from {modified_data[feature]} with {change['change_type']} {change.get('change_value', change.get('change_values'))}")
+
+
+#                 if change_type == "percentage":
+#                     if feature in modified_data:
+#                         modified_data[feature] *= (1 + change['change_value'] / 100.0)
+#                 elif change_type == "explicit":
+#                     if 'change_values' in change and i < len(change['change_values']):
+#                         modified_data[feature] = change['change_values'][i]
+
+#             modified_history.append(modified_data)
+
+#         # Prints Exact Data Passed to Model
+#         # print(f"\nFinal Model Input Data for project {project_id}:\n{json.dumps(modified_history, indent=4)}\n")
+
+         
+#         # Single model path for 8-month prediction
+#         model_path = os.path.join(MODEL_DIR, "lstm_wo_padding_model.h5")
+#         if not os.path.exists(model_path):
+#             return Response({"error": f"No model available for {max_months} months"}, status=400)
+
+#         predictions= predict(modified_history, model_path)
+#         # status = "Sustainable (Likely to Graduate)" if predicted_class == 1 else "Not Sustainable (Likely to Retire)"
+
+#         # Prepare Response
+#         response_data = {
+#             "project_id": project_id,
+#             "predictions": predictions
+#         }
+
+#         return Response(response_data, status=200)
+
     
     
     
     
-    
+class SimulateWithDeltasView(APIView):
+    @extend_schema(
+        summary="Simulate Sustainability with Feature Changes",
+        description="""
+            This endpoint modifies only the specified features by user while backfilling 
+            the rest of the historical data from the project's existing history.
+            It includes monthly feature changes for specific months.
+        """,
+        request=FeatureChangeRequestSerializer,
+        responses={
+            200: OpenApiResponse(
+                response={
+                    "project_id": "200",
+                    "predictions": {
+                        "month_1": {"prediction": 1, "confidence": 0.92},
+                        "month_2": {"prediction": 1, "confidence": 0.88}
+                    }
+                },
+                description="Successfully simulated project sustainability with specified feature changes."
+            ),
+            400: OpenApiResponse(
+                response={"error": "Invalid input"},
+                description="Returned when the input parameters are missing, malformed, or invalid."
+            ),
+            404: OpenApiResponse(
+                response={"error": "Project not found"},
+                description="Returned when no historical data exists for the given project ID."
+            ),
+            500: OpenApiResponse(
+                response={"error": "Failed to process the simulation"},
+                description="Returned when an internal server error occurs during processing."
+            )
+        },
+        examples=[
+            OpenApiExample(
+                name="Valid Request Example (Monthly Changes)",
+                description="An example where specific features are modified for months 1 and 3.",
+                value={
+                    "project_id": "200",
+                    "deltas": [
+                        {
+                            "months": [1, 3],
+                            "feature_changes": [
+                                {
+                                    "feature_name": "num_commits",
+                                    "change_type": "percentage",
+                                    "change_value": 20
+                                },
+                                {
+                                    "feature_name": "num_files",
+                                    "change_type": "explicit",
+                                    "change_values": [100, 150]
+                                }
+                            ]
+                        },
+                        {
+                            "months": [6, 7],
+                            "feature_changes": [
+                                {
+                                    "feature_name": "num_commits",
+                                    "change_type": "explicit",
+                                    "change_value": 2
+                                },
+                                {
+                                    "feature_name": "num_files",
+                                    "change_type": "explicit",
+                                    "change_values": [13, 5]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                request_only=True
+            ),
+            OpenApiExample(
+                name="Successful Response Example",
+                description="Example of a successful response.",
+                value={
+                "project_id": "50",
+                "predictions": [
+                    {
+                    "month": 1,
+                    "status": 1,
+                    "confidence_score": 0.6548473834991455,
+                    "p_grad": 0.6548473834991455
+                    },
+                    {
+                    "month": 2,
+                    "status": 0,
+                    "confidence_score": 0.6758034825325012,
+                    "p_grad": 0.3241965174674988
+                    },
+                    {
+                    "month": 3,
+                    "status": 0,
+                    "confidence_score": 0.8469399213790894,
+                    "p_grad": 0.15306007862091064
+                    },
+                    {
+                    "month": 4,
+                    "status": 0,
+                    "confidence_score": 0.7732663154602051,
+                    "p_grad": 0.22673368453979492
+                    },
+                    {
+                    "month": 5,
+                    "status": 0,
+                    "confidence_score": 0.932475745677948,
+                    "p_grad": 0.067524254322052
+                    },
+                    {
+                    "month": 6,
+                    "status": 0,
+                    "confidence_score": 0.9629136323928833,
+                    "p_grad": 0.0370863676071167
+                    },
+                    {
+                    "month": 7,
+                    "status": 0,
+                    "confidence_score": 0.9556230306625366,
+                    "p_grad": 0.04437696933746338
+                    }
+                ]
+                },
+                response_only=True
+            )
+        ]
+    )  
+    def post(self, request):
+        print("🚨 RAW request body BEFORE anything:")
+        print(request.body.decode("utf-8"))
+        
+        project_id = request.data.get("project_id")
+        monthly_changes = request.data.get("deltas")
+
+        print("🚨 Parsed request.data from Django:")
+        print(json.dumps(request.data, indent=4))
+
+        if not project_id or not monthly_changes:
+            return Response({"error": "project_id and monthly_changes are required"}, status=400)
+        
+        
+        # Validate Monthly Feature Changes
+        serializer = FeatureChangeRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({"error": "Invalid request format", "details": serializer.errors}, status=400)
+        
+        # Load project data
+        project_data_path = os.path.join(TEMPORAL_DATA_DIR, f"{project_id}.json")
+        
+        # Load historical project data
+        try:
+            with open(project_data_path, "r", encoding="utf-8") as file:
+                project_history = json.load(file)
+        except FileNotFoundError:
+            return Response({"error": f"No historical data found for project {project_id}"}, status=404)
+        except Exception as e:
+            return Response({"error": "Failed to load project history", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # Get the number of months in the history
+        max_months = project_history.get("num_months", 0)
+        
+        print(f"Using data from: {project_data_path}")
+
+        # Clear cache for this project
+        cache_key = f"history_{project_id}_{max_months}"
+        cache.delete(cache_key)
+        cache.clear()
+
+        # Create a copy of the original history to modify
+        modified_history = [month_data.copy() for month_data in project_history["history"]]
+        
+        # Apply monthly changes
+        for monthly_change in monthly_changes:
+            months_to_modify = monthly_change.get("months", [])
+            feature_changes = monthly_change.get("feature_changes", [])
+            
+            # Apply changes to specified months
+            for month_idx in months_to_modify:
+                # Make sure the month index is valid
+                if 0 <= month_idx < len(modified_history):
+                    # print(f"📅 Modifying month {month_idx}: {modified_history[month_idx-1]}")
+                    month_data = modified_history[month_idx-1]
+                    
+                    # Apply each feature change
+                    for change in feature_changes:
+                        feature = change.get('feature_name')
+                        change_type = change.get('change_type')
+                        
+                        if feature in month_data:
+                            print(f"📌 Modifying {feature} in month {month_idx} from {month_data[feature]}")
+                            
+                            if change_type == "percentage" and 'change_value' in change:
+                                month_data[feature] *= (1 + change['change_value'] / 100.0)
+                                print(f"  - New value after {change['change_value']}% change: {month_data[feature]}")
+                                
+                            elif change_type == "explicit" and 'change_values' in change:
+                                # Find the correct value for this month in the change_values array
+                                value_idx = months_to_modify.index(month_idx)
+                                if value_idx < len(change['change_values']):
+                                    month_data[feature] = change['change_values'][value_idx]
+                                    print(f"  - New explicit value: {month_data[feature]}")
+                else: 
+                    print(f"❌ Invalid month index: {month_idx}")
+        
+        # Prints Exact Data Passed to Model
+        # print(f"\nFinal Model Input Data for project {project_id}:\n{json.dumps(modified_history, indent=4)}\n")
+        
+        # Load model for prediction
+        # model_path = os.path.join(MODEL_DIR, "lstm_wo_padding_model.h5")
+        model_path = os.path.join(MODEL_DIR, "model_8.h5")
+        if not os.path.exists(model_path):
+            return Response({"error": f"No model available for {max_months} months"}, status=400)
+
+        # Make predictions
+        predictions = predict(modified_history, model_path)
+        
+        # Prepare Response
+        response_data = {
+            "project_id": project_id,
+            "predictions": predictions
+        }
+        # predicted_class, confidence, p_graduate = predict(modified_history, model_path, max_months)
+        # status = "Sustainable (Likely to Graduate)" if predicted_class == 1 else "Not Sustainable (Likely to Retire)"
+
+        # # Prepare Response
+        # response_data = {
+        #     "project_id": project_id,
+        #     "predicted_status": status,
+        #     "confidence_score": round(confidence, 2),
+        #     "modified_features": feature_changes,
+        #     "p_graduate": round(p_graduate, 2)
+
+        return Response(response_data, status=200)

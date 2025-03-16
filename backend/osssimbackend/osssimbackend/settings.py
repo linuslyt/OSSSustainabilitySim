@@ -143,7 +143,7 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Open Source Software Sustainability Simulator ',
-    'DESCRIPTION': 'This right here is a legend at work', 
+    'DESCRIPTION': 'This is a REST API for the OSS Sustainability Simulator', 
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,  # This will hide the /schema/ endpoint
     'EXCLUDE_PATH': ['/api/schema/', '/api/schema/swagger-ui/'],  # Excludes these paths from the schema
@@ -151,11 +151,18 @@ SPECTACULAR_SETTINGS = {
     
 }
 
+
+# Redis configuration
+REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
+REDIS_PORT = int(os.environ.get('REDIS_PORT', 6379))
+REDIS_DB = int(os.environ.get('REDIS_DB', 1))
+
+
 # Caching Configuration (Redis)
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",  # Port Redis runs on
+        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}",  # Port Redis runs on
         "TIMEOUT": 3600,  # 1 hour
     }
 }

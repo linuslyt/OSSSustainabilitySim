@@ -51,13 +51,21 @@ class StatusPredictionInputSerializer(serializers.Serializer):
     history = serializers.ListSerializer(
         child=MonthlyDataSerializer(), min_length=1, max_length=29
     )  # Allow data points from 1 to 29 months
+    
 
+class FeatureChangeSerializer(serializers.Serializer):
+    feature_name = serializers.CharField(required=True)
+    change_type = serializers.ChoiceField(choices=['percentage', 'explicit'])
+    change_value = serializers.FloatField(required=False)  # For percentage changes
+    change_values = serializers.ListField(child=serializers.FloatField(), required=False)  # For explicit changes
 
-
-
-
-
-
+class MonthlyFeatureChangesSerializer(serializers.Serializer):
+    months = serializers.ListField(child=serializers.IntegerField(), required=True)
+    feature_changes = serializers.ListField(child=FeatureChangeSerializer(), required=True)
+    
+class FeatureChangeRequestSerializer(serializers.Serializer):
+    project_id = serializers.CharField(required=True)
+    deltas = serializers.ListField(child=MonthlyFeatureChangesSerializer(), required=True)
 
 class PredictionSerializer(serializers.Serializer):
     """Serializer for individual month predictions"""
@@ -68,13 +76,15 @@ class MonthPredictionSerializer(serializers.Serializer):
     """Serializer for monthly prediction entries"""
     def to_representation(self, instance):
         # Extract the month number and prediction data
+        # {"month_1": {"prediction": 1, "confidence": 0.94, "p_graduate": 0.20}}
         month_key = list(instance.keys())[0]  # e.g., 'month_1'
         prediction_data = instance[month_key]
         
         return {
             month_key: {
                 'prediction': prediction_data['prediction'],
-                'confidence': prediction_data['confidence']
+                'confidence': prediction_data['confidence'],
+                'p_graduate': prediction_data.get('p_graduate')
             }
         }
 
