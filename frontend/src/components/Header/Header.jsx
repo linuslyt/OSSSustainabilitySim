@@ -10,11 +10,17 @@ import TextField from '@mui/material/TextField';
 import Toolbar from '@mui/material/Toolbar';
 import match from 'autosuggest-highlight/match';
 import parse from 'autosuggest-highlight/parse';
-import PropTypes from 'prop-types';
 import React, { useMemo } from 'react';
+import {
+  useSimulation,
+  useSimulationDispatch,
+} from '../context/SimulationContext';
 
-function ProjectSelect({ projectState }) {
-  const [selectedProject, setSelectedProject] = projectState;
+// TODO: set default
+function ProjectSelect() {
+  const simContext = useSimulation();
+  const simDispatch = useSimulationDispatch();
+
   // TODO: fetch from backend
   const projectOptions = useMemo(
     () => [
@@ -84,62 +90,76 @@ function ProjectSelect({ projectState }) {
   return (
     <div className="project-select">
       <Autocomplete
+        blurOnSelect
+        clearOnEscape
+        disableClearable
+        handleHomeEndKeys
+        selectOnFocus
+        getOptionLabel={(option) => option?.project_name ?? ''}
+        groupBy={(option) => option.status}
+        renderOption={renderOptionWithAutocomplete}
+        size="small"
+        sx={{ width: 300, '& fieldset': { borderRadius: 3 } }}
+        value={simContext.selectedProject}
+        isOptionEqualToValue={(option, value) =>
+          option.project_id === value?.project_id
+        }
         options={projectOptions.sort(
           (a, b) =>
             -b.project_name[0]
               .toUpperCase()
               .localeCompare(a.project_name[0].toUpperCase()),
         )}
-        groupBy={(option) => option.status}
-        getOptionLabel={(option) => option?.project_name ?? ''}
-        sx={{ width: 300 }}
         renderInput={(params) => (
           <TextField {...params} label="Select project" />
         )}
-        renderOption={renderOptionWithAutocomplete}
-        value={selectedProject}
-        onChange={(event, newVal) => {
-          setSelectedProject(newVal);
+        onChange={(_, selected) => {
+          console.log(selected);
+          simDispatch({
+            type: 'set_selected_project',
+            selectedValue: selected,
+          });
         }}
-        isOptionEqualToValue={(option, value) =>
-          option.project_id === value?.project_id
-        }
-        selectOnFocus
-        clearOnEscape
-        handleHomeEndKeys
-        size="small"
       />
     </div>
   );
 }
 
-export default function Header({ projectState }) {
+export default function Header() {
   return (
     <AppBar
       component="nav"
-      sx={{ backgroundColor: 'lightgrey' }}
-      position="sticky"
       elevation={0}
+      position="sticky"
+      sx={{ backgroundColor: 'lightgrey' }}
     >
       <Toolbar sx={{ justifyContent: 'space-between' }}>
-        <ProjectSelect projectState={projectState} />
-        <Typography variant="h1" color="black" fontSize="1.5rem">
+        <ProjectSelect />
+        <Typography color="black" fontSize="1.5rem" variant="h1">
           ASFI Project Sustainability Simulator
         </Typography>
         <Box>
           <Link
-            href="https://arxiv.org/abs/2105.14252"
-            target="_blank"
+            href="https://incubator.apache.org/"
             rel="noopener"
             sx={{ marginRight: '1rem', verticalAlign: 'middle' }}
+            target="_blank"
+          >
+            ASFI
+          </Link>
+          <Link
+            href="https://arxiv.org/abs/2105.14252"
+            rel="noopener"
+            sx={{ marginRight: '1rem', verticalAlign: 'middle' }}
+            target="_blank"
           >
             Yin et al.
           </Link>
           <Link
             href="http://zenodo.org/records/4564072"
-            target="_blank"
             rel="noopener"
             sx={{ marginRight: '1rem', verticalAlign: 'middle' }}
+            target="_blank"
           >
             Original Models/Data
           </Link>
@@ -164,7 +184,3 @@ export default function Header({ projectState }) {
     </AppBar>
   );
 }
-
-ProjectSelect.propTypes = {
-  projectState: PropTypes.array.isRequired,
-};
