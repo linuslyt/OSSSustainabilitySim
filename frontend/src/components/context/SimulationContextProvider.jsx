@@ -210,8 +210,11 @@ function simulationReducer(prev, action) {
         },
       };
     }
-    case 'simulate_changes': {
-      return prev;
+    case 'set_simulation_results': {
+      return {
+        ...prev,
+        simulatedPredictions: action.data,
+      };
     }
     default: {
       throw Error('Unknown simulationReducer action: ' + action.type);
@@ -219,14 +222,9 @@ function simulationReducer(prev, action) {
   }
 }
 
-// TODO: set to default empty state
 // TODO: check for NPEs
 const DUMMY_SIM = {
-  selectedProject: {
-    // project_id: '49',
-    // project_name: 'Abdera',
-    // status: 'Graduated',
-  },
+  selectedProject: {},
   selectedProjectData: {
     id: null,
     details: {},
@@ -243,14 +241,7 @@ const DUMMY_SIM = {
     changes: new Map(),
     selectedPeriod: {},
   },
-  simulatedPredictions: [
-    { month: 10, p_grad: 0.1 },
-    { month: 13, p_grad: 0.5 },
-    { month: 14, p_grad: 0.3 },
-    { month: 15, p_grad: 0.1 },
-    { month: 16, p_grad: 0.7 },
-    { month: 17, p_grad: 0.7 },
-  ],
+  simulatedPredictions: [],
 };
 
 SimulationContextProvider.propTypes = {

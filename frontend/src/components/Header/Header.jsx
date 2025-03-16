@@ -21,7 +21,6 @@ import {
   LIST_PROJECTS,
 } from '../endpoints';
 
-// TODO: set default
 // TODO: add confirm dialogue when changing project with non-empty simulated changes
 function ProjectSelect() {
   const simContext = useSimulation();
