@@ -222,7 +222,7 @@ export default function ForecastGraph() {
             y,
             visible: true,
             transform: transform,
-            text: `P(Graduate): ${d.pGraduate}\nMonth: ${d.month}`,
+            text: `P'(Graduate): ${d.pGraduate}\nMonth: ${d.month}`,
           });
         })
         .on('mouseout', () => {
