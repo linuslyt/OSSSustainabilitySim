@@ -17,13 +17,13 @@ all_features = [
         ]
 
 
-def build_stateful_model(original_model_path, feature_dim):
+def build_stateless_model(original_model_path, feature_dim):
     """
-    Rebuilds the LSTM model with a batch size of 1 and time step of 1 for sequential inference.
-    
+    Rebuilds a stateless LSTM model for dynamic input length inference.
+
     :param original_model_path: Path to trained model
     :param feature_dim: Number of input features per month
-    :return: A stateful LSTM model for inference
+    :return: A stateless LSTM model for inference
     """
     # Load original model to get weights
     original_model = load_model(original_model_path)
@@ -44,7 +44,7 @@ def build_stateful_model(original_model_path, feature_dim):
 
 def predict(history, model_path):
     """
-    Perform inference one month at a time while maintaining LSTM state.
+    Perform inference with increasing sequence length (dynamic input length).
 
     :param history: List of historical monthly data (each row is a feature vector).
     :param model_path: Path to the trained LSTM model.
@@ -61,7 +61,7 @@ def predict(history, model_path):
     print("feature dimension is: ", feature_dim)
     
     # Load stateful model
-    model = build_stateful_model(model_path, feature_dim)
+    model = build_stateless_model(model_path, feature_dim)
     
     predictions = []
     # model.reset_states()  # Reset state before new sequence
