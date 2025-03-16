@@ -1412,8 +1412,13 @@ class ProjectPredictionHistoryView(APIView):
         if not project_id:
             return Response({"error": "project_id is required"}, status=400)
 
-        cache_key = f"project_details_{project_id}"
-        cached_data = cache.get(cache_key)
+        try:
+            print("Checking redis cache")
+            cache_key = f"project_details_{project_id}"
+            cached_data = cache.get(cache_key)
+        except Exception as e:
+            print(f"Error accessing cache: {e}")
+            cached_data = None
 
         if cached_data:
             print(f"Cache hit for {cache_key}")
@@ -1477,7 +1482,11 @@ class ProjectPredictionHistoryView(APIView):
             }
 
             # Cache the result for 1 hour
-            cache.set(cache_key, response_data, timeout=3600)
+            try:
+                cache.set(cache_key, response_data, timeout=3600)
+            except Exception as e:
+                print(f"Error saving to cache: {e}")
+                
             return Response(response_data, status=200)
 
         except FileNotFoundError:
@@ -1852,9 +1861,12 @@ class SimulateWithDeltasView(APIView):
         print(f"Using data from: {project_data_path}")
 
         # Clear cache for this project
-        cache_key = f"history_{project_id}_{max_months}"
-        cache.delete(cache_key)
-        cache.clear()
+        try: 
+            cache_key = f"history_{project_id}_{max_months}"
+            cache.delete(cache_key)
+            cache.clear()
+        except Exception as e:
+            print(f"Error clearing cache: {e}")
 
         # Create a copy of the original history to modify
         modified_history = [month_data.copy() for month_data in project_history["history"]]
