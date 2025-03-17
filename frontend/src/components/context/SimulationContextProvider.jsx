@@ -211,6 +211,7 @@ function simulationReducer(prev, action) {
       };
     }
     case 'set_simulation_results': {
+      console.log('Simulation results:', action.data);
       return {
         ...prev,
         simulatedPredictions: action.data,
