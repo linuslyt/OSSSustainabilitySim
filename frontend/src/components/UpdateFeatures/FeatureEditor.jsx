@@ -4,7 +4,8 @@ import ReplayIcon from '@mui/icons-material/Replay';
 import SouthWestIcon from '@mui/icons-material/SouthWest';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import Tooltip from '@mui/material/Tooltip';
+import { styled } from '@mui/material/styles';
+import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import { DataGrid, GridActionsCellItem, useGridApiRef } from '@mui/x-data-grid';
 import PropTypes from 'prop-types';
 import React, { useEffect } from 'react';
@@ -20,6 +21,16 @@ import {
 } from '../utils.js';
 import { FEATURE_DESCRIPTIONS } from './constants';
 
+const StyledTooltip = styled(({ className, ...props }) => (
+  <Tooltip {...props} classes={{ popper: className }} />
+))(({ theme }) => ({
+  [`& .${tooltipClasses.tooltip}`]: {
+    boxShadow: theme.shadows[1],
+    fontSize: 13,
+  },
+}));
+
+// TODO: disable % change if original value is 0. handle case for copy to range as well.
 // TODO: documentation
 // TODO: known issue - if you edit then exit editing too quick (e.g. typing new value then pressing enter right after),
 //       it will fail to save, and you have to re-click and re-exit to save it properly.
@@ -42,7 +53,12 @@ export default function FeatureEditor() {
       includeOutliers: true,
       includeHeaders: true,
     });
-  }, [dataGridApiRef, simContext.selectedPeriod]);
+  }, [
+    dataGridApiRef,
+    selectedData,
+    simContext.simulationData.changes,
+    simContext.selectedProject,
+  ]);
 
   const rows = pivot(selectedData, simContext.simulationData.changes);
   const columns = [
@@ -59,12 +75,12 @@ export default function FeatureEditor() {
             sx={{ width: 'fit-content', mr: 0.5 }}
           >
             {value}
-            <Tooltip title={FEATURE_DESCRIPTIONS.get(value)}>
+            <StyledTooltip arrow title={FEATURE_DESCRIPTIONS.get(value)}>
               <HelpIcon
                 fontSize="inherit"
                 sx={{ alignmentBaseline: 'after-edge', color: 'grey' }}
               />
-            </Tooltip>
+            </StyledTooltip>
           </Stack>
         );
       },
@@ -151,7 +167,7 @@ export default function FeatureEditor() {
       cellClassName: 'actions',
       getActions: (params) => {
         return [
-          <Tooltip key={params.id + '_reset'} title="Reset">
+          <StyledTooltip key={params.id + '_reset'} title="Reset">
             <GridActionsCellItem
               className="textPrimary"
               color="inherit"
@@ -161,8 +177,8 @@ export default function FeatureEditor() {
                 simDispatch({ type: 'delete_change', gridRowParams: params })
               }
             />
-          </Tooltip>,
-          <Tooltip
+          </StyledTooltip>,
+          <StyledTooltip
             key={params.id + '_copyToAll'}
             title="Copy % change to all months for feature"
           >
@@ -177,8 +193,11 @@ export default function FeatureEditor() {
                 })
               }
             />
-          </Tooltip>,
-          <Tooltip key={params.id + '_inspectFeature'} title="Inspect feature">
+          </StyledTooltip>,
+          <StyledTooltip
+            key={params.id + '_inspectFeature'}
+            title="Inspect feature"
+          >
             <GridActionsCellItem
               color="inherit"
               icon={<QueryStatsIcon />}
@@ -190,7 +209,7 @@ export default function FeatureEditor() {
                 })
               }
             />
-          </Tooltip>,
+          </StyledTooltip>,
         ];
       },
     },

@@ -66,6 +66,7 @@ export default function FeatureGraph() {
   const simContext = useSimulation();
   const { month: selectedMonth, feature: selectedFeature } =
     simContext.selectedFeature;
+  // Stretch goal: change to scrollable graph
   const inFocusRange = (month, centerMonth) => {
     const monthMargin = 3; // display a quarter of data on each side
     // TODO: add extra months on left or right if total shown < margin * 2 + 1
@@ -79,12 +80,11 @@ export default function FeatureGraph() {
     );
   };
 
-  const data = simContext.selectedProjectData.features
-    .map((d) => ({
-      month: d.month,
-      value: d[selectedFeature],
-    }))
-    .filter((d) => inFocusRange(d.month, selectedMonth));
+  const data = simContext.selectedProjectData.features.map((d) => ({
+    month: d.month,
+    value: d[selectedFeature],
+  }));
+  //.filter((d) => inFocusRange(d.month, selectedMonth));
 
   useEffect(() => {
     const renderGraph = (data) => {
@@ -97,7 +97,8 @@ export default function FeatureGraph() {
         } else return original;
       });
       const dataDomain = d3.extent(changedData.map((d) => d.month));
-      const dataRange = d3.extent(changedData.map((d) => d.value));
+      const changedDataRange = d3.extent(changedData.map((d) => d.value));
+      const dataRange = d3.extent(data.map((d) => d.value));
 
       const margin = {
         top: size.height * 0.2,
@@ -111,7 +112,7 @@ export default function FeatureGraph() {
         .range([margin.left, size.width - margin.right]);
       const yScale = d3
         .scaleLinear()
-        .domain([0, dataRange[1] * 1.25])
+        .domain([0, Math.max(dataRange[1], changedDataRange[1])])
         .range([size.height - margin.bottom, margin.top]);
       const xAxis = d3.axisBottom(xScale).ticks(data.length);
       const yAxis = d3
@@ -139,7 +140,11 @@ export default function FeatureGraph() {
       svg
         .select('#title')
         .attr('transform', `translate(${size.width / 2}, ${margin.top / 2})`)
-        .text(`${selectedFeature} over time`)
+        .text(
+          simContext.selectedProject?.project_id
+            ? `${selectedFeature} over time`
+            : 'Select a project to view feature data.',
+        )
         .attr('text-anchor', 'middle')
         .style('font-size', '1.1rem')
         .style('font-family', "'Roboto', sans-serif");
@@ -193,7 +198,7 @@ export default function FeatureGraph() {
         .selectAll('circle')
         .data(data)
         .join('circle')
-        .attr('r', '7px')
+        .attr('r', '5px')
         .attr('cx', (d) => xScale(d.month))
         .attr('cy', (d) => yScale(d.value))
         .attr('fill', 'green')
@@ -220,7 +225,7 @@ export default function FeatureGraph() {
         .selectAll('circle')
         .data(changedData)
         .join('circle')
-        .attr('r', '7px')
+        .attr('r', '5px')
         .attr('cx', (d) => xScale(d.month))
         .attr('cy', (d) => yScale(d.value))
         .attr('fill', 'rgb(224, 186, 34)')

@@ -10,58 +10,38 @@ import TextField from '@mui/material/TextField';
 import Toolbar from '@mui/material/Toolbar';
 import match from 'autosuggest-highlight/match';
 import parse from 'autosuggest-highlight/parse';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   useSimulation,
   useSimulationDispatch,
 } from '../context/SimulationContext';
+import {
+  GET_PROJECT_DETAILS,
+  GET_PROJECT_HISTORICAL_DATA,
+  LIST_PROJECTS,
+} from '../endpoints';
 
-// TODO: set default
+// TODO: add confirm dialogue when changing project with non-empty simulated changes
 function ProjectSelect() {
   const simContext = useSimulation();
   const simDispatch = useSimulationDispatch();
+  const [options, setOptions] = useState([]);
 
-  // TODO: fetch from backend
-  const projectOptions = useMemo(
-    () => [
-      {
-        project_id: '1',
-        project_name: 'Amaterasu',
-        status: 'Retired',
-      },
-      {
-        project_id: '2',
-        project_name: 'Annotator',
-        status: 'Retired',
-      },
-      {
-        project_id: '3',
-        project_name: 'BatchEE',
-        status: 'Retired',
-      },
-      {
-        project_id: '4',
-        project_name: 'BRPC',
-        status: 'Retired',
-      },
-      {
-        project_id: '242',
-        project_name: 'Usergrid',
-        status: 'Graduated',
-      },
-      {
-        project_id: '243',
-        project_name: 'VCL',
-        status: 'Graduated',
-      },
-      {
-        project_id: '244',
-        project_name: 'VXQuery',
-        status: 'Graduated',
-      },
-    ],
-    [],
-  );
+  const projectOptions = useMemo(() => {
+    fetch(LIST_PROJECTS)
+      .then((res) => res.json())
+      .then((json) => {
+        const sortedOptions = json.projects.sort(
+          (a, b) =>
+            -b.status.localeCompare(a.status) ||
+            -b.project_name[0]
+              .toUpperCase()
+              .localeCompare(a.project_name[0].toUpperCase()),
+        );
+        setOptions(json.projects);
+      });
+    return [];
+  }, []);
 
   const renderOptionWithAutocomplete = (props, option, { inputValue }) => {
     // eslint-disable-next-line react/prop-types
@@ -87,6 +67,48 @@ function ProjectSelect() {
     );
   };
 
+  const handleSelectProject = async (selected) => {
+    try {
+      // Get project details + prediction history
+      const detailsParams = new URLSearchParams();
+      detailsParams.append('project_id', selected.project_id);
+      const detailsRes = await fetch(`${GET_PROJECT_DETAILS}?${detailsParams}`);
+      const detailsJson = await detailsRes.json();
+      // console.log(detailsJson);
+
+      // Get historical feature data
+      const histDataParams = new URLSearchParams();
+      // histDataParams.append('num_months', projectDetails.history.length);
+      histDataParams.append(
+        'num_months',
+        detailsJson.prediction_history.length,
+      );
+      histDataParams.append('project_id', selected.project_id);
+      const featuresRes = await fetch(
+        `${GET_PROJECT_HISTORICAL_DATA}?${histDataParams}`,
+      );
+      const featuresJson = await featuresRes.json();
+      // console.log(featuresJson);
+      simDispatch({
+        type: 'set_selected_project',
+        selectedValue: selected,
+        id: selected.project_id,
+        projectDetails: detailsJson,
+        historicalFeatureData: featuresJson,
+      });
+    } catch (e) {
+      // TODO: add Snackbar for fetch feedback
+      console.log(e);
+      simDispatch({
+        type: 'set_selected_project',
+        selectedValue: selected,
+        id: selected.project_id,
+        projectDetails: {},
+        historicalFeatureData: {},
+      });
+    }
+  };
+
   return (
     <div className="project-select">
       <Autocomplete
@@ -97,6 +119,7 @@ function ProjectSelect() {
         selectOnFocus
         getOptionLabel={(option) => option?.project_name ?? ''}
         groupBy={(option) => option.status}
+        options={options}
         renderOption={renderOptionWithAutocomplete}
         size="small"
         sx={{ width: 300, '& fieldset': { borderRadius: 3 } }}
@@ -104,22 +127,10 @@ function ProjectSelect() {
         isOptionEqualToValue={(option, value) =>
           option.project_id === value?.project_id
         }
-        options={projectOptions.sort(
-          (a, b) =>
-            -b.project_name[0]
-              .toUpperCase()
-              .localeCompare(a.project_name[0].toUpperCase()),
-        )}
         renderInput={(params) => (
           <TextField {...params} label="Select project" />
         )}
-        onChange={(_, selected) => {
-          console.log(selected);
-          simDispatch({
-            type: 'set_selected_project',
-            selectedValue: selected,
-          });
-        }}
+        onChange={(_, selected) => handleSelectProject(selected)}
       />
     </div>
   );

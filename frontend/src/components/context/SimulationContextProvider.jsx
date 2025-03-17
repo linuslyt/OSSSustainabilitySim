@@ -1,5 +1,5 @@
+import { pick } from 'lodash';
 import React, { useEffect, useReducer } from 'react';
-import { DUMMY_CHANGES, DUMMY_DATA } from '../UpdateFeatures/constants';
 import {
   getNewValueFromPChange,
   getPercentChange,
@@ -18,6 +18,13 @@ export function SimulationContextProvider({ children }) {
     console.log('Saved changes updated: ', simulation.simulationData.changes);
   }, [simulation.simulationData.changes]);
 
+  useEffect(() => {
+    console.log(
+      'Saved project details updated: ',
+      simulation.selectedProjectData,
+    );
+  }, [simulation.selectedProjectData]);
+
   return (
     <SimulationContext.Provider value={simulation}>
       <SimulationDispatchContext.Provider value={dispatch}>
@@ -30,10 +37,25 @@ export function SimulationContextProvider({ children }) {
 function simulationReducer(prev, action) {
   switch (action.type) {
     case 'set_selected_project': {
-      // TODO: load data from server into selectedProjectData
+      const projectDetails = pick(action.projectDetails, [
+        'project_name',
+        'start_date',
+        'end_date',
+        'status',
+        'pj_github_url',
+        'intro',
+        'sponsor',
+      ]);
+
       return {
-        ...prev,
+        ...DUMMY_SIM,
         selectedProject: action.selectedValue,
+        selectedProjectData: {
+          id: action.id,
+          details: projectDetails,
+          predictions: action.projectDetails.prediction_history || [],
+          features: action.historicalFeatureData.history || [],
+        },
       };
     }
     case 'set_selected_period': {
@@ -41,7 +63,9 @@ function simulationReducer(prev, action) {
         ...prev,
         selectedFeature: {
           ...prev.selectedFeature,
-          month: action.period.startMonth,
+          month: Math.round(
+            action.period.startMonth + action.period.endMonth / 2,
+          ),
         },
         simulationData: {
           ...prev.simulationData,
@@ -186,46 +210,38 @@ function simulationReducer(prev, action) {
         },
       };
     }
+    case 'set_simulation_results': {
+      return {
+        ...prev,
+        simulatedPredictions: action.data,
+      };
+    }
     default: {
       throw Error('Unknown simulationReducer action: ' + action.type);
     }
   }
 }
 
+// TODO: check for NPEs
 const DUMMY_SIM = {
-  selectedProject: {
-    project_id: '1',
-    project_name: 'Amaterasu',
-    status: 'Retired',
-  },
+  selectedProject: {},
   selectedProjectData: {
-    id: '112',
-    details: {
-      project_name: 'FtpServer',
-      start_date: '3/29/2003',
-      end_date: '12/18/2007',
-      status: 1,
-      pj_github_url: 'https://github.com/apache/FtpServer',
-      intro: 'A complete FTP Server based on Mina I/O system.',
-      sponsor: 'Incubator',
-    },
+    id: null,
+    details: {},
     predictions: [],
-    features: DUMMY_DATA,
+    features: [],
   },
   selectedFeature: {
     feature: 'num_commits',
     month: 1,
   },
   simulationData: {
-    changedPeriods: [
-      { key: '1_1', startMonth: 1, endMonth: 1 },
-      { key: '2_2', startMonth: 2, endMonth: 2 },
-      { key: '3_4', startMonth: 3, endMonth: 4 },
-    ],
-    changedMonths: new Set([1, 2, 3, 4]),
-    changes: new Map(DUMMY_CHANGES.map((c) => [c.id, c.change])),
-    selectedPeriod: { key: '1_1', startMonth: 1, endMonth: 1 },
+    changedPeriods: [],
+    changedMonths: new Set(),
+    changes: new Map(),
+    selectedPeriod: {},
   },
+  simulatedPredictions: [],
 };
 
 SimulationContextProvider.propTypes = {

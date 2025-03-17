@@ -45,8 +45,7 @@ function DeltaSelector() {
   };
 
   // Generate valid month options
-  // TODO: memoize these
-  const nMonths = 12; // TODO: get # available months from project feature/pred history in context
+  const nMonths = simContext.selectedProjectData.features.length;
   const startMonths = Array.from(Array(nMonths), (_, x) => x + 1).filter(
     (m) => !selectedMonths.has(m),
   );
