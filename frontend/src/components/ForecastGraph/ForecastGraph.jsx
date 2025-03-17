@@ -15,9 +15,10 @@ export default function ForecastGraph() {
   const simMap = new Map(
     simContext.simulatedPredictions.map((sim) => [sim.month, sim]),
   );
-  const simData = data.map((original) =>
+  const simData2 = data.map((original) =>
     simMap.has(original.month) ? simMap.get(original.month) : original,
   );
+  const simData = simContext.simulatedPredictions;
 
   const domain = d3.extent(data.map((d) => d.month));
 
@@ -139,6 +140,7 @@ export default function ForecastGraph() {
         .attr('d', lineGenerator)
         .attr('fill', 'none')
         .attr('stroke', 'orange')
+        .attr('opacity', simContext.simulatedPredictions.length > 0 ? 0.75 : 1)
         .attr('stroke-width', '2.5px');
 
       svg
@@ -150,6 +152,7 @@ export default function ForecastGraph() {
         .attr('cx', (d) => xScale(d.month))
         .attr('cy', (d) => yScale(d.p_grad))
         .attr('fill', '#E97451')
+        .attr('opacity', simContext.simulatedPredictions.length > 0 ? 0.75 : 1)
         .on('mouseover', function (event, d) {
           const bbox = this.getBBox(); // Get bounding box of marker
 
@@ -166,7 +169,7 @@ export default function ForecastGraph() {
             y,
             visible: true,
             transform: transform,
-            text: `P(Graduate): ${d.p_grad.toFixed(2)}\nMonth: ${d.month}`,
+            text: `P(Graduate): ${d.p_grad.toFixed(3)}\nMonth: ${d.month}`,
           });
         })
         .on('mouseout', () => {
@@ -199,7 +202,7 @@ export default function ForecastGraph() {
             y,
             visible: true,
             transform: transform,
-            text: `P'(Graduate): ${d.p_grad}\nMonth: ${d.month}`,
+            text: `P'(Graduate): ${d.p_grad.toFixed(3)}\nMonth: ${d.month}`,
           });
         })
         .on('mouseout', () => {
@@ -251,7 +254,7 @@ export default function ForecastGraph() {
             y: mouseY,
             visible: inBounds,
             transform: transform,
-            text: `P(Graduate): ${yScale.invert(mouseY).toFixed(2)}`,
+            text: `P(Graduate): ${yScale.invert(mouseY).toFixed(3)}`,
           });
         })
         .on('mouseleave', () => {
@@ -276,10 +279,14 @@ export default function ForecastGraph() {
     svg.append('text').attr('id', 'title');
     svg.append('line').attr('id', 'y-crosshair');
 
-    svg.append('g').append('path').attr('id', 'sim-trendline');
-    svg.append('g').attr('id', 'sim-markers');
-    svg.append('g').append('path').attr('id', 'trendline');
-    svg.append('g').attr('id', 'markers');
+    const originalPlot = svg.append('g').attr('id', 'original-plot');
+    originalPlot.append('g').append('path').attr('id', 'trendline');
+    originalPlot.append('g').attr('id', 'markers');
+
+    const simulatedPlot = svg.append('g').attr('id', 'simulated-plot');
+    simulatedPlot.append('g').append('path').attr('id', 'sim-trendline');
+    simulatedPlot.append('g').attr('id', 'sim-markers');
+
     svg
       .append('g')
       .attr('id', 'x-axis')

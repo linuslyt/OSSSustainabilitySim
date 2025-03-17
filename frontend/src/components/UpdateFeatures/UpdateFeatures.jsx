@@ -72,7 +72,7 @@ function UpdateFeatures() {
         {
           feature_name: v.feature,
           change_type: 'explicit',
-          change_value: v.new_value,
+          change_values: [v.new_value],
         },
       ],
     }));
