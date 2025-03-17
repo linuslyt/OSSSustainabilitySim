@@ -10,52 +10,38 @@ import TextField from '@mui/material/TextField';
 import Toolbar from '@mui/material/Toolbar';
 import match from 'autosuggest-highlight/match';
 import parse from 'autosuggest-highlight/parse';
-import PropTypes from 'prop-types';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+import {
+  useSimulation,
+  useSimulationDispatch,
+} from '../context/SimulationContext';
+import {
+  GET_PROJECT_DETAILS,
+  GET_PROJECT_HISTORICAL_DATA,
+  LIST_PROJECTS,
+} from '../endpoints';
 
-function ProjectSelect({ projectState }) {
-  const [selectedProject, setSelectedProject] = projectState;
-  // TODO: fetch from backend
-  const projectOptions = useMemo(
-    () => [
-      {
-        project_id: '1',
-        project_name: 'Amaterasu',
-        status: 'Retired',
-      },
-      {
-        project_id: '2',
-        project_name: 'Annotator',
-        status: 'Retired',
-      },
-      {
-        project_id: '3',
-        project_name: 'BatchEE',
-        status: 'Retired',
-      },
-      {
-        project_id: '4',
-        project_name: 'BRPC',
-        status: 'Retired',
-      },
-      {
-        project_id: '242',
-        project_name: 'Usergrid',
-        status: 'Graduated',
-      },
-      {
-        project_id: '243',
-        project_name: 'VCL',
-        status: 'Graduated',
-      },
-      {
-        project_id: '244',
-        project_name: 'VXQuery',
-        status: 'Graduated',
-      },
-    ],
-    [],
-  );
+// TODO: add confirm dialogue when changing project with non-empty simulated changes
+function ProjectSelect() {
+  const simContext = useSimulation();
+  const simDispatch = useSimulationDispatch();
+  const [options, setOptions] = useState([]);
+
+  const projectOptions = useMemo(() => {
+    fetch(LIST_PROJECTS)
+      .then((res) => res.json())
+      .then((json) => {
+        const sortedOptions = json.projects.sort(
+          (a, b) =>
+            -b.status.localeCompare(a.status) ||
+            -b.project_name[0]
+              .toUpperCase()
+              .localeCompare(a.project_name[0].toUpperCase()),
+        );
+        setOptions(json.projects);
+      });
+    return [];
+  }, []);
 
   const renderOptionWithAutocomplete = (props, option, { inputValue }) => {
     // eslint-disable-next-line react/prop-types
@@ -81,65 +67,110 @@ function ProjectSelect({ projectState }) {
     );
   };
 
+  const handleSelectProject = async (selected) => {
+    try {
+      // Get project details + prediction history
+      const detailsParams = new URLSearchParams();
+      detailsParams.append('project_id', selected.project_id);
+      const detailsRes = await fetch(`${GET_PROJECT_DETAILS}?${detailsParams}`);
+      const detailsJson = await detailsRes.json();
+      // console.log(detailsJson);
+
+      // Get historical feature data
+      const histDataParams = new URLSearchParams();
+      // histDataParams.append('num_months', projectDetails.history.length);
+      histDataParams.append(
+        'num_months',
+        detailsJson.prediction_history.length,
+      );
+      histDataParams.append('project_id', selected.project_id);
+      const featuresRes = await fetch(
+        `${GET_PROJECT_HISTORICAL_DATA}?${histDataParams}`,
+      );
+      const featuresJson = await featuresRes.json();
+      // console.log(featuresJson);
+      simDispatch({
+        type: 'set_selected_project',
+        selectedValue: selected,
+        id: selected.project_id,
+        projectDetails: detailsJson,
+        historicalFeatureData: featuresJson,
+      });
+    } catch (e) {
+      // TODO: add Snackbar for fetch feedback
+      console.log(e);
+      simDispatch({
+        type: 'set_selected_project',
+        selectedValue: selected,
+        id: selected.project_id,
+        projectDetails: {},
+        historicalFeatureData: {},
+      });
+    }
+  };
+
   return (
     <div className="project-select">
       <Autocomplete
-        options={projectOptions.sort(
-          (a, b) =>
-            -b.project_name[0]
-              .toUpperCase()
-              .localeCompare(a.project_name[0].toUpperCase()),
-        )}
-        groupBy={(option) => option.status}
+        blurOnSelect
+        clearOnEscape
+        disableClearable
+        handleHomeEndKeys
+        selectOnFocus
         getOptionLabel={(option) => option?.project_name ?? ''}
-        sx={{ width: 300 }}
-        renderInput={(params) => (
-          <TextField {...params} label="Select project" />
-        )}
+        groupBy={(option) => option.status}
+        options={options}
         renderOption={renderOptionWithAutocomplete}
-        value={selectedProject}
-        onChange={(event, newVal) => {
-          setSelectedProject(newVal);
-        }}
+        size="small"
+        sx={{ width: 300, '& fieldset': { borderRadius: 3 } }}
+        value={simContext.selectedProject}
         isOptionEqualToValue={(option, value) =>
           option.project_id === value?.project_id
         }
-        selectOnFocus
-        clearOnEscape
-        handleHomeEndKeys
-        size="small"
+        renderInput={(params) => (
+          <TextField {...params} label="Select project" />
+        )}
+        onChange={(_, selected) => handleSelectProject(selected)}
       />
     </div>
   );
 }
 
-export default function Header({ projectState }) {
+export default function Header() {
   return (
     <AppBar
       component="nav"
-      sx={{ backgroundColor: 'lightgrey' }}
-      position="sticky"
       elevation={0}
+      position="sticky"
+      sx={{ backgroundColor: 'lightgrey' }}
     >
       <Toolbar sx={{ justifyContent: 'space-between' }}>
-        <ProjectSelect projectState={projectState} />
-        <Typography variant="h1" color="black" fontSize="1.5rem">
+        <ProjectSelect />
+        <Typography color="black" fontSize="1.5rem" variant="h1">
           ASFI Project Sustainability Simulator
         </Typography>
         <Box>
           <Link
-            href="https://arxiv.org/abs/2105.14252"
-            target="_blank"
+            href="https://incubator.apache.org/"
             rel="noopener"
             sx={{ marginRight: '1rem', verticalAlign: 'middle' }}
+            target="_blank"
+          >
+            ASFI
+          </Link>
+          <Link
+            href="https://arxiv.org/abs/2105.14252"
+            rel="noopener"
+            sx={{ marginRight: '1rem', verticalAlign: 'middle' }}
+            target="_blank"
           >
             Yin et al.
           </Link>
           <Link
             href="http://zenodo.org/records/4564072"
-            target="_blank"
             rel="noopener"
             sx={{ marginRight: '1rem', verticalAlign: 'middle' }}
+            target="_blank"
           >
             Original Models/Data
           </Link>
@@ -164,7 +195,3 @@ export default function Header({ projectState }) {
     </AppBar>
   );
 }
-
-ProjectSelect.propTypes = {
-  projectState: PropTypes.array.isRequired,
-};

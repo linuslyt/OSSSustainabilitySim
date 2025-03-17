@@ -1,2 +1,4 @@
 ml/data/
 ml/results/
+*venv*/
+*.DS_Store

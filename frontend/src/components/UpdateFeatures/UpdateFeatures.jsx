@@ -1,206 +1,227 @@
-import { Box, Button, Typography } from '@mui/material';
-import Grid from '@mui/material/Grid2';
+import TimelineIcon from '@mui/icons-material/Timeline';
+import { Typography } from '@mui/material';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import { styled } from '@mui/material/styles';
+import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
+import { isEmpty } from 'lodash';
 import React, { useState } from 'react';
+import {
+  useSimulation,
+  useSimulationDispatch,
+} from '../context/SimulationContext';
+import { SIMULATE_WITH_DELTAS } from '../endpoints';
+import DeltaList from './DeltaList';
+import DeltaSelector from './DeltaSelector';
+import FeatureEditor from './FeatureEditor';
+
+const StyledTooltip = styled(({ className, ...props }) => (
+  <Tooltip {...props} classes={{ popper: className }} />
+))(({ theme }) => ({
+  [`& .${tooltipClasses.tooltip}`]: {
+    boxShadow: theme.shadows[1],
+    fontSize: 13,
+  },
+}));
+
+const SAMPLE_DELTAS = {
+  project_id: '200',
+  deltas: [
+    {
+      months: [1, 3],
+      feature_changes: [
+        {
+          feature_name: 'num_commits',
+          change_type: 'percentage',
+          change_value: 20,
+        },
+        {
+          feature_name: 'num_files',
+          change_type: 'explicit',
+          change_values: [100, 150],
+        },
+      ],
+    },
+    {
+      months: [6, 7],
+      feature_changes: [
+        {
+          feature_name: 'num_commits',
+          change_type: 'explicit',
+          change_value: 2,
+        },
+        {
+          feature_name: 'num_files',
+          change_type: 'explicit',
+          change_values: [13, 5],
+        },
+      ],
+    },
+  ],
+};
 
 function UpdateFeatures() {
-  const [features] = useState([
-    { name: 'Commits', value: 100 },
-    { name: 'Files Changed', value: 200 },
-    { name: '% Commits made by top 10% Contributors', value: 80 },
-    { name: 'Active Developers', value: 5 },
-    { name: 'Emails Sent', value: 50 },
-  ]);
+  const simContext = useSimulation();
+  const simDispatch = useSimulationDispatch();
+  const [submitting, setSubmitting] = useState(false);
 
-  const [simulatedValues, setSimulatedValues] = useState(
-    features.map((feature) => feature.value),
-  );
+  const handleSimulateChanges = async () => {
+    const deltas = [...simContext.simulationData.changes.values()].map((v) => ({
+      months: [v.month],
+      feature_changes: [
+        {
+          feature_name: v.feature,
+          change_type: 'explicit',
+          change_value: v.new_value,
+        },
+      ],
+    }));
+    try {
+      setSubmitting(true);
+      const simResponse = await fetch(SIMULATE_WITH_DELTAS, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          project_id: simContext.selectedProject.project_id,
+          deltas: deltas,
+        }),
+      });
 
-  const [percentageChanges, setPercentageChanges] = useState(
-    features.map(() => 0),
-  );
-
-  const updateSimulatedValue = (index, newPercentage) => {
-    const percentageFactor = 1 + newPercentage / 100;
-    const newSimulatedValues = [...simulatedValues];
-    newSimulatedValues[index] = features[index].value * percentageFactor;
-    setSimulatedValues(newSimulatedValues);
-  };
-
-  const incrementPercentage = (index) => {
-    const newPercentageChanges = [...percentageChanges];
-    newPercentageChanges[index] += 5;
-    setPercentageChanges(newPercentageChanges);
-    updateSimulatedValue(index, newPercentageChanges[index]);
-  };
-
-  const decrementPercentage = (index) => {
-    const newPercentageChanges = [...percentageChanges];
-    newPercentageChanges[index] -= 5;
-    setPercentageChanges(newPercentageChanges);
-    updateSimulatedValue(index, newPercentageChanges[index]);
+      const simResults = await simResponse.json();
+      simDispatch({
+        type: 'set_simulation_results',
+        data: simResults.predictions,
+      });
+      setSubmitting(false);
+    } catch (e) {
+      console.log(`Error simulating changes=${deltas}.`);
+      console.log(e);
+      setSubmitting(false);
+    }
   };
 
   return (
-    <>
-      <Grid container spacing={0}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Box sx={{ p: 2 }}>
-            <Typography
-              variant="body1"
-              sx={{ display: 'block', fontWeight: 'bold', fontSize: '1.5rem' }}
-            >
-              Update Features
-            </Typography>
-          </Box>
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Box sx={{ p: 2 }}>
-            <Button>Simulate Changes</Button>
-          </Box>
-        </Grid>
-      </Grid>
-
-      <Grid container spacing={0}>
-        <Grid size={{ xs: 12, md: 3 }}>
-          <Box sx={{ p: 2 }}>
-            <Typography
-              variant="body1"
-              sx={{
-                display: 'block',
-                fontWeight: 'bold',
-                textDecoration: 'underline',
-              }}
-            >
-              Feature
-            </Typography>
-            <ul style={{ listStyleType: 'none', padding: 0, margin: 0 }}>
-              {features.map((feature, index) => (
-                <li
-                  key={index}
-                  style={{
-                    padding: 0,
-                    minHeight: '70px', // Set minimum height for feature name
-                    marginBottom: 0, // Remove margin between items
-                  }}
-                >
-                  {feature.name}:
-                </li>
-              ))}
-            </ul>
-          </Box>
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 3 }}>
-          <Box sx={{ p: 2 }}>
-            <Typography
-              variant="body1"
-              sx={{
-                display: 'block',
-                fontWeight: 'bold',
-                textDecoration: 'underline',
-              }}
-            >
-              Original Value
-            </Typography>
-            {features.map((feature, index) => (
-              <Box
-                key={index}
+    <Box
+      sx={{
+        height: '100%',
+        // backgroundColor: 'whitesmoke',
+        display: 'grid',
+        gridTemplateRows: 'min-content min-content auto',
+        overflow: 'hidden',
+      }}
+    >
+      <Box
+        sx={{
+          gridRow: 1,
+          display: 'grid',
+          gridTemplateColumns: 'max-content auto min-content',
+          my: 0.75,
+          mb: 1,
+          mx: 0.5,
+          gap: 2,
+        }}
+      >
+        <Box sx={{ gridColumn: 1, mr: 1 }}>
+          <DeltaSelector />
+        </Box>
+        <Box
+          sx={{
+            gridColumn: 2,
+            overflow: 'auto',
+            alignSelf: 'center',
+            mr: 1,
+          }}
+        >
+          <DeltaList />
+        </Box>
+        <Box sx={{ gridColumn: 3 }}>
+          <StyledTooltip
+            arrow
+            slotProps={{
+              popper: {
+                modifiers: [
+                  {
+                    name: 'offset',
+                    options: {
+                      offset: [0, 8],
+                    },
+                  },
+                ],
+              },
+            }}
+            title={
+              isEmpty(simContext.simulationData?.changes)
+                ? 'No changes to simulate.'
+                : ''
+            }
+          >
+            <span>
+              <Button
+                disableElevation
+                disabled={isEmpty(simContext.simulationData?.changes)}
+                endIcon={<TimelineIcon />}
+                loading={submitting}
+                loadingPosition="end"
+                size="large"
+                variant="contained"
                 sx={{
-                  display: 'flex',
-                  minHeight: '70px', // Set minimum height for original value
+                  fontFamily: 'inherit',
+                  fontWeight: 400,
+                  px: 2,
+                  borderRadius: 3,
                 }}
+                onClick={() => handleSimulateChanges()}
               >
-                <Typography
-                  variant="body1"
-                  sx={{ display: 'inline-block', mr: 2 }}
-                >
-                  {feature.value}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Box sx={{ p: 2 }}>
-            <Typography
-              variant="body1"
-              sx={{
-                display: 'block',
-                fontWeight: 'bold',
-                textDecoration: 'underline',
-              }}
-            >
-              Value to Simulate
-            </Typography>
-            {simulatedValues.map((simValue, index) => (
-              <Box
-                key={index}
-                sx={{
-                  display: 'flex',
-                  minHeight: '70px', // Set minimum height for simulated value row
-                }}
-              >
-                <Box
-                  sx={{
-                    display: 'flex',
-                    mr: 2,
-                    padding: '2px',
-                  }}
-                >
-                  <Button
-                    sx={{
-                      padding: '2px',
-                      minWidth: '24px',
-                      height: '20px',
-                      color: 'black',
-                      border: '1px solid black',
-                    }}
-                    onClick={() => incrementPercentage(index)}
-                  >
-                    +
-                  </Button>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      fontWeight: 'bold',
-                      width: '50px',
-                      textAlign: 'center',
-                      mr: '5px',
-                      ml: '5px',
-                    }}
-                  >
-                    {percentageChanges[index]}%
-                  </Typography>
-                  <Button
-                    sx={{
-                      padding: '2px',
-                      minWidth: '24px',
-                      height: '20px',
-                      color: 'black',
-                      border: '1px solid black',
-                    }}
-                    onClick={() => decrementPercentage(index)}
-                  >
-                    -
-                  </Button>
-                </Box>
-
-                <Typography
-                  variant="body1"
-                  sx={{ display: 'inline-block', mr: 2 }}
-                >
-                  {simValue % 1 === 0
-                    ? simValue.toFixed(0)
-                    : simValue.toFixed(2)}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        </Grid>
-      </Grid>
-    </>
+                Simulate
+              </Button>
+            </span>
+          </StyledTooltip>
+        </Box>
+      </Box>
+      <Box
+        sx={{
+          gridRow: 2,
+          mb: 1,
+          mx: 0.5,
+        }}
+      >
+        <Typography variant="subtitle">
+          Double click on a cell in either{' '}
+          <Typography
+            sx={{ fontStyle: 'normal', fontWeight: 600 }}
+            variant="subtitle"
+          >
+            &#39;Simulated value&#39;
+          </Typography>{' '}
+          or{' '}
+          <Typography
+            sx={{ fontStyle: 'normal', fontWeight: 600 }}
+            variant="subtitle"
+          >
+            &#39;% change simulated&#39;
+          </Typography>{' '}
+          to edit. <br />
+          Note that{' '}
+          <Typography
+            sx={{ fontStyle: 'normal', fontWeight: 600 }}
+            variant="subtitle"
+          >
+            &#39;% change simulated&#39;
+          </Typography>{' '}
+          is rounded to the nearest percentage that changes the (rounded)
+          simulated value.
+        </Typography>
+      </Box>
+      <Box
+        sx={{
+          gridRow: 3,
+        }}
+      >
+        <FeatureEditor />
+      </Box>
+    </Box>
   );
 }
 
