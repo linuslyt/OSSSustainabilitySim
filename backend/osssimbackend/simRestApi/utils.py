@@ -6,9 +6,15 @@ from sklearn.preprocessing import MinMaxScaler
 import os
 from pathlib import Path
 import json
+from joblib import load
+
 
 
 TEMPORAL_DATA_DIR = Path(__file__).parent /"asfi_project_info/project_temporal_json_data/"
+MODEL_DIR =  Path(__file__).parent / 'lstm_models/' # Directory where models are stored
+
+# Load scaler
+# scaler = load(os.path.join(MODEL_DIR, 'scaler_8.joblib'))
 
 all_features = [
             'active_devs', 'num_commits', 'num_files', 'num_emails', 'c_percentage', 'e_percentage',
@@ -52,13 +58,15 @@ def predict(history, model_path):
     """
     scaler = MinMaxScaler(feature_range=(-1, 1))  # Use the same scaling as training
     
+    print(history)
+    
     # Convert history to DataFrame and scale
     df = pd.DataFrame(history)
     df = df[all_features] # Ensure all features are present
     scaled_data = scaler.fit_transform(df.values)  # Scale the data
     
     feature_dim = scaled_data.shape[1]  # Number of features per month
-    print("feature dimension is: ", feature_dim)
+    # print("feature dimension is: ", feature_dim)
     
     # Load stateful model
     model = build_stateless_model(model_path, feature_dim)

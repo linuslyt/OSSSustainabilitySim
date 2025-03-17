@@ -27,7 +27,7 @@ PROJECT_LIST = ['49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59'
 # Path to the JSON file
 ASFI_JSON_FILE_PATH = Path(__file__).parent / 'asfi_project_info/projects_list.json'
 
-PROJECT_PREDICTIONS_FILE = Path(__file__).parent / 'asfi_project_info/project_predictions_sequential.json'
+PROJECT_PREDICTIONS_FILE = Path(__file__).parent / 'asfi_project_info/historical_project_predictions.json'
 
 MODEL_DIR =  Path(__file__).parent / 'lstm_models/' # Directory where models are stored
 
@@ -1857,7 +1857,8 @@ class SimulateWithDeltasView(APIView):
             print(f"Error clearing cache: {e}")
 
         # Create a copy of the original history to modify
-        modified_history = [month_data.copy() for month_data in project_history["history"]]
+        # modified_history = [month_data.copy() for month_data in project_history["history"]]
+        modified_history = project_history["history"]
         
         # Apply monthly changes
         for monthly_change in monthly_changes:
@@ -1867,7 +1868,7 @@ class SimulateWithDeltasView(APIView):
             # Apply changes to specified months
             for month_idx in months_to_modify:
                 # Make sure the month index is valid
-                if 0 <= month_idx < len(modified_history):
+                if 0 <= month_idx <= len(modified_history):
                     # print(f"📅 Modifying month {month_idx}: {modified_history[month_idx-1]}")
                     month_data = modified_history[month_idx-1]
                     
@@ -1875,6 +1876,7 @@ class SimulateWithDeltasView(APIView):
                     for change in feature_changes:
                         feature = change.get('feature_name')
                         change_type = change.get('change_type')
+                        # print(feature, change_type)
                         
                         if feature in month_data:
                             print(f"📌 Modifying {feature} in month {month_idx} from {month_data[feature]}")
@@ -1897,9 +1899,10 @@ class SimulateWithDeltasView(APIView):
         
         # Load model for prediction
         # model_path = os.path.join(MODEL_DIR, "lstm_wo_padding_model.h5")
-        model_path = os.path.join(MODEL_DIR, "model_8.h5")
+        # model_path = os.path.join(MODEL_DIR, "model_8.h5")
+        model_path = os.path.join(MODEL_DIR, "modelWeighted_8.h5")
         if not os.path.exists(model_path):
-            return Response({"error": f"No model available for {max_months} months"}, status=400)
+            return Response({"error": f"Model does not exist"}, status=400)
 
         # Make predictions
         predictions = predict(modified_history, model_path)
