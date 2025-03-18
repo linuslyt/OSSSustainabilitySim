@@ -31,7 +31,10 @@
 
 ## Dashboard usage walkthrough
 
-![Usage walkthrough video](https://github.com/linuslyt/OSSSustainabilitySim/blob/main/images/walkthrough.mov)
+
+![Usage walkthrough video](https://github.com/user-attachments/assets/b6cf1151-023c-4fe8-a18e-5439b3fd02c3)
+
+(For a full resolution walkthrough video, see `images/walkthrough.mov`.)
 
 1. Select a project from the dropdown in the top left. You can type a project name and it will show you autocompleted matches.
 
