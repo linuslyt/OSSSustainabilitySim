@@ -1,7 +1,10 @@
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import { Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import { isEmpty } from 'lodash';
@@ -16,7 +19,7 @@ import DeltaSelector from './DeltaSelector';
 import FeatureEditor from './FeatureEditor';
 
 const StyledTooltip = styled(({ className, ...props }) => (
-  <Tooltip {...props} classes={{ popper: className }} />
+  <Tooltip disableInteractive {...props} classes={{ popper: className }} />
 ))(({ theme }) => ({
   [`& .${tooltipClasses.tooltip}`]: {
     boxShadow: theme.shadows[1],
@@ -137,47 +140,72 @@ function UpdateFeatures() {
           <DeltaList />
         </Box>
         <Box sx={{ gridColumn: 3 }}>
-          <StyledTooltip
-            arrow
-            slotProps={{
-              popper: {
-                modifiers: [
-                  {
-                    name: 'offset',
-                    options: {
-                      offset: [0, 8],
+          <Stack direction="row" sx={{ alignItems: 'center' }}>
+            <StyledTooltip
+              arrow
+              slotProps={{
+                popper: {
+                  modifiers: [
+                    {
+                      name: 'offset',
+                      options: {
+                        offset: [0, 8],
+                      },
                     },
-                  },
-                ],
-              },
-            }}
-            title={
-              isEmpty(simContext.simulationData?.changes)
-                ? 'No changes to simulate.'
-                : ''
-            }
-          >
-            <span>
-              <Button
+                  ],
+                },
+              }}
+              title={
+                isEmpty(simContext.simulationData?.changes)
+                  ? 'No changes to simulate.'
+                  : ''
+              }
+            >
+              <span>
+                <Button
+                  disableElevation
+                  disabled={isEmpty(simContext.simulationData?.changes)}
+                  endIcon={<TimelineIcon />}
+                  loading={submitting}
+                  loadingPosition="end"
+                  size="large"
+                  variant="contained"
+                  sx={{
+                    fontFamily: 'inherit',
+                    fontWeight: 400,
+                    px: 2,
+                    borderRadius: 3,
+                  }}
+                  onClick={() => handleSimulateChanges()}
+                >
+                  Simulate
+                </Button>
+              </span>
+            </StyledTooltip>
+            <StyledTooltip
+              title={
+                isEmpty(simContext.simulatedPredictions)
+                  ? ''
+                  : 'Reset simulated predictions'
+              }
+            >
+              <IconButton
                 disableElevation
-                disabled={isEmpty(simContext.simulationData?.changes)}
-                endIcon={<TimelineIcon />}
-                loading={submitting}
-                loadingPosition="end"
+                disabled={isEmpty(simContext.simulatedPredictions)}
                 size="large"
-                variant="contained"
                 sx={{
                   fontFamily: 'inherit',
                   fontWeight: 400,
-                  px: 2,
-                  borderRadius: 3,
+                  ml: 0.5,
                 }}
-                onClick={() => handleSimulateChanges()}
+                onClick={() =>
+                  simDispatch({ type: 'reset_simulation_results' })
+                }
               >
-                Simulate
-              </Button>
-            </span>
-          </StyledTooltip>
+                <RestartAltIcon />
+              </IconButton>
+            </StyledTooltip>
+          </Stack>
         </Box>
       </Box>
       <Box

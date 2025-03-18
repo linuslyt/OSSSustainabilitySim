@@ -22,7 +22,7 @@ import {
 import { FEATURE_DESCRIPTIONS } from './constants';
 
 const StyledTooltip = styled(({ className, ...props }) => (
-  <Tooltip {...props} classes={{ popper: className }} />
+  <Tooltip disableInteractive {...props} classes={{ popper: className }} />
 ))(({ theme }) => ({
   [`& .${tooltipClasses.tooltip}`]: {
     boxShadow: theme.shadows[1],

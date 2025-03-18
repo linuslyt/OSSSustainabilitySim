@@ -156,6 +156,10 @@ function simulationReducer(prev, action) {
       });
       return {
         ...prev,
+        selectedFeature: {
+          ...prev.selectedFeature,
+          feature: action.updatedRow.feature,
+        },
         simulationData: {
           ...prev.simulationData,
           changes: newChanges,
@@ -211,10 +215,20 @@ function simulationReducer(prev, action) {
       };
     }
     case 'set_simulation_results': {
+      console.log(
+        'Original predictions:',
+        prev.selectedProjectData.predictions,
+      );
       console.log('Simulation results:', action.data);
       return {
         ...prev,
         simulatedPredictions: action.data,
+      };
+    }
+    case 'reset_simulation_results': {
+      return {
+        ...prev,
+        simulatedPredictions: [],
       };
     }
     default: {
@@ -223,7 +237,6 @@ function simulationReducer(prev, action) {
   }
 }
 
-// TODO: check for NPEs
 const DUMMY_SIM = {
   selectedProject: {},
   selectedProjectData: {
@@ -233,7 +246,7 @@ const DUMMY_SIM = {
     features: [],
   },
   selectedFeature: {
-    feature: 'num_commits',
+    feature: 'active_devs',
     month: 1,
   },
   simulationData: {
