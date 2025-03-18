@@ -1,8 +1,10 @@
 from tensorflow.keras.models import load_model, Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout
+import tensorflow_addons as tfa
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
+from tensorflow.keras.utils import custom_object_scope
 import os
 from pathlib import Path
 import json
@@ -32,7 +34,9 @@ def build_stateless_model(original_model_path, feature_dim):
     :return: A stateless LSTM model for inference
     """
     # Load original model to get weights
-    original_model = load_model(original_model_path)
+    with custom_object_scope({'Addons>SigmoidFocalCrossEntropy': tfa.losses.SigmoidFocalCrossEntropy()}):
+        original_model = load_model(original_model_path)
+    
     
     # Rebuild model with stateful LSTM (accepting one month at a time)
     model = Sequential([
