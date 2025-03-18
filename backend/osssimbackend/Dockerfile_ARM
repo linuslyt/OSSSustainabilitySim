@@ -5,10 +5,10 @@ FROM armswdev/tensorflow-arm-neoverse:r23.07-tf-2.12.0-eigen
 WORKDIR /app
 
 # Copy the requirements file
-COPY requirements.txt /app/
+COPY requirements_ARM.txt /app/
 
 # Upgrade pip and install dependencies 
-RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements_ARM.txt
 RUN pip3 install tensorflow-addons --verbose
 
 # Copy the rest of the project 
