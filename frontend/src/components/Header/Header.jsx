@@ -184,7 +184,7 @@ export default function Header() {
           <IconButton
             onClick={() =>
               window.open(
-                'https://github.com/linuslyt/OSSSustainabilitySim/blob/main/frontend/README.md',
+                'https://github.com/linuslyt/OSSSustainabilitySim/blob/main/frontend/README.md#dashboard-usage-walkthrough',
               )
             }
           >
