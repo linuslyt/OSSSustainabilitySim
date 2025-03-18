@@ -66,19 +66,6 @@ export default function FeatureGraph() {
   const simContext = useSimulation();
   const { month: selectedMonth, feature: selectedFeature } =
     simContext.selectedFeature;
-  // Stretch goal: change to scrollable graph
-  const inFocusRange = (month, centerMonth) => {
-    const monthMargin = 3; // display a quarter of data on each side
-    // TODO: add extra months on left or right if total shown < margin * 2 + 1
-    return (
-      month >= Math.max(1, centerMonth - monthMargin) &&
-      month <=
-        Math.min(
-          simContext.selectedProjectData.features.length,
-          centerMonth + monthMargin,
-        )
-    );
-  };
 
   const data = simContext.selectedProjectData.features.map((d) => ({
     month: d.month,
@@ -87,12 +74,14 @@ export default function FeatureGraph() {
   //.filter((d) => inFocusRange(d.month, selectedMonth));
 
   useEffect(() => {
+    let changesToPlot = false;
     const renderGraph = (data) => {
       const changedData = data.map((original) => {
         const changeId = `${original.month}-${selectedFeature}`;
         if (simContext.simulationData.changes.has(changeId)) {
           const { month, new_value: value } =
             simContext.simulationData.changes.get(changeId);
+          changesToPlot = true;
           return { month, value };
         } else return original;
       });
@@ -190,6 +179,7 @@ export default function FeatureGraph() {
         .datum(data)
         .attr('d', lineGenerator)
         .attr('fill', 'none')
+        .attr('opacity', changesToPlot ? 0.5 : 1)
         .attr('stroke', 'green')
         .attr('stroke-width', '2px');
 
@@ -202,6 +192,7 @@ export default function FeatureGraph() {
         .attr('cx', (d) => xScale(d.month))
         .attr('cy', (d) => yScale(d.value))
         .attr('fill', 'green')
+        .attr('opacity', changesToPlot ? 0.5 : 1)
         .on('mouseover', function (event, d) {
           const bbox = this.getBBox(); // Get bounding box of marker
 
@@ -213,7 +204,7 @@ export default function FeatureGraph() {
             x: offsetX + x,
             y: offsetY + y,
             visible: true,
-            text: `${selectedFeature}: ${d.value}\nMonth: ${d.month}`,
+            text: `${selectedFeature}: ${formatStrings.get(selectedFeature) === INT_FORMAT ? Math.round(d.value) : d.value.toFixed(3)}\nMonth: ${d.month}`,
           });
         })
         .on('mouseout', () => {
@@ -240,7 +231,7 @@ export default function FeatureGraph() {
             x: offsetX + x,
             y: offsetY + y,
             visible: true,
-            text: `${selectedFeature}*: ${d.value}\nMonth: ${d.month}`,
+            text: `${selectedFeature}*: ${formatStrings.get(selectedFeature) === INT_FORMAT ? Math.round(d.value) : d.value.toFixed(3)}\nMonth: ${d.month}`,
           });
         })
         .on('mouseout', () => {
@@ -269,6 +260,7 @@ export default function FeatureGraph() {
 
       d3.select('#feature-graph')
         .on('mousemove', (event) => {
+          if (!simContext.selectedProject?.project_id) return;
           const [mouseX, mouseY] = d3.pointer(event);
           const inBounds =
             mouseX > margin.left &&
@@ -286,10 +278,12 @@ export default function FeatureGraph() {
             x: offsetX + mouseX,
             y: offsetY + mouseY,
             visible: inBounds,
-            text: `${selectedFeature}: ${yScale.invert(mouseY).toFixed(2)}`,
+            // ${formatStrings.get(selectedFeature) === INT_FORMAT ? Math.round(d.value) : d.value.toFixed(3)
+            text: `${selectedFeature}: ${formatStrings.get(selectedFeature) === INT_FORMAT ? Math.round(yScale.invert(mouseY)) : yScale.invert(mouseY).toFixed(3)}`,
           });
         })
         .on('mouseleave', () => {
+          if (!simContext.selectedProject?.project_id) return;
           d3.select('#feature-graph')
             .select('#y-crosshair')
             .style('visibility', 'hidden');
@@ -367,7 +361,13 @@ export default function FeatureGraph() {
             zIndex: 999,
           }}
         >
-          <Typography sx={{ whiteSpace: 'pre-wrap', textAlign: 'left' }}>
+          <Typography
+            sx={{
+              whiteSpace: 'pre-wrap',
+              textAlign: 'left',
+              fontFamily: "'Roboto', sans-serif",
+            }}
+          >
             {tooltip.text}
           </Typography>
         </Box>
@@ -392,7 +392,13 @@ export default function FeatureGraph() {
             zIndex: 999,
           }}
         >
-          <Typography sx={{ whiteSpace: 'pre-wrap', textAlign: 'left' }}>
+          <Typography
+            sx={{
+              whiteSpace: 'pre-wrap',
+              textAlign: 'left',
+              fontFamily: "'Roboto', sans-serif",
+            }}
+          >
             {crosshairLabel.text}
           </Typography>
         </Box>

@@ -12,12 +12,12 @@ export default function ForecastGraph() {
   const simContext = useSimulation();
 
   const data = simContext.selectedProjectData.predictions;
-  const simMap = new Map(
-    simContext.simulatedPredictions.map((sim) => [sim.month, sim]),
-  );
-  const simData2 = data.map((original) =>
-    simMap.has(original.month) ? simMap.get(original.month) : original,
-  );
+  // const simMap = new Map(
+  //   simContext.simulatedPredictions.map((sim) => [sim.month, sim]),
+  // );
+  // const simData2 = data.map((original) =>
+  //   simMap.has(original.month) ? simMap.get(original.month) : original,
+  // );
   const simData = simContext.simulatedPredictions;
 
   const domain = d3.extent(data.map((d) => d.month));
@@ -185,6 +185,7 @@ export default function ForecastGraph() {
         .attr('cx', (d) => xScale(d.month))
         .attr('cy', (d) => yScale(d.p_grad))
         .attr('fill', 'rgb(17, 105, 193)')
+        .attr('opacity', 0.7)
         .on('mouseover', function (event, d) {
           const bbox = this.getBBox(); // Get bounding box of marker
 
@@ -215,6 +216,7 @@ export default function ForecastGraph() {
         .attr('d', lineGenerator)
         .attr('fill', 'none')
         .attr('stroke', 'rgb(25, 118, 210)')
+        .attr('opacity', 0.6)
         .attr('stroke-width', '2.5px');
 
       d3.select('#forecast-graph')
@@ -231,6 +233,7 @@ export default function ForecastGraph() {
 
       d3.select('#forecast-graph')
         .on('mousemove', (event) => {
+          if (!simContext.selectedProject?.project_id) return;
           const [mouseX, mouseY] = d3.pointer(event);
           const inBounds =
             mouseX > margin.left &&
@@ -258,6 +261,7 @@ export default function ForecastGraph() {
           });
         })
         .on('mouseleave', () => {
+          if (!simContext.selectedProject?.project_id) return;
           d3.select('#forecast-graph')
             .select('#y-crosshair')
             .style('visibility', 'hidden');
@@ -330,7 +334,13 @@ export default function ForecastGraph() {
             zIndex: 999,
           }}
         >
-          <Typography sx={{ whiteSpace: 'pre-wrap', textAlign: 'left' }}>
+          <Typography
+            sx={{
+              whiteSpace: 'pre-wrap',
+              textAlign: 'left',
+              fontFamily: "'Roboto', sans-serif",
+            }}
+          >
             {tooltip.text}
           </Typography>
         </Box>
@@ -355,7 +365,13 @@ export default function ForecastGraph() {
             zIndex: 999,
           }}
         >
-          <Typography sx={{ whiteSpace: 'pre-wrap', textAlign: 'left' }}>
+          <Typography
+            sx={{
+              whiteSpace: 'pre-wrap',
+              textAlign: 'left',
+              fontFamily: "'Roboto', sans-serif",
+            }}
+          >
             {crosshairLabel.text}
           </Typography>
         </Box>

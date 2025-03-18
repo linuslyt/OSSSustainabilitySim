@@ -7,14 +7,14 @@ export function getRowId(month, feature) {
 
 export function getPercentChange(newVal, oldVal) {
   // 1 d.p. in % units for pChange.
-  return parseFloat((((newVal - oldVal) / oldVal) * 100.0).toFixed(1));
+  return Math.round(((newVal - oldVal) / oldVal) * 100.0 * 1e1) / 1e1;
 }
 
 export function getNewValueFromPChange(feature, oldVal, pChange) {
   // 2 d.p. for new_value
   return FEATURE_TYPES.get(feature) === 'INTEGER'
     ? Math.round(oldVal * (1 + pChange / 100))
-    : parseFloat((oldVal * (1 + pChange / 100)).toFixed(2));
+    : Math.round(oldVal * (1 + pChange / 100) * 1e3) / 1e3;
 }
 
 export function pivot(data, changes) {
@@ -30,16 +30,23 @@ export function pivot(data, changes) {
 
   return data
     .flatMap(({ month, ...rest }) =>
-      Object.entries(rest).map(([feature, value]) => ({
-        id: getRowId(month, feature),
-        month,
-        feature,
-        value,
-        // Simulated value
-        new_value: changes.has(getRowId(month, feature))
+      Object.entries(rest).map(([feature, value]) => {
+        const formattedValue =
+          FEATURE_TYPES.get(feature) === 'INTEGER'
+            ? value
+            : Math.round(value * 1e3) / 1e3;
+        const formattedNewValue = changes.has(getRowId(month, feature))
           ? changes.get(getRowId(month, feature)).new_value
-          : value,
-      })),
+          : formattedValue;
+        return {
+          id: getRowId(month, feature),
+          month,
+          feature,
+          value: formattedValue,
+          // Simulated value
+          new_value: formattedNewValue,
+        };
+      }),
     )
     .sort(
       (a, b) =>
@@ -70,8 +77,8 @@ export const FEATURE_VALIDATOR_MAP = new Map(
     num_emails: integerValidator,
     // NOTE: Logically, these should also be <= the total time intervals elapsed from
     //       project start to the current month.
-    inactive_c: integerValidator,
-    inactive_e: integerValidator,
+    inactive_c: percentageValidator,
+    inactive_e: percentageValidator,
     // NOTE: Logically, these should have extra constraints depending on how the network is defined.
     //       e.g. perhaps c_nodes should correspond to the number of commits.
     c_nodes: integerValidator,
