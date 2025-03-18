@@ -53,7 +53,7 @@ def reshape_y(seq, n_timesteps):
 # Use N_TIMESTEPS as time of lookback for LSTM
 
 data_path = parent_dir / 'Reformat_data'  # Path to CSVs
-models_path = parent_dir / 'modelsThree'  # Path to save models
+models_path = parent_dir / 'results'/'models'  # Path to save models
 metrics_path = parent_dir / 'results' / 'metricsWeightedModel.csv'
 
 project_set = set()
