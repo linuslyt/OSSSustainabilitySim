@@ -14,7 +14,7 @@ TEMPORAL_DATA_DIR = Path(__file__).parent /"asfi_project_info/project_temporal_j
 MODEL_DIR =  Path(__file__).parent / 'lstm_models/' # Directory where models are stored
 
 # Load scaler
-# scaler = load(os.path.join(MODEL_DIR, 'scaler_8.joblib'))
+# scaler = load(os.path.join(MODEL_DIR, 'scaler_1.joblib'))
 
 all_features = [
             'active_devs', 'num_commits', 'num_files', 'num_emails', 'c_percentage', 'e_percentage',
@@ -48,7 +48,7 @@ def build_stateless_model(original_model_path, feature_dim):
 
 
 
-def predict(history, model_path):
+def predict(history, model_path, start_month_idx=0):
     """
     Perform inference with increasing sequence length (dynamic input length).
 
@@ -74,7 +74,7 @@ def predict(history, model_path):
     predictions = []
     # model.reset_states()  # Reset state before new sequence
     
-    for month_idx in range(len(history)):
+    for month_idx in range(start_month_idx,len(history)):
         # # Extract one month at a time
         # model_input = np.expand_dims(scaled_data[month_idx], axis=(0, 1))  # Shape (1,1,features)
         

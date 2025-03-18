@@ -27,7 +27,7 @@ PROJECT_LIST = ['49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59'
 # Path to the JSON file
 ASFI_JSON_FILE_PATH = Path(__file__).parent / 'asfi_project_info/projects_list.json'
 
-PROJECT_PREDICTIONS_FILE = Path(__file__).parent / 'asfi_project_info/historical_project_predictions.json'
+PROJECT_PREDICTIONS_FILE = Path(__file__).parent / 'asfi_project_info/project_predictions_stateless.json'
 
 MODEL_DIR =  Path(__file__).parent / 'lstm_models/' # Directory where models are stored
 
@@ -1860,6 +1860,18 @@ class SimulateWithDeltasView(APIView):
         # modified_history = [month_data.copy() for month_data in project_history["history"]]
         modified_history = project_history["history"]
         
+        
+        # Find the lowest month with changes
+        all_months_to_modify = []
+        for monthly_change in monthly_changes:
+            all_months_to_modify.extend(monthly_change.get("months", []))
+        
+        min_month_with_changes = min(all_months_to_modify) if all_months_to_modify else 1
+        # Convert to 0-indexed for internal use
+        start_month_idx = min_month_with_changes - 1
+        print(f"Starting predictions from month {min_month_with_changes} (0-indexed: {start_month_idx})")
+    
+        
         # Apply monthly changes
         for monthly_change in monthly_changes:
             months_to_modify = monthly_change.get("months", [])
@@ -1869,7 +1881,7 @@ class SimulateWithDeltasView(APIView):
             for month_idx in months_to_modify:
                 # Make sure the month index is valid
                 if 0 <= month_idx <= len(modified_history):
-                    # print(f"📅 Modifying month {month_idx}: {modified_history[month_idx-1]}")
+                    print(f"📅 Modifying month {month_idx}: {modified_history[month_idx-1]}")
                     month_data = modified_history[month_idx-1]
                     
                     # Apply each feature change
@@ -1904,13 +1916,55 @@ class SimulateWithDeltasView(APIView):
         if not os.path.exists(model_path):
             return Response({"error": f"Model does not exist"}, status=400)
 
-        # Make predictions
-        predictions = predict(modified_history, model_path)
+        historical_predictions = []
+        if start_month_idx > 0:  # Only fetch if we're starting predictions from a month > 1
+            try:
+                # Fetch the prediction history from project_predictions.json
+                with open(PROJECT_PREDICTIONS_FILE, 'r') as f:
+                    predictions_data = json.load(f)
+                
+                # Get prediction history for the project from predictions file
+                all_project_predictions = predictions_data.get(project_id, [])
+                
+                # Filter for only the months before our start month
+                historical_predictions = [
+                    pred for pred in all_project_predictions 
+                    if pred.get("month", 0) < min_month_with_changes
+                ]
+                
+                print(f"Fetched {len(historical_predictions)} historical predictions for months before {min_month_with_changes}")
+            except FileNotFoundError:
+                print(f"No prediction history file found at {PROJECT_PREDICTIONS_FILE}")
+            except Exception as e:
+                print(f"Error fetching prediction history: {str(e)}")
+        
+        # Make predictions starting from the lowest month with changes
+        new_predictions = predict(modified_history, model_path, start_month_idx)
+        
+        # Combine historical predictions with new predictions
+        combined_predictions = historical_predictions + new_predictions
+        
+        # Sort by month to ensure order
+        combined_predictions.sort(key=lambda x: x.get("month", 0))
         
         # Prepare Response
         response_data = {
             "project_id": project_id,
-            "predictions": predictions
+            "predictions": combined_predictions
         }
-
+        
+        
         return Response(response_data, status=200)
+
+        
+        
+        # # Make predictions
+        # predictions = predict(modified_history, model_path)
+        
+        # # Prepare Response
+        # response_data = {
+        #     "project_id": project_id,
+        #     "predictions": predictions
+        # }
+
+        # return Response(response_data, status=200)
