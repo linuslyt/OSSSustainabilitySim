@@ -117,7 +117,7 @@ function simulationReducer(prev, action) {
         startMonth,
         endMonth,
       };
-      const newChangedMonths = prev.simulationData.changedMonths;
+      const newChangedMonths = new Set(prev.simulationData.changedMonths);
       for (let i = startMonth; i <= endMonth; i++) {
         newChangedMonths.add(i);
       }
