@@ -52,7 +52,7 @@ export default function ProjectDetails() {
       <Typography variant="body1">
         Status:{' '}
         {simContext.selectedProjectData.id
-          ? projectDetails.status
+          ? projectDetails.status === 1
             ? 'Graduated'
             : 'Retired'
           : ''}

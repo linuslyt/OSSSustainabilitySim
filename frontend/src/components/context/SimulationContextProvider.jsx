@@ -117,7 +117,7 @@ function simulationReducer(prev, action) {
         startMonth,
         endMonth,
       };
-      const newChangedMonths = prev.simulationData.changedMonths;
+      const newChangedMonths = new Set(prev.simulationData.changedMonths);
       for (let i = startMonth; i <= endMonth; i++) {
         newChangedMonths.add(i);
       }
@@ -147,15 +147,23 @@ function simulationReducer(prev, action) {
       };
     }
     case 'set_change': {
-      if (action.updatedRow.new_value === action.updatedRow.value) return prev;
       const newChanges = new Map(prev.simulationData.changes);
-      newChanges.set(action.updatedRow.id, {
-        month: action.updatedRow.month,
-        feature: action.updatedRow.feature,
-        new_value: action.updatedRow.new_value,
-      });
+      if (action.updatedRow.new_value === action.updatedRow.value) {
+        // No simulated change. Remove if change was previously saved. Else noop.
+        newChanges.delete(action.updatedRow.id);
+      } else {
+        newChanges.set(action.updatedRow.id, {
+          month: action.updatedRow.month,
+          feature: action.updatedRow.feature,
+          new_value: action.updatedRow.new_value,
+        });
+      }
       return {
         ...prev,
+        selectedFeature: {
+          ...prev.selectedFeature,
+          feature: action.updatedRow.feature,
+        },
         simulationData: {
           ...prev.simulationData,
           changes: newChanges,
@@ -211,10 +219,24 @@ function simulationReducer(prev, action) {
       };
     }
     case 'set_simulation_results': {
+      console.log(
+        `Simulated changes to project ${prev.selectedProjectData.id}.`,
+      );
+      console.log(
+        'Original predictions:',
+        prev.selectedProjectData.predictions,
+      );
+      console.log('Changes to simulate: ', prev.simulationData.changes);
       console.log('Simulation results:', action.data);
       return {
         ...prev,
         simulatedPredictions: action.data,
+      };
+    }
+    case 'reset_simulation_results': {
+      return {
+        ...prev,
+        simulatedPredictions: [],
       };
     }
     default: {
@@ -223,7 +245,6 @@ function simulationReducer(prev, action) {
   }
 }
 
-// TODO: check for NPEs
 const DUMMY_SIM = {
   selectedProject: {},
   selectedProjectData: {
@@ -233,7 +254,7 @@ const DUMMY_SIM = {
     features: [],
   },
   selectedFeature: {
-    feature: 'num_commits',
+    feature: 'active_devs',
     month: 1,
   },
   simulationData: {

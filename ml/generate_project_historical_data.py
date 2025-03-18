@@ -15,7 +15,7 @@ class ProjectDataAggregator:
                              'inactive_c', 'inactive_e', 'c_nodes', 'c_edges', 'c_c_coef', 'c_mean_degree', 'c_long_tail',
                              'e_nodes', 'e_edges', 'e_c_coef', 'e_mean_degree', 'e_long_tail']
         
-        self.data_dir = os.path.join(grand_parent_dir, 'Reformat_data/')
+        self.data_dir = os.path.join(parent_dir, 'Reformat_data/')
         self.output_dir = os.path.join(parent_dir, 'project_data/')
         
         # Ensure output directory exists

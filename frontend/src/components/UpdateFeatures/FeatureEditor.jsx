@@ -6,7 +6,12 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
-import { DataGrid, GridActionsCellItem, useGridApiRef } from '@mui/x-data-grid';
+import {
+  DataGrid,
+  GridActionsCellItem,
+  GridEditInputCell,
+  useGridApiRef,
+} from '@mui/x-data-grid';
 import PropTypes from 'prop-types';
 import React, { useEffect } from 'react';
 import {
@@ -22,7 +27,7 @@ import {
 import { FEATURE_DESCRIPTIONS } from './constants';
 
 const StyledTooltip = styled(({ className, ...props }) => (
-  <Tooltip {...props} classes={{ popper: className }} />
+  <Tooltip disableInteractive {...props} classes={{ popper: className }} />
 ))(({ theme }) => ({
   [`& .${tooltipClasses.tooltip}`]: {
     boxShadow: theme.shadows[1],
@@ -61,6 +66,43 @@ export default function FeatureEditor() {
   ]);
 
   const rows = pivot(selectedData, simContext.simulationData.changes);
+
+  const ErrorTooltip = styled(({ className, ...props }) => (
+    <Tooltip
+      arrow
+      disableInteractive
+      {...props}
+      classes={{ popper: className }}
+    />
+  ))(({ theme }) => ({
+    [`& .${tooltipClasses.tooltip}`]: {
+      backgroundColor: theme.palette.error.main,
+      color: theme.palette.error.contrastText,
+      boxShadow: theme.shadows[1],
+      fontSize: 13,
+    },
+    [`& .${tooltipClasses.arrow}`]: {
+      color: theme.palette.error.main,
+    },
+  }));
+
+  function EditInputCell(props) {
+    const { error } = props;
+
+    return (
+      <ErrorTooltip
+        open={!!error}
+        title="Invalid simulated value. Press ESC to clear."
+      >
+        <GridEditInputCell {...props} />
+      </ErrorTooltip>
+    );
+  }
+
+  function renderEditInputCell(params) {
+    return <EditInputCell {...params} />;
+  }
+
   const columns = [
     {
       field: 'feature',
@@ -111,12 +153,12 @@ export default function FeatureEditor() {
       sortable: false,
       rowSpanValueGetter: () => null, // disable row spanning on equal values
       preProcessEditCellProps: (params) => {
-        // Setting `error: true` prevents MUI from saving the new value. Presenting the error needs to be done manually.
+        // Setting `error: true` prevents MUI from saving the new value. Presenting the error itself is done manually in renderEditCell.
         // See: https://github.com/mui/mui-x/issues/8854#issuecomment-1534730413
-        // TODO: wrap renderEditCell to highlight cell as invalid
         const validator = FEATURE_VALIDATOR_MAP.get(params.row.feature);
         return { ...params.props, error: !validator(params.props.value) };
       },
+      renderEditCell: renderEditInputCell,
     },
     {
       field: 'pChange',
@@ -139,16 +181,15 @@ export default function FeatureEditor() {
           new_value: getNewValueFromPChange(row.feature, row.value, pChange),
         };
       },
-      valueFormatter: (value) => {
+      valueFormatter: (value, row) => {
         // Format percentage for display.
-        return value === null
-          ? ''
+        return value === null || row.value === 0 // row.value = 0 would lead to NaN
+          ? 'N/A'
           : `${value > 0 ? '+' : ''}${value.toLocaleString()} %`;
       },
       preProcessEditCellProps: (params) => {
-        // Setting `error: true` prevents MUI from saving the new value. Presenting the error needs to be done manually.
+        // Setting `error: true` prevents MUI from saving the new value. Presenting the error itself is done manually in renderEditCell.
         // See: https://github.com/mui/mui-x/issues/8854#issuecomment-1534730413
-        // TODO: wrap renderEditCell to highlight cell as invalid
         const validator = FEATURE_VALIDATOR_MAP.get(params.row.feature);
         // Value is in % units. Convert to new actual value for validation.
         const newValue = getNewValueFromPChange(
@@ -158,6 +199,7 @@ export default function FeatureEditor() {
         );
         return { ...params.props, error: !validator(newValue) };
       },
+      renderEditCell: renderEditInputCell,
     },
     {
       type: 'actions',
@@ -184,6 +226,7 @@ export default function FeatureEditor() {
           >
             <GridActionsCellItem
               color="inherit"
+              disabled={params.row.value === 0}
               icon={<SouthWestIcon />}
               label="CopyToAllMonthsForFeature"
               onClick={() =>
@@ -253,6 +296,12 @@ export default function FeatureEditor() {
               return 'changed-row';
             }
             return params.indexRelativeToCurrentPage % 2 === 0 ? '' : 'even';
+          }}
+          isCellEditable={(params) => {
+            // Disable editing for pChange when it is NaN
+            if (params.field === 'pChange' && params.row.value === 0)
+              return false;
+            return true;
           }}
           localeText={{
             noRowsLabel:

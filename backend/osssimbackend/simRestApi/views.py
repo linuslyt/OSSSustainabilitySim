@@ -776,12 +776,12 @@ class PredictOSSSustainabilityView(APIView):
             return Response({"error": "Project not used in the study "}, status=404)
         
         # Check if the project has at least 8 months of historical data
-        num_months = len(history)
-        if num_months < 8:
-            return Response({
-                "error": "Insufficient historical data", 
-                "details": f"At least 8 months of data required. Provided: {num_months} months"
-            }, status=400)
+        # num_months = len(history)
+        # if num_months < 8:
+        #     return Response({
+        #         "error": "Insufficient historical data", 
+        #         "details": f"At least 8 months of data required. Provided: {num_months} months"
+        #     }, status=400)
         
         # Validate project ID
         if project_id not in PROJECT_LIST:
@@ -932,52 +932,55 @@ class HistoricalDataView(APIView):
         responses={
             200: OpenApiResponse(
                 response={
-                    "project_id": "100",
-                    "project_name": "Amaterasu",
-                    "start_date": "9/7/2017",
-                    "end_date": "N/A",
-                    "history": [
-                        {
-                            "active_devs": 5.0,
-                            "num_commits": 332.0,
-                            "num_files": 239.0,
-                            "num_emails": 4.0,
-                            "c_percentage": 0.7620481927710844,
-                            "e_percentage": 0.5,
-                            "inactive_c": 0.2,
-                            "inactive_e": 0.0,
-                            "c_nodes": 2.0,
-                            "c_edges": 1.0,
-                            "c_c_coef": 0.0,
-                            "c_mean_degree": 1.0,
-                            "c_long_tail": 0.0,
-                            "e_nodes": 3.0,
-                            "e_edges": 2.0,
-                            "e_c_coef": 0.0,
-                            "e_mean_degree": 1.3333333333333333,
-                            "e_long_tail": 1.0
-                        },
-                        {
-                            "active_devs": 11.0,
-                            "num_commits": 365.0,
-                            "num_files": 200.0,
-                            "num_emails": 58.0,
-                            "c_percentage": 0.8246575342465754,
-                            "e_percentage": 0.3448275862068966,
-                            "inactive_c": 0.3928571428571428,
-                            "inactive_e": 0.1785714285714285,
-                            "c_nodes": 2.0,
-                            "c_edges": 1.0,
-                            "c_c_coef": 0.0,
-                            "c_mean_degree": 1.0,
-                            "c_long_tail": 0.0,
-                            "e_nodes": 10.0,
-                            "e_edges": 14.0,
-                            "e_c_coef": 0.2866666666666666,
-                            "e_mean_degree": 2.8,
-                            "e_long_tail": 5.0
-                        }
-                    ]
+                "project_id": "50",
+                "project_name": "Accumulo",
+                "num_months": 7,
+                "start_date": "9/12/2011",
+                "end_date": "3/21/2012",
+                "history": [
+                    {
+                    "month": 1,
+                    "active_devs": 18,
+                    "num_commits": 25,
+                    "num_files": 19,
+                    "num_emails": 120,
+                    "c_percentage": 0.68,
+                    "e_percentage": 0.4333333333333333,
+                    "inactive_c": 0.4285714285714285,
+                    "inactive_e": 0.2592592592592592,
+                    "c_nodes": 3,
+                    "c_edges": 2,
+                    "c_c_coef": 0,
+                    "c_mean_degree": 1.3333333333333333,
+                    "c_long_tail": 1,
+                    "e_nodes": 15,
+                    "e_edges": 39,
+                    "e_c_coef": 0.5930735930735931,
+                    "e_mean_degree": 5.2,
+                    "e_long_tail": 9
+                    },
+                    {
+                    "month": 2,
+                    "active_devs": 34,
+                    "num_commits": 3560,
+                    "num_files": 1239,
+                    "num_emails": 683,
+                    "c_percentage": 0.6050561797752809,
+                    "e_percentage": 0.5973645680819912,
+                    "inactive_c": 0.1034482758620689,
+                    "inactive_e": 0.0344827586206896,
+                    "c_nodes": 5,
+                    "c_edges": 7,
+                    "c_c_coef": 0.7,
+                    "c_mean_degree": 2.8,
+                    "c_long_tail": 4,
+                    "e_nodes": 36,
+                    "e_edges": 91,
+                    "e_c_coef": 0.5127550406059178,
+                    "e_mean_degree": 5.055555555555555,
+                    "e_long_tail": 7
+                    }
+                ]
                 },
                 description="Successfully retrieved the historical data for the project."
             ),
@@ -999,53 +1002,56 @@ class HistoricalDataView(APIView):
             OpenApiExample(
                 'Valid Response Example',
                 value={
-                    "project_id": "100",
-                    "project_name": "EasyAnt",
-                    "start_date": "1/31/2011",
-                    "end_date": "3/12/2013",
-                    "history": [
-                        {
-                        "active_devs": 5,
-                        "num_commits": 332,
-                        "num_files": 239,
-                        "num_emails": 4,
-                        "c_percentage": 0.7620481927710844,
-                        "e_percentage": 0.5,
-                        "inactive_c": 0.2,
-                        "inactive_e": 0,
-                        "c_nodes": 2,
-                        "c_edges": 1,
-                        "c_c_coef": 0,
-                        "c_mean_degree": 1,
-                        "c_long_tail": 0,
-                        "e_nodes": 3,
-                        "e_edges": 2,
-                        "e_c_coef": 0,
-                        "e_mean_degree": 1.3333333333333333,
-                        "e_long_tail": 1
-                        },
-                        {
-                        "active_devs": 11,
-                        "num_commits": 365,
-                        "num_files": 200,
-                        "num_emails": 58,
-                        "c_percentage": 0.8246575342465754,
-                        "e_percentage": 0.3448275862068966,
-                        "inactive_c": 0.3928571428571428,
-                        "inactive_e": 0.1785714285714285,
-                        "c_nodes": 2,
-                        "c_edges": 1,
-                        "c_c_coef": 0,
-                        "c_mean_degree": 1,
-                        "c_long_tail": 0,
-                        "e_nodes": 10,
-                        "e_edges": 14,
-                        "e_c_coef": 0.2866666666666666,
-                        "e_mean_degree": 2.8,
-                        "e_long_tail": 5
-                        }
-                    ]
+                "project_id": "50",
+                "project_name": "Accumulo",
+                "num_months": 7,
+                "start_date": "9/12/2011",
+                "end_date": "3/21/2012",
+                "history": [
+                    {
+                    "month": 1,
+                    "active_devs": 18,
+                    "num_commits": 25,
+                    "num_files": 19,
+                    "num_emails": 120,
+                    "c_percentage": 0.68,
+                    "e_percentage": 0.4333333333333333,
+                    "inactive_c": 0.4285714285714285,
+                    "inactive_e": 0.2592592592592592,
+                    "c_nodes": 3,
+                    "c_edges": 2,
+                    "c_c_coef": 0,
+                    "c_mean_degree": 1.3333333333333333,
+                    "c_long_tail": 1,
+                    "e_nodes": 15,
+                    "e_edges": 39,
+                    "e_c_coef": 0.5930735930735931,
+                    "e_mean_degree": 5.2,
+                    "e_long_tail": 9
+                    },
+                    {
+                    "month": 2,
+                    "active_devs": 34,
+                    "num_commits": 3560,
+                    "num_files": 1239,
+                    "num_emails": 683,
+                    "c_percentage": 0.6050561797752809,
+                    "e_percentage": 0.5973645680819912,
+                    "inactive_c": 0.1034482758620689,
+                    "inactive_e": 0.0344827586206896,
+                    "c_nodes": 5,
+                    "c_edges": 7,
+                    "c_c_coef": 0.7,
+                    "c_mean_degree": 2.8,
+                    "c_long_tail": 4,
+                    "e_nodes": 36,
+                    "e_edges": 91,
+                    "e_c_coef": 0.5127550406059178,
+                    "e_mean_degree": 5.055555555555555,
+                    "e_long_tail": 7
                     }
+                ]
+                }
             ),
             OpenApiExample(
                 'Error Response Example (Project data not found)',
@@ -1139,7 +1145,7 @@ class HistoricalDataView(APIView):
         
         # Filter fields if requested
         filtered_history = []
-        for month in project_history.get("history", []):
+        for month in project_history.get("history", [])[:num_months]:
             if requested_fields:
                 # Ensure only existing fields are returned
                 filtered_entry = {field: month.get(field.strip(), None) for field in requested_fields}
@@ -1178,33 +1184,58 @@ class ProjectPredictionHistoryView(APIView):
         responses={
             200: OpenApiResponse(
                 response={
-                    "project_id": "100",
-                    "project_name": "Amaterasu",
-                    "start_date": "9/7/2017",
-                    "end_date": "N/A",
+                "project_id": "50",
+                "project_name": "Accumulo",
+                "start_date": "9/12/2011",
+                "end_date": "3/21/2012",
+                "status": 1,
+                "pj_github_url": "https://github.com/apache/Accumulo",
+                "intro": "Accumulo is a distributed key/value store that provides expressive, cell-level access labels.\n\t\t \n\t   ",
+                "sponsor": "Incubator\n\t\t \n\t   ",
+                "prediction_history": [
+                    {
+                    "month": 1,
                     "status": 1,
-                    "pj_github_url": "https://github.com/apache/incubator-Amaterasu",
-                    "intro": "Apache Amaterasu is a framework providing continuous deployment for Big Data pipelines.",
-                    "prediction_history": [
-                        {
-                            "month_1": {
-                                "prediction": 1,
-                                "confidence": 0.9411842823028564
-                            }
-                        },
-                        {
-                            "month_2": {
-                                "prediction": 1,
-                                "confidence": 0.9950122237205505
-                            }
-                        },
-                        {
-                            "month_3": {
-                                "prediction": 0,
-                                "confidence": 0.5624575614929199
-                            }
-                        }
-                    ]
+                    "confidence_score": 0.7865134477615356,
+                    "p_grad": 0.7865134477615356
+                    },
+                    {
+                    "month": 2,
+                    "status": 0,
+                    "confidence_score": 0.5928004384040833,
+                    "p_grad": 0.40719956159591675
+                    },
+                    {
+                    "month": 3,
+                    "status": 0,
+                    "confidence_score": 0.819766640663147,
+                    "p_grad": 0.18023335933685303
+                    },
+                    {
+                    "month": 4,
+                    "status": 0,
+                    "confidence_score": 0.7056593894958496,
+                    "p_grad": 0.2943406105041504
+                    },
+                    {
+                    "month": 5,
+                    "status": 0,
+                    "confidence_score": 0.6468229293823242,
+                    "p_grad": 0.3531770706176758
+                    },
+                    {
+                    "month": 6,
+                    "status": 1,
+                    "confidence_score": 0.7349510788917542,
+                    "p_grad": 0.7349510788917542
+                    },
+                    {
+                    "month": 7,
+                    "status": 1,
+                    "confidence_score": 0.9142265319824219,
+                    "p_grad": 0.9142265319824219
+                    }
+                ]
                 },
                 description="Successfully retrieved the project details and prediction history."
             ),
@@ -1225,180 +1256,59 @@ class ProjectPredictionHistoryView(APIView):
             OpenApiExample(
                 'Valid Response Example',
                 value={
-                        "project_id": "100",
-                        "project_name": "EasyAnt",
-                        "start_date": "1/31/2011",
-                        "end_date": "3/12/2013",
-                        "status": 1,
-                        "pj_github_url": "https://github.com/apache/EasyAnt",
-                        "intro": "Easyant is a build system based on Apache Ant and Apache Ivy.\n\t\t \n\t   ",
-                        "sponsor": "Ant\n\t\t\n\t\t(Antoine LÃ©vy-Lambert)\n\t\t \n\t   ",
-                        "prediction_history": [
-                            {
-                            "month_1": {
-                                "prediction": 1,
-                                "confidence": 0.9411842823028564
-                            }
-                            },
-                            {
-                            "month_2": {
-                                "prediction": 1,
-                                "confidence": 0.9950122237205505
-                            }
-                            },
-                            {
-                            "month_3": {
-                                "prediction": 0,
-                                "confidence": 0.5624575614929199
-                            }
-                            },
-                            {
-                            "month_4": {
-                                "prediction": 1,
-                                "confidence": 0.9995812773704529
-                            }
-                            },
-                            {
-                            "month_5": {
-                                "prediction": 1,
-                                "confidence": 0.9994428753852844
-                            }
-                            },
-                            {
-                            "month_6": {
-                                "prediction": 1,
-                                "confidence": 0.9999662637710571
-                            }
-                            },
-                            {
-                            "month_7": {
-                                "prediction": 0,
-                                "confidence": 0.6313105225563049
-                            }
-                            },
-                            {
-                            "month_8": {
-                                "prediction": 0,
-                                "confidence": 0.999987006187439
-                            }
-                            },
-                            {
-                            "month_9": {
-                                "prediction": 0,
-                                "confidence": 0.8933027982711792
-                            }
-                            },
-                            {
-                            "month_10": {
-                                "prediction": 0,
-                                "confidence": 0.9999877214431763
-                            }
-                            },
-                            {
-                            "month_11": {
-                                "prediction": 1,
-                                "confidence": 0.9999721050262451
-                            }
-                            },
-                            {
-                            "month_12": {
-                                "prediction": 1,
-                                "confidence": 1
-                            }
-                            },
-                            {
-                            "month_13": {
-                                "prediction": 1,
-                                "confidence": 1
-                            }
-                            },
-                            {
-                            "month_14": {
-                                "prediction": 1,
-                                "confidence": 1
-                            }
-                            },
-                            {
-                            "month_15": {
-                                "prediction": 1,
-                                "confidence": 1
-                            }
-                            },
-                            {
-                            "month_16": {
-                                "prediction": 1,
-                                "confidence": 0.9999998807907104
-                            }
-                            },
-                            {
-                            "month_17": {
-                                "prediction": 1,
-                                "confidence": 0.9999997615814209
-                            }
-                            },
-                            {
-                            "month_18": {
-                                "prediction": 1,
-                                "confidence": 0.9997956156730652
-                            }
-                            },
-                            {
-                            "month_19": {
-                                "prediction": 1,
-                                "confidence": 1
-                            }
-                            },
-                            {
-                            "month_20": {
-                                "prediction": 1,
-                                "confidence": 0.9999998807907104
-                            }
-                            },
-                            {
-                            "month_21": {
-                                "prediction": 1,
-                                "confidence": 0.9999997615814209
-                            }
-                            },
-                            {
-                            "month_22": {
-                                "prediction": 1,
-                                "confidence": 0.9999529123306274
-                            }
-                            },
-                            {
-                            "month_23": {
-                                "prediction": 1,
-                                "confidence": 0.9999995231628418
-                            }
-                            },
-                            {
-                            "month_24": {
-                                "prediction": 1,
-                                "confidence": 0.9999923706054688
-                            }
-                            },
-                            {
-                            "month_25": {
-                                "prediction": 1,
-                                "confidence": 0.9999949932098389
-                            }
-                            },
-                            {
-                            "month_26": {
-                                "prediction": 1,
-                                "confidence": 0.9999703168869019
-                            }
-                            },
-                            {
-                            "month_27": {
-                                "prediction": 1,
-                                "confidence": 0.9999560117721558
-                            }
-                            }
-                        ]
-                        }
-            ),
+                "project_id": "50",
+                "project_name": "Accumulo",
+                "start_date": "9/12/2011",
+                "end_date": "3/21/2012",
+                "status": 1,
+                "pj_github_url": "https://github.com/apache/Accumulo",
+                "intro": "Accumulo is a distributed key/value store that provides expressive, cell-level access labels.\n\t\t \n\t   ",
+                "sponsor": "Incubator\n\t\t \n\t   ",
+                "prediction_history": [
+                    {
+                    "month": 1,
+                    "status": 1,
+                    "confidence_score": 0.7865134477615356,
+                    "p_grad": 0.7865134477615356
+                    },
+                    {
+                    "month": 2,
+                    "status": 0,
+                    "confidence_score": 0.5928004384040833,
+                    "p_grad": 0.40719956159591675
+                    },
+                    {
+                    "month": 3,
+                    "status": 0,
+                    "confidence_score": 0.819766640663147,
+                    "p_grad": 0.18023335933685303
+                    },
+                    {
+                    "month": 4,
+                    "status": 0,
+                    "confidence_score": 0.7056593894958496,
+                    "p_grad": 0.2943406105041504
+                    },
+                    {
+                    "month": 5,
+                    "status": 0,
+                    "confidence_score": 0.6468229293823242,
+                    "p_grad": 0.3531770706176758
+                    },
+                    {
+                    "month": 6,
+                    "status": 1,
+                    "confidence_score": 0.7349510788917542,
+                    "p_grad": 0.7349510788917542
+                    },
+                    {
+                    "month": 7,
+                    "status": 1,
+                    "confidence_score": 0.9142265319824219,
+                    "p_grad": 0.9142265319824219
+                    }
+                ]
+                }           ),
             OpenApiExample(
                 'Error Response Example (Missing project_id)',
                 value={
@@ -1481,202 +1391,6 @@ class ProjectPredictionHistoryView(APIView):
             return Response({"error": "Failed to load project data or prediction history", "details": str(e)}, status=500)
 
 
-# class SimulateWithDeltasView(APIView):
-#     @extend_schema(
-#         summary="Simulate Sustainability with Feature Changes",
-#         description="""
-#             This endpoint modifies only the specified features by user while backfilling 
-#             the rest of the historical data from the project's existing history.
-#             It includes percentage changes and explicit value changes for specific features.
-#         """,
-#         request=FeatureChangeRequestSerializer,
-#         responses={
-#             200: OpenApiResponse(
-#                 response={
-#                     "project_id": "200",
-#                     "predicted_status": "Sustainable",
-#                     "confidence_score": 0.92,
-#                     "modified_features": [
-#                         {"feature_name": "num_commits", "change_type": "percentage", "change_value": 20},
-#                         {"feature_name": "num_files", "change_type": "explicit", "change_values": [100, 120, 150]}
-#                     ]
-#                 },
-#                 description="Successfully simulated project sustainability with specified feature changes."
-#             ),
-#             400: OpenApiResponse(
-#                 response={"error": "Invalid input"},
-#                 description="Returned when the input parameters are missing, malformed, or invalid."
-#             ),
-#             404: OpenApiResponse(
-#                 response={"error": "Project not found"},
-#                 description="Returned when no historical data exists for the given project ID."
-#             ),
-#             500: OpenApiResponse(
-#                 response={"error": "Failed to process the simulation"},
-#                 description="Returned when an internal server error occurs during processing."
-#             )
-#         },
-#         examples=[
-#             OpenApiExample(
-#                 name="Valid Request Example (Percentage Change)",
-#                 description="An example where num_commits increases by 20% and num_files is explicitly set for 3 months.",
-#                 value={
-#                     "project_id": "200",
-#                     "feature_changes": [
-#                         {
-#                             "feature_name": "num_commits",
-#                             "change_type": "percentage",
-#                             "change_value": 20
-#                         },
-#                         {
-#                             "feature_name": "num_files",
-#                             "change_type": "explicit",
-#                             "change_values": [100, 120, 150]
-#                         }
-#                     ]
-#                 },
-#                 request_only=True
-#             ),
-#             OpenApiExample(
-#                 name="Successful Response Example",
-#                 description="Example of a successful response.",
-#                 value={
-#                     "project_id": "200",
-#                     "predicted_status": "Sustainable",
-#                     "confidence_score": 0.92,
-#                     "modified_features": [
-#                         {"feature_name": "num_commits", "change_type": "percentage", "change_value": 20},
-#                         {"feature_name": "num_files", "change_type": "explicit", "change_values": [100, 120, 150]}
-#                     ]
-#                 },
-#                 response_only=True
-#             ),
-#             OpenApiExample(
-#                 name="Error Example - Missing Project ID",
-#                 description="Returned when the project ID is not provided in the request.",
-#                 value={"error": "project_id is required"},
-#                 response_only=True
-#             ),
-#             OpenApiExample(
-#                 name="Error Example - Invalid Feature Change",
-#                 description="Returned when the feature change format is invalid or incomplete.",
-#                 value={
-#                     "error": "Invalid feature change format",
-#                     "details": {
-#                         "feature_changes": [
-#                             "Each feature change must include feature_name, change_type, and either change_value or change_values."
-#                         ]
-#                     }
-#                 },
-#                 response_only=True
-#             )
-#         ]
-#     )  
-#     def post(self, request):
-#         print("🚨 RAW request body BEFORE anything:")
-#         print(request.body.decode("utf-8"))
-#         project_id = request.data.get("project_id")
-#         feature_changes = request.data.get("feature_changes")
-
-#         print("🚨 Parsed request.data from Django:")
-#         print(json.dumps(request.data, indent=4))
-
-#         if not project_id or not feature_changes:
-#             return Response({"error": "project_id and feature_changes are required"}, status=400)
-
-#         # Validate Feature Changes
-#         serializer = MonthlyFeatureChangesSerializer(data=feature_changes, many=True)
-#         if not serializer.is_valid():
-#             return Response({"error": "Invalid feature change format", "details": serializer.errors}, status=400)
-
-#         # # Fetch all available history for project_id
-#         # available_months = []
-#         # for folder in os.listdir(TEMPORAL_DATA_DIR):
-#         #     if folder.startswith("N_"):
-#         #         num_months = int(folder.split("_")[1])  # Extract number from "N_X"
-#         #         project_data_path = os.path.join(TEMPORAL_DATA_DIR, folder, f"{project_id}.json")
-#         #         if os.path.exists(project_data_path):
-#         #             available_months.append(num_months)
-
-#         # if not available_months:
-#         #     return Response({"error": f"No historical data found for project {project_id}"}, status=404)
-
-#         project_data_path = os.path.join(TEMPORAL_DATA_DIR, f"{project_id}.json")
-
-#         # Load historical project data
-#         try:
-#             with open(project_data_path, "r", encoding="utf-8") as file:
-#                 project_history = json.load(file)
-#         except Exception as e:
-#             return Response({"error": "Failed to load project history", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-#         max_months = project_history.get("num_months", 0)
-#         # best_data_path = os.path.join(TEMPORAL_DATA_DIR, f"N_{max_months}", f"{project_id}.json")
-        
-#         # Limit viable projects to those with 8 or more months of data
-#         # if max_months < 8:
-#         #     return Response({
-#         #         "error": "Insufficient historical data", 
-#         #         "details": f"At least 8 months of data required. Project {project_id} has : {max_months} months of data"
-#         #     }, status=400)
-            
-#         print(f"Using data from: {project_data_path}")
-
-#         cache_key = f"history_{project_id}_{max_months}"
-#         cache.delete(cache_key)
-#         cache.clear()
-
-#         # try:
-#         #     with open(best_data_path, "r", encoding="utf-8") as file:
-#         #         historical_data = json.load(file)
-#         # except Exception as e:
-#         #     return Response({"error": "Failed to load project history", "details": str(e)}, status=500)
-
-#         # print(f"\n🔍 RAW Historical Data BEFORE Modification for project {project_id}:\n{json.dumps(project_history['history'], indent=4)}\n")
-
-#         # print(f"Feature Changes Request: {json.dumps(feature_changes, indent=4)}")
-
-#         modified_history = []
-#         for i, month_data in enumerate(project_history["history"]):
-#             modified_data = month_data.copy()
-
-#             # Apply Feature Changes
-#             for change in feature_changes:
-#                 feature = change['feature_name']
-#                 change_type = change['change_type']
-
-#                 # if feature in modified_data:
-#                 #     print(f"📌 Modifying {feature} from {modified_data[feature]} with {change['change_type']} {change.get('change_value', change.get('change_values'))}")
-
-
-#                 if change_type == "percentage":
-#                     if feature in modified_data:
-#                         modified_data[feature] *= (1 + change['change_value'] / 100.0)
-#                 elif change_type == "explicit":
-#                     if 'change_values' in change and i < len(change['change_values']):
-#                         modified_data[feature] = change['change_values'][i]
-
-#             modified_history.append(modified_data)
-
-#         # Prints Exact Data Passed to Model
-#         # print(f"\nFinal Model Input Data for project {project_id}:\n{json.dumps(modified_history, indent=4)}\n")
-
-         
-#         # Single model path for 8-month prediction
-#         model_path = os.path.join(MODEL_DIR, "lstm_wo_padding_model.h5")
-#         if not os.path.exists(model_path):
-#             return Response({"error": f"No model available for {max_months} months"}, status=400)
-
-#         predictions= predict(modified_history, model_path)
-#         # status = "Sustainable (Likely to Graduate)" if predicted_class == 1 else "Not Sustainable (Likely to Retire)"
-
-#         # Prepare Response
-#         response_data = {
-#             "project_id": project_id,
-#             "predictions": predictions
-#         }
-
-#         return Response(response_data, status=200)
 
     
     
@@ -1688,17 +1402,19 @@ class SimulateWithDeltasView(APIView):
         description="""
             This endpoint modifies only the specified features by user while backfilling 
             the rest of the historical data from the project's existing history.
-            It includes monthly feature changes for specific months.
+            It includes monthly feature changes for specific months.And returns the 
+            predicted status and confidence score for each month.
         """,
         request=FeatureChangeRequestSerializer,
         responses={
             200: OpenApiResponse(
                 response={
-                    "project_id": "200",
-                    "predictions": {
-                        "month_1": {"prediction": 1, "confidence": 0.92},
-                        "month_2": {"prediction": 1, "confidence": 0.88}
-                    }
+                    "project_id": "50",
+                    "predictions": [
+                        {"month": 1,"status": 1,"confidence_score": 0.6548473834991455,"p_grad": 0.6548473834991455},
+                        {"month": 2,"status": 0,"confidence_score": 0.6758034825325012,"p_grad": 0.3241965174674988}
+                    ]
+                    
                 },
                 description="Successfully simulated project sustainability with specified feature changes."
             ),
@@ -1720,7 +1436,7 @@ class SimulateWithDeltasView(APIView):
                 name="Valid Request Example (Monthly Changes)",
                 description="An example where specific features are modified for months 1 and 3.",
                 value={
-                    "project_id": "200",
+                    "project_id": "50",
                     "deltas": [
                         {
                             "months": [1, 3],
@@ -1811,14 +1527,14 @@ class SimulateWithDeltasView(APIView):
         ]
     )  
     def post(self, request):
-        print("🚨 RAW request body BEFORE anything:")
-        print(request.body.decode("utf-8"))
+        # print("🚨 RAW request body BEFORE anything:")
+        # print(request.body.decode("utf-8"))
         
         project_id = request.data.get("project_id")
         monthly_changes = request.data.get("deltas")
 
-        print("🚨 Parsed request.data from Django:")
-        print(json.dumps(request.data, indent=4))
+        # print("🚨 Parsed request.data from Django:")
+        # print(json.dumps(request.data, indent=4))
 
         if not project_id or not monthly_changes:
             return Response({"error": "project_id and monthly_changes are required"}, status=400)
@@ -1859,6 +1575,18 @@ class SimulateWithDeltasView(APIView):
         # Create a copy of the original history to modify
         # modified_history = [month_data.copy() for month_data in project_history["history"]]
         modified_history = project_history["history"]
+        
+        
+        # Find the lowest month with changes
+        all_months_to_modify = []
+        for monthly_change in monthly_changes:
+            all_months_to_modify.extend(monthly_change.get("months", []))
+        
+        min_month_with_changes = min(all_months_to_modify) if all_months_to_modify else 1
+        # Convert to 0-indexed for internal use
+        start_month_idx = min_month_with_changes - 1
+        print(f"Starting predictions from month {min_month_with_changes} (0-indexed: {start_month_idx})")
+    
         
         # Apply monthly changes
         for monthly_change in monthly_changes:
@@ -1904,13 +1632,42 @@ class SimulateWithDeltasView(APIView):
         if not os.path.exists(model_path):
             return Response({"error": f"Model does not exist"}, status=400)
 
-        # Make predictions
-        predictions = predict(modified_history, model_path)
+        historical_predictions = []
+        if start_month_idx > 0:  # Only fetch if we're starting predictions from a month > 1
+            try:
+                # Fetch the prediction history from project_predictions.json
+                with open(PROJECT_PREDICTIONS_FILE, 'r') as f:
+                    predictions_data = json.load(f)
+                
+                # Get prediction history for the project from predictions file
+                all_project_predictions = predictions_data.get(project_id, [])
+                
+                # Filter for only the months before our start month
+                historical_predictions = [
+                    pred for pred in all_project_predictions 
+                    if pred.get("month", 0) < min_month_with_changes
+                ]
+                
+                print(f"Fetched {len(historical_predictions)} historical predictions for months before {min_month_with_changes}")
+            except FileNotFoundError:
+                print(f"No prediction history file found at {PROJECT_PREDICTIONS_FILE}")
+            except Exception as e:
+                print(f"Error fetching prediction history: {str(e)}")
+        
+        # Make predictions starting from the lowest month with changes
+        new_predictions = predict(modified_history, model_path, start_month_idx)
+        
+        # Combine historical predictions with new predictions
+        combined_predictions = historical_predictions + new_predictions
+        
+        # Sort by month to ensure order
+        combined_predictions.sort(key=lambda x: x.get("month", 0))
         
         # Prepare Response
         response_data = {
             "project_id": project_id,
-            "predictions": predictions
+            "predictions": combined_predictions
         }
-
+        
+        
         return Response(response_data, status=200)

@@ -46,8 +46,8 @@ export const FEATURE_TYPES = new Map(
     c_percentage: 'FLOAT',
     e_percentage: 'FLOAT',
     // Activity continuity
-    inactive_c: 'INTEGER',
-    inactive_e: 'INTEGER',
+    inactive_c: 'FLOAT',
+    inactive_e: 'FLOAT',
     // Commit network
     c_nodes: 'INTEGER',
     c_edges: 'INTEGER',

@@ -6,13 +6,23 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
-import Tooltip from '@mui/material/Tooltip';
+import { styled } from '@mui/material/styles';
+import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import { isEmpty } from 'lodash';
 import React, { useState } from 'react';
 import {
   useSimulation,
   useSimulationDispatch,
 } from '../context/SimulationContext';
+
+const StyledTooltip = styled(({ className, ...props }) => (
+  <Tooltip disableInteractive {...props} classes={{ popper: className }} />
+))(({ theme }) => ({
+  [`& .${tooltipClasses.tooltip}`]: {
+    boxShadow: theme.shadows[1],
+    fontSize: 13,
+  },
+}));
 
 function DeltaSelector() {
   // Local state
@@ -93,8 +103,14 @@ function DeltaSelector() {
       </Typography>
       <FormControl disabled={isEmpty(startMonths)} size="small">
         <InputLabel id="start-label">Start</InputLabel>
-        <Tooltip
-          title={isEmpty(startMonths) ? 'No more months to simulate.' : ''}
+        <StyledTooltip
+          title={
+            !simContext.selectedProject?.project_id
+              ? 'No project selected'
+              : isEmpty(startMonths)
+                ? 'No more months to simulate.'
+                : ''
+          }
         >
           <Select
             label="Start"
@@ -105,18 +121,20 @@ function DeltaSelector() {
           >
             {startDropdownItems}
           </Select>
-        </Tooltip>
+        </StyledTooltip>
       </FormControl>
       <Divider flexItem orientation="vertical" variant="middle" />
       <FormControl disabled={selectorState.startMonth === ''} size="small">
         <InputLabel id="end-label">End</InputLabel>
-        <Tooltip
+        <StyledTooltip
           title={
-            isEmpty(startMonths)
-              ? 'No more months to simulate.'
-              : selectorState.startMonth === ''
-                ? 'Select a start month first.'
-                : ''
+            !simContext.selectedProject?.project_id
+              ? 'No project selected.'
+              : isEmpty(startMonths)
+                ? 'No more months to simulate.'
+                : selectorState.startMonth === ''
+                  ? 'Select a start month first.'
+                  : ''
           }
         >
           <Select
@@ -128,7 +146,7 @@ function DeltaSelector() {
           >
             {endDropdownItems}
           </Select>
-        </Tooltip>
+        </StyledTooltip>
       </FormControl>
       <IconButton
         disabled={selectorState.endMonth === ''}
