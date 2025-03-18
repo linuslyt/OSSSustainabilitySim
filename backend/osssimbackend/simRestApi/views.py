@@ -788,7 +788,7 @@ class PredictOSSSustainabilityView(APIView):
             return Response({"error": "Invalid project ID"}, status=404)
         
         # Single model path for 8-month prediction
-        model_path = os.path.join(MODEL_DIR, "lstm_wo_padding_model.h5")
+        model_path = os.path.join(MODEL_DIR, "modelWeighted_8.h5")
         # model_path = os.path.join(MODEL_DIR, "model_8.h5")
         if not os.path.exists(model_path):
             return Response({"error": "LSTM model not found"}, status=500)
