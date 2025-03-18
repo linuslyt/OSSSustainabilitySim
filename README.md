@@ -2,14 +2,15 @@
 
 OSSSustainabilitySim is a simulation framework designed to visualize the effects changes to socio-technical features have on sustainability forecasts for  open-source software projects. This project builds on the work presented in the paper [Forecasting the Sustainability of Open Source Software Projects](https://www.cs.ucdavis.edu/~filkov/papers/oss_sustain_forecast.pdf) by Yin et al.
 
+![Dashboard sample image](images/demo.png)
+
 ## Project Structure
 
 The project is organized into three main directories: `ml`, `backend`, and `frontend`.
 
 ### `ml` Directory
 
-The `ml` directory contains scripts and data related to machine learning tasks. These tasks include data extraction, historical data generation, and prediction generation for open-source software projects. 
-
+The `ml` directory contains scripts and data related to machine learning tasks. These tasks include data extraction, historical data generation, and prediction generation for open-source software projects.
 
 ### `backend` Directory
 
@@ -17,38 +18,25 @@ The `backend` directory contains the server-side code for the simulation framewo
 
 ### `frontend` Directory
 
-The `frontend` directory contains the client-side code for the simulation framework. This includes the user interface and related assets. 
+The `frontend` directory contains the client-side code for the simulation framework. This includes the user interface and related assets.
 
 ## Getting Started
 
-To get started with the project, follow these steps:
+To set up the simulation server and dashboard, follow these steps:
 
 1. Clone the repository.
-2. Set up the virtual environment for the backend.(details in the backend readme file)
-3. Install the necessary dependencies for both the backend and frontend. (details in the frontend readme file)
-4. Run the backend server. (details in the backend readme file)
-5. Run the frontend development server. (details in the frontend readme file)
+2. Build backend Docker images using with recommended setup in `backend/README.md`.
+3. Build frontend: `cd frontend && npm install`
+4. Start the server with `docker-compose up` from `backend/osssimbackend`.
+5. Start the dashboard with `npm run dev` from the `frontend/` directory.
+6. Access the frontend dashboard at `localhost:5173`. To test out the API, you can use the Swagger UI at `http://127.0.0.1:8000/api/schema/swagger-ui/`.
 
+## Usage
 
-## Usage 
-
-The simulation framework features an intuitive frontend that is seamlessly integrated with the backend to perform project sustainability simulation. 
-
-### Example Simulation
-
-Below is an example of the simulation output:
-
-![Simulation Example](images/simulation_page.png)
-
-The User interface interface features:
-
-- A dropdown on the top left corner that allows you to select a project to visualize and do sustainability prediction simulations on. Once a project is selected, the simulation page is populated with its information along with its original historical prediction graph as shown above in the top right corner with the orange line graph.
-
-- A simulation pane on the bottom left corner, that allows you to make modifications to various socio-technical features for simulation. It has a range selector that allows to customize which months one may want to modify data for. You can modify the feature values but specifying an explicit value or a percentage value. It also has a button that allows you apply a percentage change to a feature in a month to the same feature in other months in the specified range. All these options allows for easy specification of changes for simulation. 
-
-- It also has a graph to visualize changes being made to num_commits feature on the  bottom right corner. 
-
+Frontend usage instructions can be found in `frontend/README.md`.
 
 ## Acknowledgments
 
-This project builds on the work presented in the paper [Forecasting the Sustainability of Open Source Software Projects](https://www.cs.ucdavis.edu/~filkov/papers/oss_sustain_forecast.pdf) by Vladimir Filkov et al.
+This project was created as a quarter-long course project for ECS 260 at UC Davis, Winter 2025. Project topic and guidance was provided by Professor Vladimir Filkov (<vfilkov@ucdavis.edu>) and by TA Nafiz Imtiaz Khan (<nikhan@ucdavis.edu>).
+
+This project builds on the work presented in the paper [Forecasting the Sustainability of Open Source Software Projects](https://www.cs.ucdavis.edu/~filkov/papers/oss_sustain_forecast.pdf) by Yin et al. The artifacts for the paper can be found here: <https://zenodo.org/records/4564072>
