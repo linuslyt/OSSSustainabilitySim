@@ -117,7 +117,7 @@ function simulationReducer(prev, action) {
         startMonth,
         endMonth,
       };
-      const newChangedMonths = prev.simulationData.changedMonths;
+      const newChangedMonths = new Set(prev.simulationData.changedMonths);
       for (let i = startMonth; i <= endMonth; i++) {
         newChangedMonths.add(i);
       }
@@ -219,6 +219,9 @@ function simulationReducer(prev, action) {
       };
     }
     case 'set_simulation_results': {
+      console.log(
+        `Simulated changes to project ${prev.selectedProjectData.id}.`,
+      );
       console.log(
         'Original predictions:',
         prev.selectedProjectData.predictions,
