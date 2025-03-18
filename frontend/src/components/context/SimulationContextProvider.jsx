@@ -220,6 +220,9 @@ function simulationReducer(prev, action) {
     }
     case 'set_simulation_results': {
       console.log(
+        `Simulated changes to project ${prev.selectedProjectData.id}.`,
+      );
+      console.log(
         'Original predictions:',
         prev.selectedProjectData.predictions,
       );

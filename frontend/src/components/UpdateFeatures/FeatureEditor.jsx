@@ -226,6 +226,7 @@ export default function FeatureEditor() {
           >
             <GridActionsCellItem
               color="inherit"
+              disabled={params.row.value === 0}
               icon={<SouthWestIcon />}
               label="CopyToAllMonthsForFeature"
               onClick={() =>
