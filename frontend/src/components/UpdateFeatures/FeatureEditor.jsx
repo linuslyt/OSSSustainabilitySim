@@ -181,10 +181,10 @@ export default function FeatureEditor() {
           new_value: getNewValueFromPChange(row.feature, row.value, pChange),
         };
       },
-      valueFormatter: (value) => {
+      valueFormatter: (value, row) => {
         // Format percentage for display.
-        return value === null
-          ? ''
+        return value === null || row.value === 0 // row.value = 0 would lead to NaN
+          ? 'N/A'
           : `${value > 0 ? '+' : ''}${value.toLocaleString()} %`;
       },
       preProcessEditCellProps: (params) => {
@@ -295,6 +295,12 @@ export default function FeatureEditor() {
               return 'changed-row';
             }
             return params.indexRelativeToCurrentPage % 2 === 0 ? '' : 'even';
+          }}
+          isCellEditable={(params) => {
+            // Disable editing for pChange when it is NaN
+            if (params.field === 'pChange' && params.row.value === 0)
+              return false;
+            return true;
           }}
           localeText={{
             noRowsLabel:
