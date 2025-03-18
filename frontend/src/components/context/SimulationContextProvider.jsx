@@ -147,13 +147,17 @@ function simulationReducer(prev, action) {
       };
     }
     case 'set_change': {
-      if (action.updatedRow.new_value === action.updatedRow.value) return prev;
       const newChanges = new Map(prev.simulationData.changes);
-      newChanges.set(action.updatedRow.id, {
-        month: action.updatedRow.month,
-        feature: action.updatedRow.feature,
-        new_value: action.updatedRow.new_value,
-      });
+      if (action.updatedRow.new_value === action.updatedRow.value) {
+        // No simulated change. Remove if change was previously saved. Else noop.
+        newChanges.delete(action.updatedRow.id);
+      } else {
+        newChanges.set(action.updatedRow.id, {
+          month: action.updatedRow.month,
+          feature: action.updatedRow.feature,
+          new_value: action.updatedRow.new_value,
+        });
+      }
       return {
         ...prev,
         selectedFeature: {
@@ -219,6 +223,7 @@ function simulationReducer(prev, action) {
         'Original predictions:',
         prev.selectedProjectData.predictions,
       );
+      console.log('Changes to simulate: ', prev.simulationData.changes);
       console.log('Simulation results:', action.data);
       return {
         ...prev,

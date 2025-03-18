@@ -191,12 +191,15 @@ function UpdateFeatures() {
             >
               <IconButton
                 disableElevation
-                disabled={isEmpty(simContext.simulatedPredictions)}
                 size="large"
+                disabled={
+                  isEmpty(simContext.simulatedPredictions) || submitting
+                }
                 sx={{
                   fontFamily: 'inherit',
                   fontWeight: 400,
                   ml: 0.5,
+                  color: 'rgb(23, 114, 204)',
                 }}
                 onClick={() =>
                   simDispatch({ type: 'reset_simulation_results' })
