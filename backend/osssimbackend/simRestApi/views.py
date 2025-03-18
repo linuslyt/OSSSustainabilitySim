@@ -27,7 +27,7 @@ PROJECT_LIST = ['49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59'
 # Path to the JSON file
 ASFI_JSON_FILE_PATH = Path(__file__).parent / 'asfi_project_info/projects_list.json'
 
-PROJECT_PREDICTIONS_FILE = Path(__file__).parent / 'asfi_project_info/historical_project_predictions.json'
+PROJECT_PREDICTIONS_FILE = Path(__file__).parent / 'static_predictions.json'
 
 MODEL_DIR =  Path(__file__).parent / 'lstm_models/' # Directory where models are stored
 
