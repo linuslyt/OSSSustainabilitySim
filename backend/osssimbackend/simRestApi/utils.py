@@ -62,7 +62,7 @@ def predict(history, model_path, start_month_idx=0):
     """
     scaler = MinMaxScaler(feature_range=(-1, 1))  # Use the same scaling as training
     
-    print(history)
+    # print(history)
     
     # Convert history to DataFrame and scale
     df = pd.DataFrame(history)

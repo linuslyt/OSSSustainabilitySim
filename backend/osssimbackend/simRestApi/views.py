@@ -1811,14 +1811,14 @@ class SimulateWithDeltasView(APIView):
         ]
     )  
     def post(self, request):
-        print("🚨 RAW request body BEFORE anything:")
-        print(request.body.decode("utf-8"))
+        # print("🚨 RAW request body BEFORE anything:")
+        # print(request.body.decode("utf-8"))
         
         project_id = request.data.get("project_id")
         monthly_changes = request.data.get("deltas")
 
-        print("🚨 Parsed request.data from Django:")
-        print(json.dumps(request.data, indent=4))
+        # print("🚨 Parsed request.data from Django:")
+        # print(json.dumps(request.data, indent=4))
 
         if not project_id or not monthly_changes:
             return Response({"error": "project_id and monthly_changes are required"}, status=400)
@@ -1881,7 +1881,7 @@ class SimulateWithDeltasView(APIView):
             for month_idx in months_to_modify:
                 # Make sure the month index is valid
                 if 0 <= month_idx <= len(modified_history):
-                    print(f"📅 Modifying month {month_idx}: {modified_history[month_idx-1]}")
+                    # print(f"📅 Modifying month {month_idx}: {modified_history[month_idx-1]}")
                     month_data = modified_history[month_idx-1]
                     
                     # Apply each feature change
@@ -1955,16 +1955,3 @@ class SimulateWithDeltasView(APIView):
         
         
         return Response(response_data, status=200)
-
-        
-        
-        # # Make predictions
-        # predictions = predict(modified_history, model_path)
-        
-        # # Prepare Response
-        # response_data = {
-        #     "project_id": project_id,
-        #     "predictions": predictions
-        # }
-
-        # return Response(response_data, status=200)
