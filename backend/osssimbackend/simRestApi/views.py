@@ -776,12 +776,12 @@ class PredictOSSSustainabilityView(APIView):
             return Response({"error": "Project not used in the study "}, status=404)
         
         # Check if the project has at least 8 months of historical data
-        num_months = len(history)
-        if num_months < 8:
-            return Response({
-                "error": "Insufficient historical data", 
-                "details": f"At least 8 months of data required. Provided: {num_months} months"
-            }, status=400)
+        # num_months = len(history)
+        # if num_months < 8:
+        #     return Response({
+        #         "error": "Insufficient historical data", 
+        #         "details": f"At least 8 months of data required. Provided: {num_months} months"
+        #     }, status=400)
         
         # Validate project ID
         if project_id not in PROJECT_LIST:
