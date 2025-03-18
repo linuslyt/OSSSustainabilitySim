@@ -31,8 +31,7 @@
 
 ## Dashboard usage walkthrough
 
-
-![Usage walkthrough video](https://github.com/user-attachments/assets/b6cf1151-023c-4fe8-a18e-5439b3fd02c3)
+![Usage walkthrough video](https://github.com/user-attachments/assets/b54e7a9e-9eb2-4677-b0db-54f1a21a25ad)
 
 (For a full resolution walkthrough video, see `images/walkthrough.mov`.)
 
