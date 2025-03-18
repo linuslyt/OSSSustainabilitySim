@@ -61,7 +61,7 @@ with open(metrics_path, 'w') as f:
 month_list = list(range(1,30))[::-1]
 for N_TIMESTEPS in tqdm(month_list):
 
-    df = pd.read_csv(os.path.join(grand_parent_dir,'Reformat_data/{}.csv').format(N_TIMESTEPS))
+    df = pd.read_csv(os.path.join(parent_dir,'Reformat_data/{}.csv').format(N_TIMESTEPS))
     df.replace('Graduated', '1', inplace=True) 
     df.replace('Retired', '0', inplace=True) 
     
@@ -115,6 +115,6 @@ with open(metrics_path, 'w') as f:
     for line in lines[1:]:
         month,accuracy,precision,recall,f1 = line.split(',')
         f.write('{},w/ accuracy,{}\n'.format(month,accuracy))
-        # f.write('{},precision,{}\n'.format(month,precision))
-        # f.write('{},recall,{}\n'.format(month,recall))
+        f.write('{},precision,{}\n'.format(month,precision))
+        f.write('{},recall,{}\n'.format(month,recall))
         f.write('{},w/ f1,{}'.format(month,f1))
