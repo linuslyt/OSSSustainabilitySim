@@ -241,7 +241,7 @@ function UpdateFeatures() {
           >
             &#39;% change simulated&#39;
           </Typography>{' '}
-          is rounded to the nearest percentage that changes the (rounded)
+          is rounded to the nearest percentage that changes the rounded
           simulated value.
         </Typography>
       </Box>
